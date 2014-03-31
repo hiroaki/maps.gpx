@@ -12,18 +12,17 @@ body { height: 100%; margin: 0px; padding: 0px }
 <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script type="text/javascript">
 function query_string(){
+    var params = {};
     if( location.search ){
         var pairs = location.search.substring(1).split('&');
-        var params = {};
         for(var i=0, l=pairs.length; i<l; ++i){
             var pair = pairs[i].split('=');
             if( pair[0] ){
                 params[pair[0]] = decodeURIComponent( pair[1] );
             }
         }
-        return params;
     }
-    return null;
+    return params;
 }
 </script>
 <script type="text/javascript">
@@ -37,7 +36,7 @@ function query_string(){
                 return new XMLHttpRequest();
             }
         }catch(e){
-            throw( new Error("couldn't create XmlHttpRequest object.") );
+            throw( new Error("Cannot create XmlHttpRequest object.") );
         }
         return null;
     }
@@ -53,7 +52,7 @@ function query_string(){
             return (new DOMParser()).parseFromString(str, 'text/xml');
         }
     
-        throw( new Error("couldn't parse XML stream.") );
+        throw( new Error("Cannot parse string as XML stream.") );
     }
 
     //-- convert gpx to object
@@ -146,7 +145,7 @@ function query_string(){
                 "trk":[]
                 };
             if( obj.version != '1.1' ){
-                throw( new Error("You must include the version number is 1.1 in your GPX document.") );
+                throw( new Error("Cannot include unsupported version of GPX document.") );
             }
             var nc = node.childNodes;
             for( var i = 0, l = nc.length; i < l; ++i ){
@@ -228,11 +227,12 @@ function query_string(){
         this.initialize.apply(this, arguments);
     }
     App.prototype = {
-        initialize: function (map_id){
+        initialize: function (map_id, options){
             this.map_id = map_id;
+            this.options = options || {};
             this.map_element = document.getElementById(this.map_id);
             if( ! this.map_element ){
-                throw( new Error("couldn't get element by '"+map_id+"'.") );
+                throw( new Error("Cannot get element by '"+map_id+"'.") );
             }
             this.initial_parameter = {
                 "zoom":5,
@@ -250,7 +250,7 @@ function query_string(){
             try{
                 gpx = gpx_to_json( parseXml(xhr.responseText) );
             }catch(e){
-                throw( new Error("catch an exception on parsing url as xml: "+ url +"\nreason: "+ e) );
+                throw( new Error("Catch an exception at import_gpx with "+ url +"\nreason: "+ e) );
             }
             
             // bounds
@@ -289,10 +289,9 @@ function query_string(){
 
     //-- bootstrap
     google.maps.event.addDomListener(window,'load',function (){
-        var app = new App("map_canvas");
-        var q = query_string();
-        if( q && q.gpx ){
-            app.import_gpx(q.gpx);
+        var app = new App("map_canvas", query_string());
+        if( app.options.url ){
+            app.import_gpx(app.options.url);
         }
     });
 
