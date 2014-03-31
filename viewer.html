@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html><head><title>GPX Casual Viewer v3</title>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="content-script-type" content="text/javascript" />
+<meta http-equiv="content-style-type" content="text/css" />
+<style type="text/css">
+html { height: 100% }
+body { height: 100%; margin: 0px; padding: 0px }
+#map_canvas { height: 100% }
+</style>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript">
+function query_string(){
+    if( location.search ){
+        var pairs = location.search.substring(1).split('&');
+        var params = {};
+        for(var i=0, l=pairs.length; i<l; ++i){
+            var pair = pairs[i].split('=');
+            if( pair[0] ){
+                params[pair[0]] = decodeURIComponent( pair[1] );
+            }
+        }
+        return params;
+    }
+    return null;
+}
+</script>
+<script type="text/javascript">
+
+    //-- utils
+    function createXmlHttpRequest(){
+        try{
+            if( typeof ActiveXObject != 'undefined' ){
+                return new ActiveXObject('Microsoft.XMLHTTP');
+            }else if( window["XMLHttpRequest"] ){
+                return new XMLHttpRequest();
+            }
+        }catch(e){
+            throw( new Error("couldn't create XmlHttpRequest object.") );
+        }
+        return null;
+    }
+
+    function parseXml(str){
+        if( typeof ActiveXObject != 'undefined' && typeof GetObject != 'undefined' ){
+            var doc = new ActiveXObject('Microsoft.XMLDOM');
+            doc.loadXML(str);
+            return doc;
+        }
+    
+        if( typeof DOMParser != 'undefined' ){
+            return (new DOMParser()).parseFromString(str, 'text/xml');
+        }
+    
+        throw( new Error("couldn't parse XML stream.") );
+    }
+
+    //-- convert gpx to object
+    function gpx_to_json( xml_document ){
+        var linkType_to_json = function (/*dom node <link>*/node){
+            var obj = {
+                "href":node.getAttribute('href')
+                };
+            var nc = node.childNodes;
+            for( var i = 0, l = nc.length; i < l; ++i ){
+                if( nc[i].firstChild )
+                    obj[nc[i].tagName] = nc[i].firstChild.nodeValue;
+            }
+            return obj;
+        };
+        var wptType_to_json = function (/*dom node <wpt>*/node){
+            var obj = {
+                "lat":node.getAttribute('lat'),
+                "lon":node.getAttribute('lon'),
+                "link":[]
+                };
+            var nc = node.childNodes;
+            for( var i = 0, l = nc.length; i < l; ++i ){
+                var tag = nc[i].tagName;
+                if( tag == 'link' ){
+                    obj["link"].push( linkType_to_json(nc[i]) );
+                }else if( tag != 'extensions' ){
+                    if( nc[i].firstChild )
+                        obj[nc[i].tagName] = nc[i].firstChild.nodeValue;
+                }
+            }
+            return obj;
+        };
+        var rteType_to_json = function (/*dom node <rte>*/node){
+            var obj = {
+                "rtept":[]
+                };
+            var nc = node.childNodes;
+            for( var i = 0, l = nc.length; i < l; ++i ){
+                var tag = nc[i].tagName;
+                if( tag == 'rtept' ){
+                    obj["rtept"].push( wptType_to_json(nc[i]) );
+                }else if( tag != 'extensions' ){
+                    if( nc[i].firstChild )
+                        obj[tag] = nc[i].firstChild.nodeValue;
+                }
+            }
+            return obj;
+        };
+        var trksegType_to_json = function (/*dom node <trkseg>*/node){
+            var obj = {
+                "trkpt":[]
+                };
+            var nc = node.childNodes;
+            for( var i = 0, l = nc.length; i < l; ++i ){
+                var tag = nc[i].tagName;
+                if( tag == 'trkpt' ){
+                    obj["trkpt"].push( wptType_to_json(nc[i]) );
+                }else if( tag != 'extensions' ){
+                    if( nc[i].firstChild )
+                        obj[tag] = nc[i].firstChild.nodeValue;
+                }
+            }
+            return obj;
+        };
+        var trkType_to_json = function (/*dom node <trk>*/node){
+            var obj = {
+                "trkseg":[]
+                };
+            var nc = node.childNodes;
+            for( var i = 0, l = nc.length; i < l; ++i ){
+                var tag = nc[i].tagName;
+                if( tag == 'trkseg' ){
+                    obj["trkseg"].push( trksegType_to_json(nc[i]) );
+                }else if( tag != 'extensions' ){
+                    if( nc[i].firstChild )
+                        obj[tag] = nc[i].firstChild.nodeValue;
+                }
+            }
+            return obj;
+        };
+
+        var gpxType_to_json = function (/*dom node <gpx>*/node){
+            var obj = {
+                "version":node.getAttribute('version'),
+                "creator":node.getAttribute('creator'),
+                "metadata":{},
+                "wpt":[],
+                "rte":[],
+                "trk":[]
+                };
+            if( obj.version != '1.1' ){
+                throw( new Error("You must include the version number is 1.1 in your GPX document.") );
+            }
+            var nc = node.childNodes;
+            for( var i = 0, l = nc.length; i < l; ++i ){
+                var tag = nc[i].tagName;
+                if( tag == 'wpt' ){
+                    obj["wpt"].push( wptType_to_json(nc[i]) );
+                }else if( tag == 'rte' ){
+                    obj["rte"].push( rteType_to_json(nc[i]) );
+                }else if( tag == 'trk' ){
+                    obj["trk"].push( trkType_to_json(nc[i]) );
+                }else if( tag != 'extensions' && tag != 'metadata' ){
+                    if( nc[i].firstChild )
+                        obj[tag] = nc[i].firstChild.nodeValue;
+                }
+            }
+            return obj;
+        };
+
+        var gpx = gpxType_to_json( xml_document.getElementsByTagName('gpx')[0] );
+        var bounds = {
+            "minlat":  90.0,
+            "maxlat": -90.0,
+            "minlon": 180.0,
+            "maxlon":-180.0
+            };
+        var bounding = function (bounds, wptType){
+            if( wptType.lat < bounds.minlat ){
+                bounds.minlat = wptType.lat;
+            }
+            if( bounds.maxlat < wptType.lat ){
+                bounds.maxlat = wptType.lat;
+            }
+            if( wptType.lon < bounds.minlon ){
+                bounds.minlon = wptType.lon;
+            }
+            if( bounds.maxlon < wptType.lon ){
+                bounds.maxlon = wptType.lon;
+            }
+            return bounds;
+        }
+        for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
+            bounds = bounding(bounds, gpx.wpt[i]);
+        }
+        for( var i = 0, l = gpx.rte.length; i < l; ++i ){
+            for( var j = 0, m = gpx.rte[i].rtept.length; j < m; ++j ){
+                bounds = bounding(bounds, gpx.rte[i].rtept[j]);
+            }
+        }
+        for( var i = 0, l = gpx.trk.length; i < l; ++i ){
+            for( var j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ){
+                for( var k = 0, n = gpx.trk[i].trkseg[j].trkpt.length; k < n; ++k ){
+                    bounds = bounding(bounds, gpx.trk[i].trkseg[j].trkpt[k]);
+                }
+             }
+        }
+        gpx.metadata["bounds"] = bounds;
+        return gpx;
+    }
+
+    //-- overlay factory
+    function create_g_marker(wptType, options){
+        var options = options || {};
+        options.position = new google.maps.LatLng(wptType.lat, wptType.lon);
+        return new google.maps.Marker(options);
+    }
+
+    function create_g_polyline(wptTypes, options){
+        var options = options || {};
+        options.path = new google.maps.MVCArray();
+        var i = 0;
+        for( var j = 0, m = wptTypes.length; j < m; ++j ){
+            options.path.insertAt(i++, new google.maps.LatLng(wptTypes[j].lat, wptTypes[j].lon));
+        }
+        return new google.maps.Polyline(options);
+    }
+
+    //-- this application
+    function App(){
+        this.initialize.apply(this, arguments);
+    }
+    App.prototype = {
+        initialize: function (map_id){
+            this.map_id = map_id;
+            this.map_element = document.getElementById(this.map_id);
+            if( ! this.map_element ){
+                throw( new Error("couldn't get element by '"+map_id+"'.") );
+            }
+            this.initial_parameter = {
+                "zoom":5,
+                "center": new google.maps.LatLng(35.6841306,139.774103),
+                "mapTypeId": google.maps.MapTypeId.ROADMAP
+                };
+            this.map = new google.maps.Map(this.map_element, this.initial_parameter);
+        },
+        import_gpx: function (url){
+            // create gpx
+            var gpx;
+            var xhr = createXmlHttpRequest();
+            xhr.open('GET', url, false);
+            xhr.send(null);
+            try{
+                gpx = gpx_to_json( parseXml(xhr.responseText) );
+            }catch(e){
+                throw( new Error("catch an exception on parsing url as xml: "+ url +"\nreason: "+ e) );
+            }
+            
+            // bounds
+            var latlngbounds = new google.maps.LatLngBounds(
+                new google.maps.LatLng(gpx.metadata.bounds.minlat, gpx.metadata.bounds.minlon),
+                new google.maps.LatLng(gpx.metadata.bounds.maxlat, gpx.metadata.bounds.maxlon)
+                );
+            this.map.fitBounds( latlngbounds );
+            
+            // overlays
+            for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
+                create_g_marker(gpx.wpt[i], {
+                    "title": gpx.wpt[i].name
+                    }).setMap(this.map);
+            }
+            for( var i = 0, l = gpx.rte.length; i < l; ++i ){
+                create_g_polyline(gpx.rte[i].rtept, {
+                    "strokeColor": '#00FF99',
+                    "strokeOpacity": 0.5,
+                    "strokeWeight": 4
+                    }).setMap(this.map);
+            }
+            var pts = [];
+            for( var i = 0, l = gpx.trk.length; i < l; ++i ){
+                for( var j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ){
+                    pts = pts.concat(gpx.trk[i].trkseg[j].trkpt);
+                }
+            }
+            create_g_polyline(pts, {
+                "strokeColor": '#0099FF',
+                "strokeOpacity": 0.5,
+                "strokeWeight": 4
+                }).setMap(this.map);
+        }
+    }
+
+    //-- bootstrap
+    google.maps.event.addDomListener(window,'load',function (){
+        var app = new App("map_canvas");
+        var q = query_string();
+        if( q && q.gpx ){
+            app.import_gpx(q.gpx);
+        }
+    });
+
+</script>
+</head><body>
+    <div id="map_canvas"></div>
+</body></html>
