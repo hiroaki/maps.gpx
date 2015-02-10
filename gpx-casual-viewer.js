@@ -1,7 +1,14 @@
-function query_string(){
+function GPXCasualViewer(){
+    this.initialize.apply(this, arguments);
+}
+GPXCasualViewer.parse_query_string = function(/* usually 'location.search' */qstring, separator){
+    if( ! separator ){
+        separator = '&';
+    }
     var params = {};
-    if( location.search ){
-        var pairs = location.search.substring(1).split('&');
+    if( qstring ){
+        var str = qstring.match(/^\?/) ? qstring.substring(1) : qstring
+        var pairs = str.split(separator);
         for(var i=0, l=pairs.length; i<l; ++i){
             var pair = pairs[i].split('=');
             if( pair[0] ){
@@ -11,9 +18,7 @@ function query_string(){
     }
     return params;
 }
-
-//-- utils
-function createXmlHttpRequest(){
+GPXCasualViewer.createXmlHttpRequest = function(){
     try{
         if( typeof ActiveXObject != 'undefined' ){
             return new ActiveXObject('Microsoft.XMLHTTP');
@@ -25,8 +30,7 @@ function createXmlHttpRequest(){
     }
     return null;
 }
-
-function parseXml(str){
+GPXCasualViewer.parseXml = function(str){
     if( typeof ActiveXObject != 'undefined' && typeof GetObject != 'undefined' ){
         var doc = new ActiveXObject('Microsoft.XMLDOM');
         doc.loadXML(str);
@@ -39,9 +43,8 @@ function parseXml(str){
 
     throw( new Error("Cannot parse string as XML stream.") );
 }
-
 //-- convert gpx to object
-function gpx_to_json( xml_document ){
+GPXCasualViewer.gpx_to_json = function( xml_document ){
     var linkType_to_json = function (/*dom node <link>*/node){
         var obj = {
             "href":node.getAttribute('href')
@@ -189,15 +192,13 @@ function gpx_to_json( xml_document ){
     gpx.metadata["bounds"] = bounds;
     return gpx;
 }
-
 //-- overlay factory
-function create_g_marker(wptType, options){
+GPXCasualViewer.create_g_marker = function(wptType, options){
     var options = options || {};
     options.position = new google.maps.LatLng(wptType.lat, wptType.lon);
     return new google.maps.Marker(options);
 }
-
-function create_g_polyline(wptTypes, options){
+GPXCasualViewer.create_g_polyline = function(wptTypes, options){
     var options = options || {};
     options.path = new google.maps.MVCArray();
     var i = 0;
@@ -206,9 +207,9 @@ function create_g_polyline(wptTypes, options){
     }
     return new google.maps.Polyline(options);
 }
-
-// Original code by Masaru Kitajima: http://blog.section-9.jp/?p=260#sthash.Dpl2Oojk.dpuf
-function latlng_distant_from_origin(/*GLatLng*/origin, /*pixel*/delta_x, /*pixel*/delta_y, current_zoom){
+//-- geo utils
+GPXCasualViewer.latlng_distant_from_origin = function(/*GLatLng*/origin, /*pixel*/delta_x, /*pixel*/delta_y, current_zoom){
+    // Original code by Masaru Kitajima: http://blog.section-9.jp/?p=260#sthash.Dpl2Oojk.dpuf
     var lat     = origin.lat();
     var lng     = origin.lng();
     var offset  = 268435456; // [pixel] Circumference of the equator when the zoom level 21.
@@ -225,11 +226,7 @@ function latlng_distant_from_origin(/*GLatLng*/origin, /*pixel*/delta_x, /*pixel
 
     return new google.maps.LatLng(d_lng, d_lat);
 }
-
-//-- this application
-function GPXCasualViewer(){
-    this.initialize.apply(this, arguments);
-}
+//-- constructor
 GPXCasualViewer.prototype = {
     initialize: function (map_id, options){
         this.map_id = map_id;
@@ -251,11 +248,11 @@ GPXCasualViewer.prototype = {
     import_gpx: function (url){
         // create gpx
         var gpx;
-        var xhr = createXmlHttpRequest();
+        var xhr = GPXCasualViewer.createXmlHttpRequest();
         xhr.open('GET', url, false);
         xhr.send(null);
         try{
-            gpx = gpx_to_json( parseXml(xhr.responseText) );
+            gpx = GPXCasualViewer.gpx_to_json( GPXCasualViewer.parseXml(xhr.responseText) );
         }catch(e){
             throw( new Error("Catch an exception at import_gpx with "+ url +"\nreason: "+ e) );
         }
@@ -269,12 +266,12 @@ GPXCasualViewer.prototype = {
         
         // overlays
         for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
-            create_g_marker(gpx.wpt[i], {
+            GPXCasualViewer.create_g_marker(gpx.wpt[i], {
                 "title": gpx.wpt[i].name
                 }).setMap(this.map);
         }
         for( var i = 0, l = gpx.rte.length; i < l; ++i ){
-            create_g_polyline(gpx.rte[i].rtept, {
+            GPXCasualViewer.create_g_polyline(gpx.rte[i].rtept, {
                 "strokeColor": '#00FF99',
                 "strokeOpacity": 0.5,
                 "strokeWeight": 4
@@ -286,7 +283,7 @@ GPXCasualViewer.prototype = {
                 pts = pts.concat(gpx.trk[i].trkseg[j].trkpt);
             }
         }
-        var po = create_g_polyline(pts, {
+        var po = GPXCasualViewer.create_g_polyline(pts, {
             "strokeColor": '#0099FF',
             "strokeOpacity": 0.5,
             "strokeWeight": 4
@@ -322,8 +319,8 @@ GPXCasualViewer.prototype = {
             b.extend(path.getAt(i));
             b.extend(path.getAt(i+1));
             // append margin
-            b.extend( latlng_distant_from_origin(b.getNorthEast(),  5, -5, this.map.getZoom()) );
-            b.extend( latlng_distant_from_origin(b.getSouthWest(), -5,  5, this.map.getZoom()) );
+            b.extend( GPXCasualViewer.latlng_distant_from_origin(b.getNorthEast(),  5, -5, this.map.getZoom()) );
+            b.extend( GPXCasualViewer.latlng_distant_from_origin(b.getSouthWest(), -5,  5, this.map.getZoom()) );
             if( b.contains(glatlng) ){
                 // point of click is in a rectangle
                 var p0 = path.getAt(i);
