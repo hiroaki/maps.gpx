@@ -192,18 +192,24 @@ GPXCasualViewer.gpx_to_json = function( xml_document ){
     gpx.metadata["bounds"] = bounds;
     return gpx;
 }
-//-- overlay factory
-GPXCasualViewer.create_g_marker = function(wptType, options){
+//-- g factory
+GPXCasualViewer.create_g_latlngbounds = function(gpx, options){
+    return new google.maps.LatLngBounds(
+        new google.maps.LatLng(gpx.metadata.bounds.minlat, gpx.metadata.bounds.minlon),
+        new google.maps.LatLng(gpx.metadata.bounds.maxlat, gpx.metadata.bounds.maxlon)
+        );
+}
+GPXCasualViewer.create_g_marker = function(wpt, options){
     var options = options || {};
-    options.position = new google.maps.LatLng(wptType.lat, wptType.lon);
+    options.position = new google.maps.LatLng(wpt.lat, wpt.lon);
     return new google.maps.Marker(options);
 }
-GPXCasualViewer.create_g_polyline = function(wptTypes, options){
+GPXCasualViewer.create_g_polyline = function(pts, options){
     var options = options || {};
     options.path = new google.maps.MVCArray();
     var i = 0;
-    for( var j = 0, m = wptTypes.length; j < m; ++j ){
-        options.path.insertAt(i++, new google.maps.LatLng(wptTypes[j].lat, wptTypes[j].lon));
+    for( var j = 0, m = pts.length; j < m; ++j ){
+        options.path.insertAt(i++, new google.maps.LatLng(pts[j].lat, pts[j].lon));
     }
     return new google.maps.Polyline(options);
 }
@@ -244,6 +250,27 @@ GPXCasualViewer.prototype = {
         for (var attr in this.defaults) { this.settings[attr] = this.defaults[attr]; }
         for (var attr in this.options) { this.settings[attr] = this.options[attr]; }
         this.map = new google.maps.Map(this.map_element, this.settings);
+        this.data = {}
+    },
+    fit_bounds: function (url){
+        var gpx = this.data[url];
+        this.map.fitBounds( gpx.metadata.latlngbounds );
+    },
+    overlay_wpts: function (url){
+        var gpx = this.data[url];
+        for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
+            gpx.wpt[i].marker.setMap(this.map);
+        }
+    },
+    overlay_rtes: function (url){
+        var gpx = this.data[url];
+        for( var i = 0, l = gpx.rte.length; i < l; ++i ){
+            gpx.rte[i].polyline.setMap(this.map);
+        }
+    },
+    overlay_trks: function (url){
+        var gpx = this.data[url];
+        gpx.trk.polyline.setMap(this.map);
     },
     import_gpx: function (url){
         // create gpx
@@ -257,39 +284,39 @@ GPXCasualViewer.prototype = {
             throw( new Error("Catch an exception at import_gpx with "+ url +"\nreason: "+ e) );
         }
         
-        // bounds
-        var latlngbounds = new google.maps.LatLngBounds(
-            new google.maps.LatLng(gpx.metadata.bounds.minlat, gpx.metadata.bounds.minlon),
-            new google.maps.LatLng(gpx.metadata.bounds.maxlat, gpx.metadata.bounds.maxlon)
-            );
-        this.map.fitBounds( latlngbounds );
-        
-        // overlays
+        // extend gpx.metadata
+        gpx.metadata.latlngbounds = GPXCasualViewer.create_g_latlngbounds(gpx);
+
+        // extend gpx.wpt(s)
         for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
-            GPXCasualViewer.create_g_marker(gpx.wpt[i], {
+            gpx.wpt[i].marker = GPXCasualViewer.create_g_marker(gpx.wpt[i], {
                 "title": gpx.wpt[i].name
-                }).setMap(this.map);
+                });
         }
+
+        // extend gpx.rte(s)
         for( var i = 0, l = gpx.rte.length; i < l; ++i ){
-            GPXCasualViewer.create_g_polyline(gpx.rte[i].rtept, {
+            gpx.rte[i].polyline = GPXCasualViewer.create_g_polyline(gpx.rte[i].rtept, {
                 "strokeColor": '#00FF99',
                 "strokeOpacity": 0.5,
                 "strokeWeight": 4
-                }).setMap(this.map);
+                });
         }
+
+        // extend gpx.trk(s)
         var pts = [];
         for( var i = 0, l = gpx.trk.length; i < l; ++i ){
             for( var j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ){
                 pts = pts.concat(gpx.trk[i].trkseg[j].trkpt);
             }
         }
-        var po = GPXCasualViewer.create_g_polyline(pts, {
+        gpx.trk.polyline = GPXCasualViewer.create_g_polyline(pts, {
             "strokeColor": '#0099FF',
             "strokeOpacity": 0.5,
             "strokeWeight": 4
             });
         var self = this;
-        po.addListener('click',function (mouseevent){
+        gpx.trk.polyline.addListener('click',function (mouseevent){
             var path = this.getPath();
             var vertex = self.index_of_vertex_nearest_click(path, mouseevent.latLng);
             if( 0 <= vertex ){
@@ -305,7 +332,9 @@ GPXCasualViewer.prototype = {
                 infowindow.open(self.map);
             }            
         });
-        po.setMap(this.map);
+
+        // 
+        this.data[url] = gpx;
     },
     index_of_vertex_nearest_click: function (/*MVCArray*/path, /*GLatLng*/glatlng){
         var EarthRound = 6378137;
