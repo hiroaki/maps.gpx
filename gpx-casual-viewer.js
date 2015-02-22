@@ -343,7 +343,9 @@ GPXCasualViewer.prototype = {
   },
   _overlay_trks: function (url, show){
     var gpx = this.data[url];
-    gpx.trk.polyline.setMap( show ? this.map : null );
+    for( var i = 0, l = gpx.trk.length; i < l; ++i ){
+      gpx.trk[i].polyline.setMap( show ? this.map : null );
+    }
   },
   show_overlay_wpts: function (url){ this._overlay_wpts(url, true ); },
   hide_overlay_wpts: function (url){ this._overlay_wpts(url, false); },
@@ -376,43 +378,42 @@ GPXCasualViewer.prototype = {
     // extend gpx.rte(s)
     for( var i = 0, l = gpx.rte.length; i < l; ++i ){
       gpx.rte[i].polyline = GPXCasualViewer.create_polyline(gpx.rte[i].rtept, {
-        "strokeColor": '#00FF99',
+        "strokeColor": '#00FF66',
         "strokeOpacity": 0.5,
         "strokeWeight": 4
         });
     }
 
     // extend gpx.trk(s)
-    var pts = [];
+    var self = this;
     for( var i = 0, l = gpx.trk.length; i < l; ++i ){
+      var pts = [];
       for( var j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ){
         pts = pts.concat(gpx.trk[i].trkseg[j].trkpt);
       }
-    }
-    gpx.trk.polyline = GPXCasualViewer.create_polyline(pts, {
-      "strokeColor": '#0099FF',
-      "strokeOpacity": 0.5,
-      "strokeWeight": 4
+      gpx.trk[i].polyline = GPXCasualViewer.create_polyline(pts, {
+        "strokeColor": '#0066FF',
+        "strokeOpacity": 0.5,
+        "strokeWeight": 4
       });
-    var self = this;
-    gpx.trk.polyline.addListener('click',function (mouseevent){
-      var path = this.getPath();
-      var vertex = GPXCasualViewer.index_of_vertex_nearest_click(path, mouseevent.latLng, self.map.getZoom());
-      if( 0 <= vertex ){
-        var wpt = pts[vertex];
-        var info = "#"+ vertex +"<br>lat="+ wpt.lat +"<br>lon="+ wpt.lon;
-        if( wpt.time ){
-          info = info + "<br>time="+ wpt.time;
+      gpx.trk[i].polyline.addListener('click',function (mouseevent){
+        var path = this.getPath();
+        var vertex = GPXCasualViewer.index_of_vertex_nearest_click(path, mouseevent.latLng, self.map.getZoom());
+        if( 0 <= vertex ){
+          var wpt = pts[vertex];
+          var info = "#"+ vertex +"<br>lat="+ wpt.lat +"<br>lon="+ wpt.lon;
+          if( wpt.time ){
+            info = info + "<br>time="+ wpt.time;
+          }
+          var infowindow = new google.maps.InfoWindow({
+            content: info,
+            position: path.getAt(vertex)
+            });
+          infowindow.open(self.map);
         }
-        var infowindow = new google.maps.InfoWindow({
-          content: info,
-          position: path.getAt(vertex)
-          });
-        infowindow.open(self.map);
-      }      
-    });
+      });
+    }
 
-    // 
     this.data[url] = gpx;
   }
   
