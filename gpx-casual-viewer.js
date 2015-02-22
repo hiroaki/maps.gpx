@@ -194,28 +194,50 @@ GPXCasualViewer.gpx_to_json = function( xml_document ){
 }
 
 //-- extends g overlay objects
-GPXCasualViewer.Marker = function (){
+GPXCasualViewer.Marker = function (src, opts){
   this.super = google.maps.Marker.prototype;
+  this._source = src;
   this._overlayed = null;
-  google.maps.Marker.apply(this, arguments);
+
+  var wpt = src;
+  var options = opts || {};
+  options.position = new google.maps.LatLng(wpt.lat, wpt.lon);
+
+  google.maps.Marker.apply(this, [options]);
 }
   GPXCasualViewer.Marker.prototype = Object.create(google.maps.Marker.prototype, {
     constructor: { value: GPXCasualViewer.Marker },
-    overlayed: function (){ this._overlayed } // extend
+    overlayed: function (){ return this._overlayed } // extend
   });
+  GPXCasualViewer.Marker.prototype.getSource = function (){
+    return this._source;
+  };
   GPXCasualViewer.Marker.prototype.setMap = function (g_map){ // override
     this._overlayed = g_map ? true : false;
     this.super.setMap.call(this, g_map);
   }
-GPXCasualViewer.Polyline = function (){
+GPXCasualViewer.Polyline = function (src, opts){
   this.super = google.maps.Polyline.prototype;
+  this._source = src;
   this._overlayed = null;
-  google.maps.Polyline.apply(this, arguments);
+
+  var pts = src;
+  var options = opts || {};
+  options.path = new google.maps.MVCArray();
+  var i = 0;
+  for( var j = 0, m = pts.length; j < m; ++j ){
+    options.path.insertAt(i++, new google.maps.LatLng(pts[j].lat, pts[j].lon));
+  }
+
+  google.maps.Polyline.apply(this, [options]);
 }
   GPXCasualViewer.Polyline.prototype = Object.create(google.maps.Polyline.prototype, {
     constructor: { value: GPXCasualViewer.Polyline },
-    overlayed: function (){ this._overlayed } // extend
+    overlayed: function (){ return this._overlayed } // extend
   });
+  GPXCasualViewer.Polyline.prototype.getSource = function (){
+    return this._source;
+  };
   GPXCasualViewer.Polyline.prototype.setMap = function (g_map){ // override
     this._overlayed = g_map ? true : false;
     this.super.setMap.call(this, g_map);
@@ -224,24 +246,25 @@ GPXCasualViewer.Polyline = function (){
 
 //-- factory for extended g objects
 GPXCasualViewer.create_latlngbounds = function(gpx, options){
-  return new google.maps.LatLngBounds(
+  var latlngbounds = new google.maps.LatLngBounds(
     new google.maps.LatLng(gpx.metadata.bounds.minlat, gpx.metadata.bounds.minlon),
     new google.maps.LatLng(gpx.metadata.bounds.maxlat, gpx.metadata.bounds.maxlon)
     );
+  // TODO: hook point
+  GPXCasualViewer.call_hook('on_create_latlngbounds', latlngbounds);
+  return latlngbounds;
 }
 GPXCasualViewer.create_marker = function(wpt, options){
-  var options = options || {};
-  options.position = new google.maps.LatLng(wpt.lat, wpt.lon);
-  return new GPXCasualViewer.Marker(options);
+  var overlay = new GPXCasualViewer.Marker(wpt, options);
+  // TODO: hook point
+  GPXCasualViewer.call_hook('on_create_marker', overlay);
+  return overlay;
 }
 GPXCasualViewer.create_polyline = function(pts, options){
-  var options = options || {};
-  options.path = new google.maps.MVCArray();
-  var i = 0;
-  for( var j = 0, m = pts.length; j < m; ++j ){
-    options.path.insertAt(i++, new google.maps.LatLng(pts[j].lat, pts[j].lon));
-  }
-  return new GPXCasualViewer.Polyline(options);
+  var overlay = new GPXCasualViewer.Polyline(pts, options);
+  // WIP: TODO: hook point
+  GPXCasualViewer.call_hook('on_create_polyline', overlay);
+  return overlay;
 }
 //-- geo utils
 GPXCasualViewer.latlng_distant_from_origin = function(/*GLatLng*/origin, /*pixel*/delta_x, /*pixel*/delta_y, current_zoom){
@@ -304,6 +327,7 @@ GPXCasualViewer.index_of_vertex_nearest_click = function(/*MVCArray*/path, /*GLa
 
   return minindex;
 }
+
 
 //-- GPXCasualViewer
 GPXCasualViewer.prototype = {
@@ -395,25 +419,65 @@ GPXCasualViewer.prototype = {
         "strokeOpacity": 0.5,
         "strokeWeight": 4
       });
-      gpx.trk[i].polyline.addListener('click',function (mouseevent){
-        var path = this.getPath();
-        var vertex = GPXCasualViewer.index_of_vertex_nearest_click(path, mouseevent.latLng, this.getMap().getZoom());
-        if( 0 <= vertex ){
-          var wpt = pts[vertex];
-          var info = "#"+ vertex +"<br>lat="+ wpt.lat +"<br>lon="+ wpt.lon;
-          if( wpt.time ){
-            info = info + "<br>time="+ wpt.time;
-          }
-          var infowindow = new google.maps.InfoWindow({
-            content: info,
-            position: path.getAt(vertex)
-            });
-          infowindow.open(this.getMap());
-        }
-      });
     }
 
     this.data[url] = gpx;
   }
   
 }
+
+//-- define hook points and interface
+GPXCasualViewer.hook = {
+  on_create_latlngbounds: [],
+  on_create_marker: [],
+  on_create_polyline: []
+};
+GPXCasualViewer.register = function (name, callback){
+  try {
+    GPXCasualViewer.hook[name].push(callback);
+  }catch(ex){
+    console.log("catch an exception on register with '"+ name +"'");
+    throw ex;
+  }
+}
+GPXCasualViewer.call_hook = function (){
+  var name = arguments[0];
+  var args = Array.prototype.slice.call(arguments, 1);
+  for( var i=0,l=GPXCasualViewer.hook[name].length; i<l; ++i ){
+    try {
+      GPXCasualViewer.hook[name][i].apply(this, args);
+    }catch(ex){
+      console.log("catch an exception on call_hook with '"+ name +"'");
+      throw ex;
+    }
+  }
+}
+
+//-- 
+GPXCasualViewer.register('on_create_latlngbounds', function (latlngbounds){
+  console.log("created a latlngbounds");
+});
+
+GPXCasualViewer.register('on_create_marker', function (marker){
+  console.log("created a marker");
+});
+
+GPXCasualViewer.register('on_create_polyline', function (polyline){
+  console.log("created a polyline");
+  polyline.addListener('click',function (mouseevent){
+    var path = this.getPath();
+    var index = GPXCasualViewer.index_of_vertex_nearest_click(path, mouseevent.latLng, this.getMap().getZoom());
+    if( 0 <= index ){
+      var wpt = this.getSource()[index];
+      var info = "#"+ index +"<br>lat="+ wpt.lat +"<br>lon="+ wpt.lon;
+      if( wpt.time ){
+        info = info + "<br>time="+ wpt.time;
+      }
+      var infowindow = new google.maps.InfoWindow({
+        content: info,
+        position: path.getAt(index)
+        });
+      infowindow.open(this.getMap());
+    }
+  });
+});
