@@ -43,7 +43,7 @@ GPXCasualViewer.parseXml = function(str){
 
   throw( new Error("Cannot parse string as XML stream.") );
 }
-//-- convert gpx to object
+//-- convert gpx to Object
 GPXCasualViewer.gpx_to_json = function( xml_document ){
   var linkType_to_json = function (/*dom node <link>*/node){
     var obj = {
@@ -192,30 +192,60 @@ GPXCasualViewer.gpx_to_json = function( xml_document ){
   gpx.metadata["bounds"] = bounds;
   return gpx;
 }
-//-- g factory
-GPXCasualViewer.create_g_latlngbounds = function(gpx, options){
+
+//-- extends g overlay objects
+GPXCasualViewer.Marker = function (){
+  this.super = google.maps.Marker.prototype;
+  this._overlayed = null;
+  google.maps.Marker.apply(this, arguments);
+}
+  GPXCasualViewer.Marker.prototype = Object.create(google.maps.Marker.prototype, {
+    constructor: { value: GPXCasualViewer.Marker },
+    overlayed: function (){ this._overlayed } // extend
+  });
+  GPXCasualViewer.Marker.prototype.setMap = function (g_map){ // override
+    this._overlayed = g_map ? true : false;
+    this.super.setMap.call(this, g_map);
+  }
+GPXCasualViewer.Polyline = function (){
+  this.super = google.maps.Polyline.prototype;
+  this._overlayed = null;
+  google.maps.Polyline.apply(this, arguments);
+}
+  GPXCasualViewer.Polyline.prototype = Object.create(google.maps.Polyline.prototype, {
+    constructor: { value: GPXCasualViewer.Polyline },
+    overlayed: function (){ this._overlayed } // extend
+  });
+  GPXCasualViewer.Polyline.prototype.setMap = function (g_map){ // override
+    this._overlayed = g_map ? true : false;
+    this.super.setMap.call(this, g_map);
+  }
+
+
+//-- factory for g objects
+GPXCasualViewer.create_latlngbounds = function(gpx, options){
   return new google.maps.LatLngBounds(
     new google.maps.LatLng(gpx.metadata.bounds.minlat, gpx.metadata.bounds.minlon),
     new google.maps.LatLng(gpx.metadata.bounds.maxlat, gpx.metadata.bounds.maxlon)
     );
 }
-GPXCasualViewer.create_g_marker = function(wpt, options){
+GPXCasualViewer.create_marker = function(wpt, options){
   var options = options || {};
   options.position = new google.maps.LatLng(wpt.lat, wpt.lon);
-  return new google.maps.Marker(options);
+  return new GPXCasualViewer.Marker(options);
 }
-GPXCasualViewer.create_g_polyline = function(pts, options){
+GPXCasualViewer.create_polyline = function(pts, options){
   var options = options || {};
   options.path = new google.maps.MVCArray();
   var i = 0;
   for( var j = 0, m = pts.length; j < m; ++j ){
     options.path.insertAt(i++, new google.maps.LatLng(pts[j].lat, pts[j].lon));
   }
-  return new google.maps.Polyline(options);
+  return new GPXCasualViewer.Polyline(options);
 }
 //-- geo utils
 GPXCasualViewer.latlng_distant_from_origin = function(/*GLatLng*/origin, /*pixel*/delta_x, /*pixel*/delta_y, current_zoom){
-  // Original code by Masaru Kitajima: http://blog.section-9.jp/?p=260#sthash.Dpl2Oojk.dpuf
+  // Original code by Masaru Kitajima: http://blog.section-9.jp/?p=260
   var lat   = origin.lat();
   var lng   = origin.lng();
   var offset  = 268435456; // [pixel] Circumference of the equator when the zoom level 21.
@@ -232,7 +262,50 @@ GPXCasualViewer.latlng_distant_from_origin = function(/*GLatLng*/origin, /*pixel
 
   return new google.maps.LatLng(d_lng, d_lat);
 }
-//-- constructor
+GPXCasualViewer.index_of_vertex_nearest_click = function(/*MVCArray*/path, /*GLatLng*/glatlng, zoom){
+  var EarthRound = 6378137;
+  var min = EarthRound;
+  var minindex = -1;
+
+  // scan all segments
+  var min_heading;
+  for( var i = 0; i < path.getLength() -1; ++i ){
+    var b = new google.maps.LatLngBounds();
+    b.extend(path.getAt(i));
+    b.extend(path.getAt(i+1));
+    // append margin
+    b.extend( GPXCasualViewer.latlng_distant_from_origin(b.getNorthEast(),  5, -5, zoom) );
+    b.extend( GPXCasualViewer.latlng_distant_from_origin(b.getSouthWest(), -5,  5, zoom) );
+    if( b.contains(glatlng) ){
+      // point of click is in a rectangle
+      var p0 = path.getAt(i);
+      var p1 = glatlng;
+      var p2 = path.getAt(i+1);
+      var p10x = p1.lng() - p0.lng();
+      var p10y = p1.lat() - p0.lat();
+      var p20x = p2.lng() - p0.lng();
+      var p20y = p2.lat() - p0.lat();
+      // the absolute value of an angle
+      var m = Math.abs( Math.atan2(p10y,p10x)
+              - Math.atan2(p20y,p20x) );
+      if( m < min ){
+        min = m;
+        minindex = i;
+        min_heading = google.maps.geometry.spherical.computeHeading(path.getAt(i), path.getAt(i+1));
+      }
+    }
+  }
+
+  if( 0 <= minindex ){
+    var p0 = google.maps.geometry.spherical.computeDistanceBetween( glatlng, path.getAt(minindex) );
+    var p1 = google.maps.geometry.spherical.computeDistanceBetween( glatlng, path.getAt(minindex +1) );
+    minindex = p0 < p1 ? minindex : minindex + 1;
+  }
+
+  return minindex;
+}
+
+//-- GPXCasualViewer
 GPXCasualViewer.prototype = {
   initialize: function (map_id, options){
     this.map_id = map_id;
@@ -285,18 +358,18 @@ GPXCasualViewer.prototype = {
     }
     
     // extend gpx.metadata
-    gpx.metadata.latlngbounds = GPXCasualViewer.create_g_latlngbounds(gpx);
+    gpx.metadata.latlngbounds = GPXCasualViewer.create_latlngbounds(gpx);
 
     // extend gpx.wpt(s)
     for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
-      gpx.wpt[i].marker = GPXCasualViewer.create_g_marker(gpx.wpt[i], {
+      gpx.wpt[i].marker = GPXCasualViewer.create_marker(gpx.wpt[i], {
         "title": gpx.wpt[i].name
         });
     }
 
     // extend gpx.rte(s)
     for( var i = 0, l = gpx.rte.length; i < l; ++i ){
-      gpx.rte[i].polyline = GPXCasualViewer.create_g_polyline(gpx.rte[i].rtept, {
+      gpx.rte[i].polyline = GPXCasualViewer.create_polyline(gpx.rte[i].rtept, {
         "strokeColor": '#00FF99',
         "strokeOpacity": 0.5,
         "strokeWeight": 4
@@ -310,7 +383,7 @@ GPXCasualViewer.prototype = {
         pts = pts.concat(gpx.trk[i].trkseg[j].trkpt);
       }
     }
-    gpx.trk.polyline = GPXCasualViewer.create_g_polyline(pts, {
+    gpx.trk.polyline = GPXCasualViewer.create_polyline(pts, {
       "strokeColor": '#0099FF',
       "strokeOpacity": 0.5,
       "strokeWeight": 4
@@ -318,7 +391,7 @@ GPXCasualViewer.prototype = {
     var self = this;
     gpx.trk.polyline.addListener('click',function (mouseevent){
       var path = this.getPath();
-      var vertex = self.index_of_vertex_nearest_click(path, mouseevent.latLng);
+      var vertex = GPXCasualViewer.index_of_vertex_nearest_click(path, mouseevent.latLng, self.map.getZoom());
       if( 0 <= vertex ){
         var wpt = pts[vertex];
         var info = "#"+ vertex +"<br>lat="+ wpt.lat +"<br>lon="+ wpt.lon;
@@ -335,48 +408,6 @@ GPXCasualViewer.prototype = {
 
     // 
     this.data[url] = gpx;
-  },
-  index_of_vertex_nearest_click: function (/*MVCArray*/path, /*GLatLng*/glatlng){
-    var EarthRound = 6378137;
-    var min = EarthRound;
-    var minindex = -1;
-
-    // scan all segments
-    var min_heading;
-    for( var i = 0; i < path.getLength() -1; ++i ){
-      var b = new google.maps.LatLngBounds();
-      b.extend(path.getAt(i));
-      b.extend(path.getAt(i+1));
-      // append margin
-      b.extend( GPXCasualViewer.latlng_distant_from_origin(b.getNorthEast(),  5, -5, this.map.getZoom()) );
-      b.extend( GPXCasualViewer.latlng_distant_from_origin(b.getSouthWest(), -5,  5, this.map.getZoom()) );
-      if( b.contains(glatlng) ){
-        // point of click is in a rectangle
-        var p0 = path.getAt(i);
-        var p1 = glatlng;
-        var p2 = path.getAt(i+1);
-        var p10x = p1.lng() - p0.lng();
-        var p10y = p1.lat() - p0.lat();
-        var p20x = p2.lng() - p0.lng();
-        var p20y = p2.lat() - p0.lat();
-        // the absolute value of an angle
-        var m = Math.abs( Math.atan2(p10y,p10x)
-                - Math.atan2(p20y,p20x) );
-        if( m < min ){
-          min = m;
-          minindex = i;
-          min_heading = google.maps.geometry.spherical.computeHeading(path.getAt(i), path.getAt(i+1));
-        }
-      }
-    }
-  
-    if( 0 <= minindex ){
-      var p0 = google.maps.geometry.spherical.computeDistanceBetween( glatlng, path.getAt(minindex) );
-      var p1 = google.maps.geometry.spherical.computeDistanceBetween( glatlng, path.getAt(minindex +1) );
-      minindex = p0 < p1 ? minindex : minindex + 1;
-    }
-  
-    return minindex;
   }
   
 }
