@@ -222,7 +222,7 @@ GPXCasualViewer.Polyline = function (){
   }
 
 
-//-- factory for g objects
+//-- factory for extended g objects
 GPXCasualViewer.create_latlngbounds = function(gpx, options){
   return new google.maps.LatLngBounds(
     new google.maps.LatLng(gpx.metadata.bounds.minlat, gpx.metadata.bounds.minlon),
@@ -329,22 +329,28 @@ GPXCasualViewer.prototype = {
     var gpx = this.data[url];
     this.map.fitBounds( gpx.metadata.latlngbounds );
   },
-  overlay_wpts: function (url){
+  _overlay_wpts: function (url, show){
     var gpx = this.data[url];
     for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
-      gpx.wpt[i].marker.setMap(this.map);
+      gpx.wpt[i].marker.setMap( show ? this.map : null );
     }
   },
-  overlay_rtes: function (url){
+  _overlay_rtes: function (url, show){
     var gpx = this.data[url];
     for( var i = 0, l = gpx.rte.length; i < l; ++i ){
-      gpx.rte[i].polyline.setMap(this.map);
+      gpx.rte[i].polyline.setMap( show ? this.map : null );
     }
   },
-  overlay_trks: function (url){
+  _overlay_trks: function (url, show){
     var gpx = this.data[url];
-    gpx.trk.polyline.setMap(this.map);
+    gpx.trk.polyline.setMap( show ? this.map : null );
   },
+  show_overlay_wpts: function (url){ this._overlay_wpts(url, true ); },
+  hide_overlay_wpts: function (url){ this._overlay_wpts(url, false); },
+  show_overlay_rtes: function (url){ this._overlay_rtes(url, true ); },
+  hide_overlay_rtes: function (url){ this._overlay_rtes(url, false); },
+  show_overlay_trks: function (url){ this._overlay_trks(url, true ); },
+  hide_overlay_trks: function (url){ this._overlay_trks(url, false); },
   import_gpx: function (url){
     // create gpx
     var gpx;

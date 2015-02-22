@@ -22,9 +22,9 @@ body { height: 100%; margin: 0px; padding: 0px }
     if( query.url ){
       app.import_gpx(query.url);
       app.fit_bounds(query.url);
-      app.overlay_wpts(query.url);
-      app.overlay_rtes(query.url);
-      app.overlay_trks(query.url);
+      app.show_overlay_wpts(query.url);
+      app.show_overlay_rtes(query.url);
+      app.show_overlay_trks(query.url);
     }
   });
 })();
