@@ -385,7 +385,6 @@ GPXCasualViewer.prototype = {
     }
 
     // extend gpx.trk(s)
-    var self = this;
     for( var i = 0, l = gpx.trk.length; i < l; ++i ){
       var pts = [];
       for( var j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ){
@@ -398,7 +397,7 @@ GPXCasualViewer.prototype = {
       });
       gpx.trk[i].polyline.addListener('click',function (mouseevent){
         var path = this.getPath();
-        var vertex = GPXCasualViewer.index_of_vertex_nearest_click(path, mouseevent.latLng, self.map.getZoom());
+        var vertex = GPXCasualViewer.index_of_vertex_nearest_click(path, mouseevent.latLng, this.getMap().getZoom());
         if( 0 <= vertex ){
           var wpt = pts[vertex];
           var info = "#"+ vertex +"<br>lat="+ wpt.lat +"<br>lon="+ wpt.lon;
@@ -409,7 +408,7 @@ GPXCasualViewer.prototype = {
             content: info,
             position: path.getAt(vertex)
             });
-          infowindow.open(self.map);
+          infowindow.open(this.getMap());
         }
       });
     }
