@@ -348,7 +348,10 @@ GPXCasualViewer.prototype = {
   hide_overlay_rtes: function (url){ this._overlay_rtes(url, false); },
   show_overlay_trks: function (url){ this._overlay_trks(url, true ); },
   hide_overlay_trks: function (url){ this._overlay_trks(url, false); },
-  import_gpx: function (url){
+  import_gpx: function (source){
+    this.import_gpx_by_url(source);
+  },
+  import_gpx_by_url: function (url){
     // create gpx
     var gpx;
     var xhr = GPXCasualViewer.createXmlHttpRequest();
@@ -359,7 +362,11 @@ GPXCasualViewer.prototype = {
     }catch(e){
       throw( new Error("Catch an exception at import_gpx with "+ url +"\nreason: "+ e) );
     }
-    
+
+    // register gpx to cache
+    this.data[url] = this._build_google_maps_objects(gpx);
+  },
+  _build_google_maps_objects: function (gpx){
     // extend gpx.metadata
     gpx.metadata.latlngbounds = GPXCasualViewer.create_latlngbounds(gpx);
 
@@ -367,12 +374,10 @@ GPXCasualViewer.prototype = {
     for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
       gpx.wpt[i].marker = GPXCasualViewer.create_overlay_as_wpt(gpx.wpt[i]);
     }
-
     // extend gpx.rte(s)
     for( var i = 0, l = gpx.rte.length; i < l; ++i ){
       gpx.rte[i].polyline = GPXCasualViewer.create_overlay_as_rte(gpx.rte[i].rtept);
     }
-
     // extend gpx.trk(s)
     for( var i = 0, l = gpx.trk.length; i < l; ++i ){
       var pts = [];
@@ -381,11 +386,8 @@ GPXCasualViewer.prototype = {
       }
       gpx.trk[i].polyline = GPXCasualViewer.create_overlay_as_trk(pts);
     }
-
-    // register gpx to cache
-    this.data[url] = gpx;
+    return gpx;
   }
-  
 }
 
 //-- define hook points and interface
