@@ -1,6 +1,7 @@
 function GPXCasualViewer(){
   this.initialize.apply(this, arguments);
 }
+GPXCasualViewer.strict = true;
 GPXCasualViewer.parse_query_string = function(/* usually 'location.search' */qstring, separator){
   if( ! separator ){
     separator = '&';
@@ -124,15 +125,20 @@ GPXCasualViewer.gpx_to_json = function( xml_document ){
   };
   var gpxType_to_json = function (/*dom node <gpx>*/node){
     var obj = {
-      "version":node.getAttribute('version'),
-      "creator":node.getAttribute('creator'),
       "metadata":{},
       "wpt":[],
       "rte":[],
       "trk":[]
       };
-    if( obj.version != '1.1' ){
-      throw( new Error("Cannot include unsupported version of GPX document.") );
+    if( GPXCasualViewer.strict ){
+      obj["version"] = node.getAttribute('version');
+      obj["creator"] = node.getAttribute('creator');
+      if( obj.version != '1.1' ){
+        throw(new Error("GPX document is formatted as unsupported version, it requires 1.1 only"));
+      }
+      if( ! obj.creator ){
+        throw(new Error("Element 'gpx' does not have attribute 'creator' that is required."));
+      }
     }
     var nc = node.childNodes;
     for( var i = 0, l = nc.length; i < l; ++i ){
