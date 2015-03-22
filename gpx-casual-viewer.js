@@ -319,6 +319,7 @@ GPXCasualViewer.prototype = {
     for (var attr in this.options) { this.settings[attr] = this.options[attr]; }
     this.map = new google.maps.Map(this.map_element, this.settings);
     this.data = {}
+    GPXCasualViewer.call_hook('on_initialized', this);
   },
   fit_bounds: function (url){
     var gpx = this.data[url];
@@ -349,24 +350,34 @@ GPXCasualViewer.prototype = {
   show_overlay_trks: function (url){ this._overlay_trks(url, true ); },
   hide_overlay_trks: function (url){ this._overlay_trks(url, false); },
   import_gpx: function (source){
-    this.import_gpx_by_url(source);
+    var gpx_text = this.read_gpx_text_from_url(source);
+    this.add_gpx(source, gpx_text);
   },
-  import_gpx_by_url: function (url){
-    // create gpx
-    var gpx;
+  add_gpx: function (key, gpx_text){
+    this.remove_gpx(key);
+    try{
+      this.data[key] = this._build(gpx_text);
+    }catch(e){
+      throw( new Error("Catch an exception at import_gpx with "+ key +"\nreason: "+ e) );
+    }
+  },
+  remove_gpx: function (key){
+      if( this.data[key] ){
+        this.hide_overlay_wpts(key);
+        this.hide_overlay_rtes(key);
+        this.hide_overlay_trks(key);
+      }
+      this.data[key] = null;
+  },
+  read_gpx_text_from_url: function (url){
     var xhr = GPXCasualViewer.createXmlHttpRequest();
     xhr.open('GET', url, false);
     xhr.send(null);
-    try{
-      gpx = GPXCasualViewer.gpx_to_json( GPXCasualViewer.parseXml(xhr.responseText) );
-    }catch(e){
-      throw( new Error("Catch an exception at import_gpx with "+ url +"\nreason: "+ e) );
-    }
-
-    // register gpx to cache
-    this.data[url] = this._build_google_maps_objects(gpx);
+    return xhr.responseText;
   },
-  _build_google_maps_objects: function (gpx){
+  _build: function (gpx_text){
+    var gpx = GPXCasualViewer.gpx_to_json( GPXCasualViewer.parseXml(gpx_text) );
+
     // extend gpx.metadata
     gpx.metadata.latlngbounds = GPXCasualViewer.create_latlngbounds(gpx);
 
@@ -392,6 +403,7 @@ GPXCasualViewer.prototype = {
 
 //-- define hook points and interface
 GPXCasualViewer.hook = {
+  on_initialized: [],
   on_create_latlngbounds: [],
   on_create_marker: [],
   on_create_polyline: []
