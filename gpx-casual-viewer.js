@@ -277,27 +277,19 @@ GPXCasualViewer.Polyline = function (complex_type, src, opts){
 
 //-- factory for extended g objects
 GPXCasualViewer.create_latlngbounds = function(gpx, options){
-  var latlngbounds = new google.maps.LatLngBounds(
+  return new google.maps.LatLngBounds(
     new google.maps.LatLng(gpx.metadata.bounds.minlat, gpx.metadata.bounds.minlon),
     new google.maps.LatLng(gpx.metadata.bounds.maxlat, gpx.metadata.bounds.maxlon)
     );
-  GPXCasualViewer.call_hook('on_create_latlngbounds', latlngbounds);
-  return latlngbounds;
 }
 GPXCasualViewer.create_overlay_as_wpt = function(src, options){
-  var overlay = new GPXCasualViewer.Marker(GPXCasualViewer.wptType, src, options);
-  GPXCasualViewer.call_hook('on_create_marker', overlay);
-  return overlay;
+  return new GPXCasualViewer.Marker(GPXCasualViewer.wptType, src, options);
 }
 GPXCasualViewer.create_overlay_as_rte = function(src, options){
-  var overlay = new GPXCasualViewer.Polyline(GPXCasualViewer.rteType, src, options);
-  GPXCasualViewer.call_hook('on_create_polyline', overlay);
-  return overlay;
+  return new GPXCasualViewer.Polyline(GPXCasualViewer.rteType, src, options);
 }
 GPXCasualViewer.create_overlay_as_trk = function(src, options){
-  var overlay = new GPXCasualViewer.Polyline(GPXCasualViewer.trkType, src, options);
-  GPXCasualViewer.call_hook('on_create_polyline', overlay);
-  return overlay;
+  return new GPXCasualViewer.Polyline(GPXCasualViewer.trkType, src, options);
 }
 
 //-- GPXCasualViewer
@@ -319,7 +311,14 @@ GPXCasualViewer.prototype = {
     for (var attr in this.options) { this.settings[attr] = this.options[attr]; }
     this.map = new google.maps.Map(this.map_element, this.settings);
     this.data = {}
-    GPXCasualViewer.call_hook('on_initialized', this);
+    this.hook = {
+      on_create_latlngbounds: [],
+      on_create_marker: [],
+      on_create_polyline: []
+    };
+    // default plugins
+    this.use("set_title_on_create_marker");
+    this.use("set_stroke_option_on_create_polyline");
   },
   fit_bounds: function (url){
     var gpx = this.data[url];
@@ -380,14 +379,17 @@ GPXCasualViewer.prototype = {
 
     // extend gpx.metadata
     gpx.metadata.latlngbounds = GPXCasualViewer.create_latlngbounds(gpx);
+    this.apply_hook('on_create_latlngbounds', gpx.metadata.latlngbounds);
 
     // extend gpx.wpt(s)
     for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
       gpx.wpt[i].marker = GPXCasualViewer.create_overlay_as_wpt(gpx.wpt[i]);
+      this.apply_hook('on_create_marker', gpx.wpt[i].marker);
     }
     // extend gpx.rte(s)
     for( var i = 0, l = gpx.rte.length; i < l; ++i ){
       gpx.rte[i].polyline = GPXCasualViewer.create_overlay_as_rte(gpx.rte[i].rtept);
+      this.apply_hook('on_create_polyline', gpx.rte[i].polyline);
     }
     // extend gpx.trk(s)
     for( var i = 0, l = gpx.trk.length; i < l; ++i ){
@@ -396,61 +398,62 @@ GPXCasualViewer.prototype = {
         pts = pts.concat(gpx.trk[i].trkseg[j].trkpt);
       }
       gpx.trk[i].polyline = GPXCasualViewer.create_overlay_as_trk(pts);
+      this.apply_hook('on_create_polyline', gpx.trk[i].polyline);
     }
     return gpx;
-  }
-}
-
-//-- define hook points and interface
-GPXCasualViewer.hook = {
-  on_initialized: [],
-  on_create_latlngbounds: [],
-  on_create_marker: [],
-  on_create_polyline: []
-};
-GPXCasualViewer.register = function (name, callback){
-  try {
-    GPXCasualViewer.hook[name].push(callback);
-  }catch(ex){
-    console.log("catch an exception on register with '"+ name +"'");
-    throw ex;
-  }
-}
-GPXCasualViewer.call_hook = function (){
-  var name = arguments[0];
-  var args = Array.prototype.slice.call(arguments, 1);
-  for( var i=0,l=GPXCasualViewer.hook[name].length; i<l; ++i ){
-    try {
-      GPXCasualViewer.hook[name][i].apply(this, args);
-    }catch(ex){
-      console.log("catch an exception on call_hook with '"+ name +"'");
-      throw ex;
+  },
+  use: function (plugin){
+    var hook      = GPXCasualViewer.plugin[plugin].hook;
+    var callback  = GPXCasualViewer.plugin[plugin].callback;
+    if( hook ){
+      try {
+        this.hook[hook].push(callback.bind(this));
+      }catch(ex){
+        console.log("catch an exception on use("+ plugin + ") with hook '"+ hook +"'");
+        throw ex;
+      }
+    }else{
+      callback.bind(this)();
+    }
+  },
+  apply_hook: function (){
+    var name = arguments[0];
+    var args = Array.prototype.slice.call(arguments, 1);
+    for( var i=0,l=this.hook[name].length; i<l; ++i ){
+      try {
+        this.hook[name][i].apply(this, args);
+      }catch(ex){
+        console.log("catch an exception on apply_hook with '"+ name +"'");
+        throw ex;
+      }
     }
   }
 }
 
-//-- register default hooks
+GPXCasualViewer.plugin = {}
 
-// GPXCasualViewer.register('on_create_latlngbounds', function (latlngbounds){
-//   console.log("created a latlngbounds");
-// });
+GPXCasualViewer.plugin.set_title_on_create_marker = {
+  callback: function (marker){
+    marker.setTitle(marker.getSource().name);
+  },
+  hook: 'on_create_marker'
+}
 
-GPXCasualViewer.register('on_create_marker', function (marker){
-  marker.setTitle(marker.getSource().name);
-});
-
-GPXCasualViewer.register('on_create_polyline', function (polyline){
-  if( polyline.is_rteType() ){
-    polyline.setOptions({
+GPXCasualViewer.plugin.set_stroke_option_on_create_polyline = {
+  callback: function (polyline){
+    if( polyline.is_rteType() ){
+      polyline.setOptions({
         "strokeColor": '#00FF66',
         "strokeOpacity": 0.5,
         "strokeWeight": 4
-    });
-  }else if( polyline.is_trkType() ){
-    polyline.setOptions({
-      "strokeColor": '#0066FF',
-      "strokeOpacity": 0.5,
-      "strokeWeight": 4
-    });
-  }
-});
+      });
+    }else if( polyline.is_trkType() ){
+      polyline.setOptions({
+        "strokeColor": '#0066FF',
+        "strokeOpacity": 0.5,
+        "strokeWeight": 4
+      });
+    }
+  },
+  hook: 'on_create_polyline'
+}

@@ -1,5 +1,3 @@
-GPXCasualViewer = GPXCasualViewer || {};
-
 (function (){
 
   // Original code by Google
@@ -94,22 +92,25 @@ GPXCasualViewer = GPXCasualViewer || {};
     return minindex;
   }
 
-  GPXCasualViewer.register('on_create_polyline', function (polyline){
-    polyline.addListener('click',function (mouseevent){
-      var path = this.getPath();
-      var index = index_of_vertex_nearest_latlng(path, mouseevent.latLng, this.getMap().getZoom());
-      if( 0 <= index ){
-        var wpt = this.getSource()[index];
-        var content = "#"+ index +"<br/>lat="+ wpt.lat +"<br/>lon="+ wpt.lon;
-        if( wpt.time ){
-          content = content + "<br/>time="+ wpt.time;
+  GPXCasualViewer.plugin.vertex_info = {
+    callback: function (polyline){
+      polyline.addListener('click',function (mouseevent){
+        var path = this.getPath();
+        var index = index_of_vertex_nearest_latlng(path, mouseevent.latLng, this.getMap().getZoom());
+        if( 0 <= index ){
+          var wpt = this.getSource()[index];
+          var content = "#"+ index +"<br/>lat="+ wpt.lat +"<br/>lon="+ wpt.lon;
+          if( wpt.time ){
+            content = content + "<br/>time="+ wpt.time;
+          }
+          new google.maps.InfoWindow({
+            content: content,
+            position: path.getAt(index)
+            }).open(this.getMap());
         }
-        new google.maps.InfoWindow({
-          content: content,
-          position: path.getAt(index)
-          }).open(this.getMap());
-      }
-    });
-  });
+      });
+    },
+    hook: 'on_create_polyline'
+  }
 
 })();
