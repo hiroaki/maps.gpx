@@ -285,7 +285,8 @@ GPXCasualViewer.prototype = {
     this.hook = {
       on_create_latlngbounds: [],
       on_create_marker: [],
-      on_create_polyline: []
+      on_create_polyline: [],
+      on_add_gpx: []
     };
     // default plugins
     this.use("set_title_on_create_marker");
@@ -323,6 +324,7 @@ GPXCasualViewer.prototype = {
     this.remove_gpx(key);
     try{
       this.data[key] = this._build(gpx_text);
+      this.apply_hook('on_add_gpx', key);
     }catch(e){
       throw( new Error("Catch an exception at add_gpx with "+ key +"\nreason: "+ e) );
     }
@@ -366,6 +368,12 @@ GPXCasualViewer.prototype = {
   use: function (plugin){
     var hook      = GPXCasualViewer.plugin[plugin].hook;
     var callback  = GPXCasualViewer.plugin[plugin].callback;
+    this._register_hook(hook, callback);
+  },
+  register: function (hook, callback){
+    this._register_hook(hook, callback);
+  },
+  _register_hook: function (hook, callback){
     if( hook ){
       try {
         this.hook[hook].push(callback.bind(this));

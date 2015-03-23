@@ -16,10 +16,15 @@ body { height: 100%; margin: 0px; padding: 0px }
 <script type="text/javascript" src="plugin-url.js"></script>
 <script type="text/javascript">
 (function (){
-  //-- bootstrap
   GPXCasualViewer.strict = false;
   google.maps.event.addDomListener(window,'load',function (){
     var app = new GPXCasualViewer('map_canvas');
+    app.register('on_add_gpx', function (key){
+      this.fit_bounds(key);
+      this.show_overlay_wpts(key);
+      this.show_overlay_rtes(key);
+      this.show_overlay_trks(key);
+    });
     app.use('vertex_info');
     app.use('file');
     app.use('url');
