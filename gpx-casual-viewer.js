@@ -292,34 +292,45 @@ GPXCasualViewer.prototype = {
     this.use("set_title_on_create_marker");
     this.use("set_stroke_option_on_create_polyline");
   },
-  fit_bounds: function (url){
-    var gpx = this.data[url];
-    this.map.fitBounds( gpx.metadata.latlngbounds );
+  fit_bounds: function (){
+    var keys = [];
+    if( 0 < arguments.length ){
+      keys = Array.prototype.slice.call(arguments)
+    }else{
+      for(var key in this.data){ keys.push(key) }
+    }
+    if( 0 < keys.length ){
+      var bnd = this.data[keys[0]].metadata.latlngbounds;
+      for(var i=1,l=keys.length; i<l; ++i){
+        bnd.union( this.data[keys[i]].metadata.latlngbounds );
+      }
+      this.map.fitBounds(bnd);
+    }
   },
-  _overlay_wpts: function (url, show){
-    var gpx = this.data[url];
+  _overlay_wpts: function (key, show){
+    var gpx = this.data[key];
     for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
       gpx.wpt[i].marker.setMap( show ? this.map : null );
     }
   },
-  _overlay_rtes: function (url, show){
-    var gpx = this.data[url];
+  _overlay_rtes: function (key, show){
+    var gpx = this.data[key];
     for( var i = 0, l = gpx.rte.length; i < l; ++i ){
       gpx.rte[i].polyline.setMap( show ? this.map : null );
     }
   },
-  _overlay_trks: function (url, show){
-    var gpx = this.data[url];
+  _overlay_trks: function (key, show){
+    var gpx = this.data[key];
     for( var i = 0, l = gpx.trk.length; i < l; ++i ){
       gpx.trk[i].polyline.setMap( show ? this.map : null );
     }
   },
-  show_overlay_wpts: function (url){ this._overlay_wpts(url, true ); },
-  hide_overlay_wpts: function (url){ this._overlay_wpts(url, false); },
-  show_overlay_rtes: function (url){ this._overlay_rtes(url, true ); },
-  hide_overlay_rtes: function (url){ this._overlay_rtes(url, false); },
-  show_overlay_trks: function (url){ this._overlay_trks(url, true ); },
-  hide_overlay_trks: function (url){ this._overlay_trks(url, false); },
+  show_overlay_wpts: function (key){ this._overlay_wpts(key, true ); },
+  hide_overlay_wpts: function (key){ this._overlay_wpts(key, false); },
+  show_overlay_rtes: function (key){ this._overlay_rtes(key, true ); },
+  hide_overlay_rtes: function (key){ this._overlay_rtes(key, false); },
+  show_overlay_trks: function (key){ this._overlay_trks(key, true ); },
+  hide_overlay_trks: function (key){ this._overlay_trks(key, false); },
   add_gpx: function (key, gpx_text){
     this.remove_gpx(key);
     try{
