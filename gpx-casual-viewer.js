@@ -2,35 +2,6 @@ function GPXCasualViewer(){
   this.initialize.apply(this, arguments);
 }
 GPXCasualViewer.strict = true;
-GPXCasualViewer.parse_query_string = function(/* usually 'location.search' */qstring, separator){
-  if( ! separator ){
-    separator = '&';
-  }
-  var params = {};
-  if( qstring ){
-    var str = qstring.match(/^\?/) ? qstring.substring(1) : qstring
-    var pairs = str.split(separator);
-    for(var i=0, l=pairs.length; i<l; ++i){
-      var pair = pairs[i].split('=');
-      if( pair[0] ){
-        params[pair[0]] = decodeURIComponent( pair[1] );
-      }
-    }
-  }
-  return params;
-}
-GPXCasualViewer.createXmlHttpRequest = function(){
-  try{
-    if( typeof ActiveXObject != 'undefined' ){
-      return new ActiveXObject('Microsoft.XMLHTTP');
-    }else if( window["XMLHttpRequest"] ){
-      return new XMLHttpRequest();
-    }
-  }catch(e){
-    throw( new Error("Cannot create XmlHttpRequest object.") );
-  }
-  return null;
-}
 GPXCasualViewer.parseXml = function(str){
   if( typeof ActiveXObject != 'undefined' && typeof GetObject != 'undefined' ){
     var doc = new ActiveXObject('Microsoft.XMLDOM');
@@ -348,16 +319,12 @@ GPXCasualViewer.prototype = {
   hide_overlay_rtes: function (url){ this._overlay_rtes(url, false); },
   show_overlay_trks: function (url){ this._overlay_trks(url, true ); },
   hide_overlay_trks: function (url){ this._overlay_trks(url, false); },
-  import_gpx: function (source){
-    var gpx_text = this.read_gpx_text_from_url(source);
-    this.add_gpx(source, gpx_text);
-  },
   add_gpx: function (key, gpx_text){
     this.remove_gpx(key);
     try{
       this.data[key] = this._build(gpx_text);
     }catch(e){
-      throw( new Error("Catch an exception at import_gpx with "+ key +"\nreason: "+ e) );
+      throw( new Error("Catch an exception at add_gpx with "+ key +"\nreason: "+ e) );
     }
   },
   remove_gpx: function (key){
@@ -367,12 +334,6 @@ GPXCasualViewer.prototype = {
         this.hide_overlay_trks(key);
       }
       this.data[key] = null;
-  },
-  read_gpx_text_from_url: function (url){
-    var xhr = GPXCasualViewer.createXmlHttpRequest();
-    xhr.open('GET', url, false);
-    xhr.send(null);
-    return xhr.responseText;
   },
   _build: function (gpx_text){
     var gpx = GPXCasualViewer.gpx_to_json( GPXCasualViewer.parseXml(gpx_text) );

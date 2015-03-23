@@ -13,6 +13,7 @@ body { height: 100%; margin: 0px; padding: 0px }
 <script type="text/javascript" src="gpx-casual-viewer.js"></script>
 <script type="text/javascript" src="plugin-vertex-info.js"></script>
 <script type="text/javascript" src="plugin-file.js"></script>
+<script type="text/javascript" src="plugin-url.js"></script>
 <script type="text/javascript">
 (function (){
   //-- bootstrap
@@ -21,14 +22,7 @@ body { height: 100%; margin: 0px; padding: 0px }
     var app = new GPXCasualViewer('map_canvas');
     app.use('vertex_info');
     app.use('file');
-    var query = GPXCasualViewer.parse_query_string(location.search);
-    if( query.url ){
-      app.import_gpx(query.url);
-      app.fit_bounds(query.url);
-      app.show_overlay_wpts(query.url);
-      app.show_overlay_rtes(query.url);
-      app.show_overlay_trks(query.url);
-    }
+    app.use('url');
   });
 })();
 </script>
