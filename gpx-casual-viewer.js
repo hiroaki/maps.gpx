@@ -1,21 +1,28 @@
+/*
+ * GPX Casual Viewer v3
+ *   Copyright 2009-2015 WATANABE Hiroaki
+ *   Released under the MIT license
+ */
+
 function GPXCasualViewer(){
   this.initialize.apply(this, arguments);
 }
+
 GPXCasualViewer.strict = true;
-GPXCasualViewer.parseXml = function(str){
+
+GPXCasualViewer.parse_xml = function(str){
   if( typeof ActiveXObject != 'undefined' && typeof GetObject != 'undefined' ){
     var doc = new ActiveXObject('Microsoft.XMLDOM');
     doc.loadXML(str);
     return doc;
   }
-
   if( typeof DOMParser != 'undefined' ){
     return (new DOMParser()).parseFromString(str, 'text/xml');
   }
-
   throw( new Error("Cannot parse string as XML stream.") );
 }
-//-- convert gpx to Object
+
+//-- convert gpx document to json
 GPXCasualViewer.gpx_to_json = function( xml_document ){
   var linkType_to_json = function (/*dom node <link>*/node){
     var obj = {
@@ -245,7 +252,6 @@ GPXCasualViewer.Polyline = function (complex_type, src, opts){
     this.super.setMap.call(this, g_map);
   }
 
-
 //-- factory for extended g objects
 GPXCasualViewer.create_latlngbounds = function(gpx, options){
   return new google.maps.LatLngBounds(
@@ -349,7 +355,7 @@ GPXCasualViewer.prototype = {
       this.data[key] = null;
   },
   _build: function (gpx_text){
-    var gpx = GPXCasualViewer.gpx_to_json( GPXCasualViewer.parseXml(gpx_text) );
+    var gpx = GPXCasualViewer.gpx_to_json( GPXCasualViewer.parse_xml(gpx_text) );
 
     // extend gpx.metadata
     gpx.metadata.latlngbounds = GPXCasualViewer.create_latlngbounds(gpx);
