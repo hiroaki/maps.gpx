@@ -379,6 +379,7 @@ GPXCasualViewer.prototype.removeGPX = function(key) {
     this.hideOverlayTrks(key);
   }
   this.data[key] = null;
+  delete this.data[key];
   return this;
 };
 GPXCasualViewer.prototype._build = function(gpx_text) {
