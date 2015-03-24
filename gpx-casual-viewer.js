@@ -391,10 +391,12 @@ GPXCasualViewer.prototype._build = function(gpx_text) {
   // extend gpx.wpt(s)
   for ( var i = 0, l = gpx.wpt.length; i < l; ++i ) {
     gpx.wpt[i].marker = GPXCasualViewer.createOverlayAsWpt(gpx.wpt[i]);
+    gpx.wpt[i].polyline = null;
     this.applyHook('onCreateMarker', gpx.wpt[i].marker);
   }
   // extend gpx.rte(s)
   for ( var i = 0, l = gpx.rte.length; i < l; ++i ) {
+    gpx.rte[i].marker = null;
     gpx.rte[i].polyline = GPXCasualViewer.createOverlayAsRte(gpx.rte[i].rtept);
     this.applyHook('onCreatePolyline', gpx.rte[i].polyline);
   }
@@ -404,6 +406,7 @@ GPXCasualViewer.prototype._build = function(gpx_text) {
     for ( var j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ) {
       pts = pts.concat(gpx.trk[i].trkseg[j].trkpt);
     }
+    gpx.trk[i].marker = null;
     gpx.trk[i].polyline = GPXCasualViewer.createOverlayAsTrk(pts);
     this.applyHook('onCreatePolyline', gpx.trk[i].polyline);
   }
