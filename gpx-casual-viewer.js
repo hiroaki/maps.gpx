@@ -4,190 +4,200 @@
  *   Released under the MIT license
  */
 
-function GPXCasualViewer(){
+function GPXCasualViewer() {
   this.initialize.apply(this, arguments);
 }
 
+// constants, do not change these value
+GPXCasualViewer.VERSION   = '2.0.0';
+GPXCasualViewer.GPX_TYPE  = 'gpxType';
+GPXCasualViewer.WPT_TYPE  = 'wptType';
+GPXCasualViewer.RTE_TYPE  = 'rteType';
+GPXCasualViewer.TRK_TYPE  = 'trkType';
+
+// global properties, this value can be changed
 GPXCasualViewer.strict = true;
 
-GPXCasualViewer.parse_xml = function(str){
-  if( typeof ActiveXObject != 'undefined' && typeof GetObject != 'undefined' ){
+// common util
+GPXCasualViewer.parseXML = function(str) {
+  if ( typeof ActiveXObject != 'undefined' && typeof GetObject != 'undefined' ) {
     var doc = new ActiveXObject('Microsoft.XMLDOM');
     doc.loadXML(str);
     return doc;
   }
-  if( typeof DOMParser != 'undefined' ){
+  if ( typeof DOMParser != 'undefined' ) {
     return (new DOMParser()).parseFromString(str, 'text/xml');
   }
-  throw( new Error("Cannot parse string as XML stream.") );
+  throw( new Error('Cannot parse string as XML stream.') );
 }
 
-//-- convert gpx document to json
-GPXCasualViewer.gpx_to_json = function( xml_document ){
-  var linkType_to_json = function (/*dom node <link>*/node){
+// convert gpx document to json
+GPXCasualViewer.GPXToJSON = function( xml_document ) {
+  var linkTypeToJson = function(/*dom node <link>*/node) {
     var obj = {
-      "href":node.getAttribute('href')
+      href: node.getAttribute('href')
       };
     var nc = node.childNodes;
     for( var i = 0, l = nc.length; i < l; ++i ){
-      if( nc[i].firstChild )
+      if( nc[i].firstChild ){
         obj[nc[i].tagName] = nc[i].firstChild.nodeValue;
+      }
     }
     return obj;
   };
-  var wptType_to_json = function (/*dom node <wpt>*/node){
+  var wptTypeToJson = function(/*dom node <wpt>*/node) {
     var obj = {
-      "lat":node.getAttribute('lat'),
-      "lon":node.getAttribute('lon'),
-      "link":[]
+      lat: node.getAttribute('lat'),
+      lon: node.getAttribute('lon'),
+      link: []
       };
     var nc = node.childNodes;
-    for( var i = 0, l = nc.length; i < l; ++i ){
+    for ( var i = 0, l = nc.length; i < l; ++i ) {
       var tag = nc[i].tagName;
-      if( tag == 'link' ){
-        obj["link"].push( linkType_to_json(nc[i]) );
-      }else if( tag != 'extensions' ){
-        if( nc[i].firstChild )
+      if ( tag == 'link' ) {
+        obj['link'].push( linkTypeToJson(nc[i]) );
+      } else if ( tag != 'extensions' ) {
+        if( nc[i].firstChild ){
           obj[nc[i].tagName] = nc[i].firstChild.nodeValue;
+        }
       }
     }
     return obj;
   };
-  var rteType_to_json = function (/*dom node <rte>*/node){
+  var rteTypeToJson = function(/*dom node <rte>*/node) {
     var obj = {
-      "rtept":[]
+      rtept: []
       };
     var nc = node.childNodes;
-    for( var i = 0, l = nc.length; i < l; ++i ){
+    for ( var i = 0, l = nc.length; i < l; ++i ){
       var tag = nc[i].tagName;
-      if( tag == 'rtept' ){
-        obj["rtept"].push( wptType_to_json(nc[i]) );
-      }else if( tag != 'extensions' ){
-        if( nc[i].firstChild )
+      if ( tag == 'rtept' ) {
+        obj['rtept'].push( wptTypeToJson(nc[i]) );
+      } else if ( tag != 'extensions' ) {
+        if ( nc[i].firstChild ){
           obj[tag] = nc[i].firstChild.nodeValue;
+        }
       }
     }
     return obj;
   };
-  var trksegType_to_json = function (/*dom node <trkseg>*/node){
+  var trksegTypeToJson = function(/*dom node <trkseg>*/node) {
     var obj = {
-      "trkpt":[]
+      trkpt: []
       };
     var nc = node.childNodes;
-    for( var i = 0, l = nc.length; i < l; ++i ){
+    for ( var i = 0, l = nc.length; i < l; ++i ) {
       var tag = nc[i].tagName;
-      if( tag == 'trkpt' ){
-        obj["trkpt"].push( wptType_to_json(nc[i]) );
-      }else if( tag != 'extensions' ){
-        if( nc[i].firstChild )
+      if ( tag == 'trkpt' ) {
+        obj['trkpt'].push( wptTypeToJson(nc[i]) );
+      } else if ( tag != 'extensions' ) {
+        if ( nc[i].firstChild ) {
           obj[tag] = nc[i].firstChild.nodeValue;
+        }
       }
     }
     return obj;
   };
-  var trkType_to_json = function (/*dom node <trk>*/node){
+  var trkTypeToJson = function(/*dom node <trk>*/node) {
     var obj = {
-      "trkseg":[]
+      trkseg: []
       };
     var nc = node.childNodes;
-    for( var i = 0, l = nc.length; i < l; ++i ){
+    for ( var i = 0, l = nc.length; i < l; ++i ) {
       var tag = nc[i].tagName;
-      if( tag == 'trkseg' ){
-        obj["trkseg"].push( trksegType_to_json(nc[i]) );
-      }else if( tag != 'extensions' ){
-        if( nc[i].firstChild )
+      if ( tag == 'trkseg' ) {
+        obj['trkseg'].push( trksegTypeToJson(nc[i]) );
+      } else if ( tag != 'extensions' ) {
+        if ( nc[i].firstChild ){
           obj[tag] = nc[i].firstChild.nodeValue;
+        }
       }
     }
     return obj;
   };
-  var gpxType_to_json = function (/*dom node <gpx>*/node){
+  var gpxTypeToJson = function(/*dom node <gpx>*/node) {
     var obj = {
-      "metadata":{},
-      "wpt":[],
-      "rte":[],
-      "trk":[]
+      metadata: {},
+      wpt: [],
+      rte: [],
+      trk: []
       };
-    if( GPXCasualViewer.strict ){
-      obj["version"] = node.getAttribute('version');
-      obj["creator"] = node.getAttribute('creator');
-      if( obj.version != '1.1' ){
-        throw(new Error("GPX document is formatted as unsupported version, it requires 1.1 only"));
+    if ( GPXCasualViewer.strict ) {
+      obj['version'] = node.getAttribute('version');
+      obj['creator'] = node.getAttribute('creator');
+      if ( obj.version != '1.1' ) {
+        throw( new Error('GPX document is formatted as unsupported version, it requires 1.1 only') );
       }
-      if( ! obj.creator ){
-        throw(new Error("Element 'gpx' does not have attribute 'creator' that is required."));
+      if ( ! obj.creator ) {
+        throw( new Error('Element "gpx" does not have attribute "creator" that is required.') );
       }
     }
     var nc = node.childNodes;
-    for( var i = 0, l = nc.length; i < l; ++i ){
+    for ( var i = 0, l = nc.length; i < l; ++i ) {
       var tag = nc[i].tagName;
-      if( tag == 'wpt' ){
-        obj["wpt"].push( wptType_to_json(nc[i]) );
-      }else if( tag == 'rte' ){
-        obj["rte"].push( rteType_to_json(nc[i]) );
-      }else if( tag == 'trk' ){
-        obj["trk"].push( trkType_to_json(nc[i]) );
-      }else if( tag != 'extensions' && tag != 'metadata' ){
-        if( nc[i].firstChild )
+      if ( tag == 'wpt' ) {
+        obj['wpt'].push( wptTypeToJson(nc[i]) );
+      } else if( tag == 'rte' ) {
+        obj['rte'].push( rteTypeToJson(nc[i]) );
+      } else if( tag == 'trk' ) {
+        obj['trk'].push( trkTypeToJson(nc[i]) );
+      } else if( tag != 'extensions' && tag != 'metadata' ) {
+        if ( nc[i].firstChild ){
           obj[tag] = nc[i].firstChild.nodeValue;
+        }
       }
     }
     return obj;
   };
 
-  var gpx = gpxType_to_json( xml_document.getElementsByTagName('gpx')[0] );
+  var gpx = gpxTypeToJson( xml_document.getElementsByTagName('gpx')[0] );
   var bounds = {
-    "minlat":  90.0,
-    "maxlat": -90.0,
-    "minlon": 180.0,
-    "maxlon":-180.0
+    minlat:  90.0,
+    maxlat: -90.0,
+    minlon: 180.0,
+    maxlon:-180.0
     };
-  var bounding = function (bounds, wptType){
-    if( wptType.lat < bounds.minlat ){
+  var bounding = function(bounds, wptType) {
+    if ( wptType.lat < bounds.minlat ) {
       bounds.minlat = wptType.lat;
     }
-    if( bounds.maxlat < wptType.lat ){
+    if ( bounds.maxlat < wptType.lat ) {
       bounds.maxlat = wptType.lat;
     }
-    if( wptType.lon < bounds.minlon ){
+    if ( wptType.lon < bounds.minlon ) {
       bounds.minlon = wptType.lon;
     }
-    if( bounds.maxlon < wptType.lon ){
+    if ( bounds.maxlon < wptType.lon ) {
       bounds.maxlon = wptType.lon;
     }
     return bounds;
   }
-  for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
+  var i, j, k;
+  for (i = 0, l = gpx.wpt.length; i < l; ++i ) {
     bounds = bounding(bounds, gpx.wpt[i]);
   }
-  for( var i = 0, l = gpx.rte.length; i < l; ++i ){
-    for( var j = 0, m = gpx.rte[i].rtept.length; j < m; ++j ){
+  for (i = 0, l = gpx.rte.length; i < l; ++i ) {
+    for (j = 0, m = gpx.rte[i].rtept.length; j < m; ++j ) {
       bounds = bounding(bounds, gpx.rte[i].rtept[j]);
     }
   }
-  for( var i = 0, l = gpx.trk.length; i < l; ++i ){
-    for( var j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ){
-      for( var k = 0, n = gpx.trk[i].trkseg[j].trkpt.length; k < n; ++k ){
+  for (i = 0, l = gpx.trk.length; i < l; ++i ) {
+    for (j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ) {
+      for (k = 0, n = gpx.trk[i].trkseg[j].trkpt.length; k < n; ++k ) {
         bounds = bounding(bounds, gpx.trk[i].trkseg[j].trkpt[k]);
       }
     }
   }
-  gpx.metadata["bounds"] = bounds;
+  gpx.metadata['bounds'] = bounds;
   return gpx;
 }
 
-//-- constants
-GPXCasualViewer.gpxType = 'gpxType';
-GPXCasualViewer.wptType = 'wptType';
-GPXCasualViewer.rteType = 'rteType';
-GPXCasualViewer.trkType = 'trkType';
-
-//-- extends g overlay objects
-GPXCasualViewer.Marker = function (complex_type, src, opts){
-  this.super = google.maps.Marker.prototype;
-  this._complex_type = complex_type;
-  this._source = src;
-  this._overlayed = null;
+// extend google.maps.Marker
+GPXCasualViewer.Marker = function (complex_type, src, opts) {
+  this.super          = google.maps.Marker.prototype;
+  this._complex_type  = complex_type;
+  this._source        = src;
+  this._overlayed     = null;
 
   var wpt = src;
   var options = opts || {};
@@ -197,35 +207,36 @@ GPXCasualViewer.Marker = function (complex_type, src, opts){
 }
   GPXCasualViewer.Marker.prototype = Object.create(google.maps.Marker.prototype, {
     constructor: { value: GPXCasualViewer.Marker },
-    overlayed: function (){ return this._overlayed } // extend
+    overlayed: function () { return this._overlayed } // extend
   });
-  GPXCasualViewer.Marker.prototype.is_wptType = function (){
-    return this._complex_type == GPXCasualViewer.wptType ? true : false
+  GPXCasualViewer.Marker.prototype.isWptType = function () {
+    return this._complex_type == GPXCasualViewer.WPT_TYPE ? true : false
   };
-  GPXCasualViewer.Marker.prototype.is_rteType = function (){
-    return this._complex_type == GPXCasualViewer.rteType ? true : false
+  GPXCasualViewer.Marker.prototype.isRteType = function () {
+    return this._complex_type == GPXCasualViewer.RTE_TYPE ? true : false
   };
-  GPXCasualViewer.Marker.prototype.is_trkType = function (){
-    return this._complex_type == GPXCasualViewer.trkType ? true : false
+  GPXCasualViewer.Marker.prototype.isTrkType = function () {
+    return this._complex_type == GPXCasualViewer.TRK_TYPE ? true : false
   };
-  GPXCasualViewer.Marker.prototype.getSource = function (){
+  GPXCasualViewer.Marker.prototype.getSource = function () {
     return this._source;
   };
-  GPXCasualViewer.Marker.prototype.setMap = function (g_map){ // override
+  GPXCasualViewer.Marker.prototype.setMap = function (g_map) { // override
     this._overlayed = g_map ? true : false;
     this.super.setMap.call(this, g_map);
   }
-GPXCasualViewer.Polyline = function (complex_type, src, opts){
-  this.super = google.maps.Polyline.prototype;
-  this._complex_type = complex_type;
-  this._source = src;
-  this._overlayed = null;
+// extend google.maps.Polyline
+GPXCasualViewer.Polyline = function (complex_type, src, opts) {
+  this.super          = google.maps.Polyline.prototype;
+  this._complex_type  = complex_type;
+  this._source        = src;
+  this._overlayed     = null;
 
   var pts = src;
   var options = opts || {};
   options.path = new google.maps.MVCArray();
   var i = 0;
-  for( var j = 0, m = pts.length; j < m; ++j ){
+  for ( var j = 0, m = pts.length; j < m; ++j ) {
     options.path.insertAt(i++, new google.maps.LatLng(pts[j].lat, pts[j].lon));
   }
 
@@ -233,213 +244,232 @@ GPXCasualViewer.Polyline = function (complex_type, src, opts){
 }
   GPXCasualViewer.Polyline.prototype = Object.create(google.maps.Polyline.prototype, {
     constructor: { value: GPXCasualViewer.Polyline },
-    overlayed: function (){ return this._overlayed } // extend
+    overlayed: function () { return this._overlayed } // extend
   });
-  GPXCasualViewer.Polyline.prototype.is_wptType = function (){
-    return this._complex_type == GPXCasualViewer.wptType ? true : false
+  GPXCasualViewer.Polyline.prototype.isWptType = function () {
+    return this._complex_type == GPXCasualViewer.WPT_TYPE ? true : false
   };
-  GPXCasualViewer.Polyline.prototype.is_rteType = function (){
-    return this._complex_type == GPXCasualViewer.rteType ? true : false
+  GPXCasualViewer.Polyline.prototype.isRteType = function () {
+    return this._complex_type == GPXCasualViewer.RTE_TYPE ? true : false
   };
-  GPXCasualViewer.Polyline.prototype.is_trkType = function (){
-    return this._complex_type == GPXCasualViewer.trkType ? true : false
+  GPXCasualViewer.Polyline.prototype.isTrkType = function () {
+    return this._complex_type == GPXCasualViewer.TRK_TYPE ? true : false
   };
-  GPXCasualViewer.Polyline.prototype.getSource = function (){
+  GPXCasualViewer.Polyline.prototype.getSource = function () {
     return this._source;
   };
-  GPXCasualViewer.Polyline.prototype.setMap = function (g_map){ // override
+  GPXCasualViewer.Polyline.prototype.setMap = function (g_map) { // override
     this._overlayed = g_map ? true : false;
     this.super.setMap.call(this, g_map);
   }
 
-//-- factory for extended g objects
-GPXCasualViewer.create_latlngbounds = function(gpx, options){
+// factories to create extended maps overlay objects
+GPXCasualViewer.createLatlngbounds = function (gpx, options) {
   return new google.maps.LatLngBounds(
     new google.maps.LatLng(gpx.metadata.bounds.minlat, gpx.metadata.bounds.minlon),
     new google.maps.LatLng(gpx.metadata.bounds.maxlat, gpx.metadata.bounds.maxlon)
     );
 }
-GPXCasualViewer.create_overlay_as_wpt = function(src, options){
-  return new GPXCasualViewer.Marker(GPXCasualViewer.wptType, src, options);
+GPXCasualViewer.createOverlayAsWpt = function (src, options) {
+  return new GPXCasualViewer.Marker(GPXCasualViewer.WPT_TYPE, src, options);
 }
-GPXCasualViewer.create_overlay_as_rte = function(src, options){
-  return new GPXCasualViewer.Polyline(GPXCasualViewer.rteType, src, options);
+GPXCasualViewer.createOverlayAsRte = function (src, options) {
+  return new GPXCasualViewer.Polyline(GPXCasualViewer.RTE_TYPE, src, options);
 }
-GPXCasualViewer.create_overlay_as_trk = function(src, options){
-  return new GPXCasualViewer.Polyline(GPXCasualViewer.trkType, src, options);
+GPXCasualViewer.createOverlayAsTrk = function (src, options) {
+  return new GPXCasualViewer.Polyline(GPXCasualViewer.TRK_TYPE, src, options);
 }
 
-//-- GPXCasualViewer
-GPXCasualViewer.prototype = {
-  initialize: function (map_id, options){
-    this.map_id = map_id;
-    this.options = options || {};
-    this.map_element = document.getElementById(this.map_id);
-    if( ! this.map_element ){
-      throw(new Error("Could not get element by #"+ map_id));
-    }
-    this.defaults = {
-      "zoom":5,
-      "center": new google.maps.LatLng(35.6841306,139.774103),
-      "mapTypeId": google.maps.MapTypeId.ROADMAP
-      };
-    this.settings = {};
-    for (var attr in this.defaults) { this.settings[attr] = this.defaults[attr]; }
-    for (var attr in this.options) { this.settings[attr] = this.options[attr]; }
-    this.map = new google.maps.Map(this.map_element, this.settings);
-    this.data = {}
-    this.hook = {
-      on_create_latlngbounds: [],
-      on_create_marker: [],
-      on_create_polyline: [],
-      on_add_gpx: []
+// constructor of class GPXCasualViewer
+GPXCasualViewer.prototype.initialize = function (map_id, options) {
+  this.map_id       = map_id;
+  this.options      = options || {};
+  this.map_element  = document.getElementById(this.map_id);
+  if ( ! this.map_element ) {
+    throw( new Error('Could not get element by #'+ map_id) );
+  }
+
+  this.settings = {};
+  this.defaults = {
+    zoom: 5,
+    center: new google.maps.LatLng(35.6841306, 139.774103),
+    mapTypeId: google.maps.MapTypeId.ROADMAP
     };
-    // default plugins
-    this.use("set_title_on_create_marker");
-    this.use("set_stroke_option_on_create_polyline");
-  },
-  fit_bounds: function (){
-    var keys = [];
-    if( 0 < arguments.length ){
-      keys = Array.prototype.slice.call(arguments)
-    }else{
-      for(var key in this.data){ keys.push(key) }
-    }
-    if( 0 < keys.length ){
-      var bnd = this.data[keys[0]].metadata.latlngbounds;
-      for(var i=1,l=keys.length; i<l; ++i){
-        bnd.union( this.data[keys[i]].metadata.latlngbounds );
-      }
-      this.map.fitBounds(bnd);
-    }
-  },
-  _overlay_wpts: function (key, show){
-    var gpx = this.data[key];
-    for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
-      gpx.wpt[i].marker.setMap( show ? this.map : null );
-    }
-  },
-  _overlay_rtes: function (key, show){
-    var gpx = this.data[key];
-    for( var i = 0, l = gpx.rte.length; i < l; ++i ){
-      gpx.rte[i].polyline.setMap( show ? this.map : null );
-    }
-  },
-  _overlay_trks: function (key, show){
-    var gpx = this.data[key];
-    for( var i = 0, l = gpx.trk.length; i < l; ++i ){
-      gpx.trk[i].polyline.setMap( show ? this.map : null );
-    }
-  },
-  show_overlay_wpts: function (key){ this._overlay_wpts(key, true ); },
-  hide_overlay_wpts: function (key){ this._overlay_wpts(key, false); },
-  show_overlay_rtes: function (key){ this._overlay_rtes(key, true ); },
-  hide_overlay_rtes: function (key){ this._overlay_rtes(key, false); },
-  show_overlay_trks: function (key){ this._overlay_trks(key, true ); },
-  hide_overlay_trks: function (key){ this._overlay_trks(key, false); },
-  add_gpx: function (key, gpx_text){
-    this.remove_gpx(key);
-    try{
-      this.data[key] = this._build(gpx_text);
-      this.apply_hook('on_add_gpx', key);
-    }catch(e){
-      throw( new Error("Catch an exception at add_gpx with "+ key +"\nreason: "+ e) );
-    }
-  },
-  remove_gpx: function (key){
-      if( this.data[key] ){
-        this.hide_overlay_wpts(key);
-        this.hide_overlay_rtes(key);
-        this.hide_overlay_trks(key);
-      }
-      this.data[key] = null;
-  },
-  _build: function (gpx_text){
-    var gpx = GPXCasualViewer.gpx_to_json( GPXCasualViewer.parse_xml(gpx_text) );
+  for (var attr in this.defaults) { this.settings[attr] = this.defaults[attr] }
+  for (var attr in this.options) {  this.settings[attr] = this.options[attr]  }
 
-    // extend gpx.metadata
-    gpx.metadata.latlngbounds = GPXCasualViewer.create_latlngbounds(gpx);
-    this.apply_hook('on_create_latlngbounds', gpx.metadata.latlngbounds);
+  this.map  = new google.maps.Map(this.map_element, this.settings);
+  this.data = {}
+  this.hook = {
+    onCreateLatlngbounds: [],
+    onCreateMarker: [],
+    onCreatePolyline: [],
+    onAddGPX: []
+  };
 
-    // extend gpx.wpt(s)
-    for( var i = 0, l = gpx.wpt.length; i < l; ++i ){
-      gpx.wpt[i].marker = GPXCasualViewer.create_overlay_as_wpt(gpx.wpt[i]);
-      this.apply_hook('on_create_marker', gpx.wpt[i].marker);
+  // apply default plugins
+  this.use('SetTitleOnCreateMarker');
+  this.use('SetStrokeOptionOnCreatePolyline');
+};
+GPXCasualViewer.prototype.fitBounds = function() {
+  var keys = [];
+  if ( 0 < arguments.length ) {
+    keys = Array.prototype.slice.call(arguments);
+  } else {
+    for (var key in this.data){ keys.push(key) }
+  }
+  if ( 0 < keys.length ) {
+    var bnd = this.data[keys[0]].metadata.latlngbounds;
+    for (var i = 1, l = keys.length; i < l; ++i) {
+      bnd.union( this.data[keys[i]].metadata.latlngbounds );
     }
-    // extend gpx.rte(s)
-    for( var i = 0, l = gpx.rte.length; i < l; ++i ){
-      gpx.rte[i].polyline = GPXCasualViewer.create_overlay_as_rte(gpx.rte[i].rtept);
-      this.apply_hook('on_create_polyline', gpx.rte[i].polyline);
+    this.map.fitBounds(bnd);
+  }
+};
+GPXCasualViewer.prototype._overlayWpts = function(key, show) {
+  var gpx = this.data[key];
+  for ( var i = 0, l = gpx.wpt.length; i < l; ++i ) {
+    gpx.wpt[i].marker.setMap( show ? this.map : null );
+  }
+};
+GPXCasualViewer.prototype._overlayRtes = function(key, show) {
+  var gpx = this.data[key];
+  for ( var i = 0, l = gpx.rte.length; i < l; ++i ) {
+    gpx.rte[i].polyline.setMap( show ? this.map : null );
+  }
+};
+GPXCasualViewer.prototype._overlayTrks = function(key, show) {
+  var gpx = this.data[key];
+  for ( var i = 0, l = gpx.trk.length; i < l; ++i ) {
+    gpx.trk[i].polyline.setMap( show ? this.map : null );
+  }
+};
+GPXCasualViewer.prototype.showOverlayWpts = function(key) {
+  this._overlayWpts(key, true );
+};
+GPXCasualViewer.prototype.hideOverlayWpts = function(key) {
+  this._overlayWpts(key, false);
+};
+GPXCasualViewer.prototype.showOverlayRtes = function(key) {
+  this._overlayRtes(key, true );
+};
+GPXCasualViewer.prototype.hideOverlayRtes = function(key) {
+  this._overlayRtes(key, false);
+};
+GPXCasualViewer.prototype.showOverlayTrks = function(key) {
+  this._overlayTrks(key, true );
+};
+GPXCasualViewer.prototype.hideOverlayTrks = function(key) {
+  this._overlayTrks(key, false);
+};
+GPXCasualViewer.prototype.addGPX = function(key, gpx_text) {
+  this.removeGPX(key);
+  try {
+    this.data[key] = this._build(gpx_text);
+    this.applyHook('onAddGPX', key);
+  } catch(e) {
+    throw( new Error('Catch an exception at addGPX with '+ key +', reason: '+ e) );
+  }
+};
+GPXCasualViewer.prototype.removeGPX = function(key) {
+  if ( this.data[key] ) {
+    this.hideOverlayWpts(key);
+    this.hideOverlayRtes(key);
+    this.hideOverlayTrks(key);
+  }
+  this.data[key] = null;
+};
+GPXCasualViewer.prototype._build = function(gpx_text) {
+  var gpx = GPXCasualViewer.GPXToJSON( GPXCasualViewer.parseXML(gpx_text) );
+
+  // extend gpx.metadata
+  gpx.metadata.latlngbounds = GPXCasualViewer.createLatlngbounds(gpx);
+  this.applyHook('onCreateLatlngbounds', gpx.metadata.latlngbounds);
+
+  // extend gpx.wpt(s)
+  for ( var i = 0, l = gpx.wpt.length; i < l; ++i ) {
+    gpx.wpt[i].marker = GPXCasualViewer.createOverlayAsWpt(gpx.wpt[i]);
+    this.applyHook('onCreateMarker', gpx.wpt[i].marker);
+  }
+  // extend gpx.rte(s)
+  for ( var i = 0, l = gpx.rte.length; i < l; ++i ) {
+    gpx.rte[i].polyline = GPXCasualViewer.createOverlayAsRte(gpx.rte[i].rtept);
+    this.applyHook('onCreatePolyline', gpx.rte[i].polyline);
+  }
+  // extend gpx.trk(s)
+  for ( var i = 0, l = gpx.trk.length; i < l; ++i ) {
+    var pts = [];
+    for ( var j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ) {
+      pts = pts.concat(gpx.trk[i].trkseg[j].trkpt);
     }
-    // extend gpx.trk(s)
-    for( var i = 0, l = gpx.trk.length; i < l; ++i ){
-      var pts = [];
-      for( var j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ){
-        pts = pts.concat(gpx.trk[i].trkseg[j].trkpt);
-      }
-      gpx.trk[i].polyline = GPXCasualViewer.create_overlay_as_trk(pts);
-      this.apply_hook('on_create_polyline', gpx.trk[i].polyline);
-    }
-    return gpx;
-  },
-  use: function (plugin){
-    var hook      = GPXCasualViewer.plugin[plugin].hook;
-    var callback  = GPXCasualViewer.plugin[plugin].callback;
-    this._register_hook(hook, callback);
-  },
-  register: function (hook, callback){
-    this._register_hook(hook, callback);
-  },
-  _register_hook: function (hook, callback){
-    if( hook ){
-      try {
-        this.hook[hook].push(callback.bind(this));
-      }catch(ex){
-        console.log("catch an exception on use("+ plugin + ") with hook '"+ hook +"'");
-        throw ex;
-      }
-    }else{
-      callback.bind(this)();
-    }
-  },
-  apply_hook: function (){
-    var name = arguments[0];
-    var args = Array.prototype.slice.call(arguments, 1);
-    for( var i=0,l=this.hook[name].length; i<l; ++i ){
-      try {
-        this.hook[name][i].apply(this, args);
-      }catch(ex){
-        console.log("catch an exception on apply_hook with '"+ name +"'");
-        throw ex;
-      }
+    gpx.trk[i].polyline = GPXCasualViewer.createOverlayAsTrk(pts);
+    this.applyHook('onCreatePolyline', gpx.trk[i].polyline);
+  }
+  return gpx;
+};
+GPXCasualViewer.prototype.use = function(plugin) {
+  var hook      = GPXCasualViewer.plugin[plugin].hook;
+  var callback  = GPXCasualViewer.plugin[plugin].callback;
+  try {
+    this._registerHook(hook, callback);
+  } catch(ex) {
+    console.log('Catch an exception on use('+ plugin + ') with hook "'+ hook +'"');
+    throw ex;
+  }
+};
+GPXCasualViewer.prototype.register = function(hook, callback) {
+  try {
+    this._registerHook(hook, callback);
+  } catch(ex) {
+    console.log('Catch an exception on register('+ hook +')');
+    throw ex;
+  }
+};
+GPXCasualViewer.prototype._registerHook = function(hook, callback) {
+  if ( hook ) {
+    this.hook[hook].push(callback.bind(this));
+  } else {
+    callback.bind(this)();
+  }
+};
+GPXCasualViewer.prototype.applyHook = function() {
+  var name = arguments[0];
+  var args = Array.prototype.slice.call(arguments, 1);
+  for ( var i = 0, l = this.hook[name].length; i < l; ++i ) {
+    try {
+      this.hook[name][i].apply(this, args);
+    } catch(ex) {
+      console.log('Catch an exception on applyHook "'+ name +'" with args ['+ args +']');
+      throw ex;
     }
   }
-}
+};
 
-GPXCasualViewer.plugin = {}
+// plugin mechanism
+GPXCasualViewer.plugin = {};
 
-GPXCasualViewer.plugin.set_title_on_create_marker = {
-  callback: function (marker){
+// define default plugins
+GPXCasualViewer.plugin.SetTitleOnCreateMarker = {
+  callback: function(marker) {
     marker.setTitle(marker.getSource().name);
   },
-  hook: 'on_create_marker'
-}
-
-GPXCasualViewer.plugin.set_stroke_option_on_create_polyline = {
-  callback: function (polyline){
-    if( polyline.is_rteType() ){
+  hook: 'onCreateMarker'
+};
+GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline = {
+  callback: function(polyline) {
+    if ( polyline.isRteType() ) {
       polyline.setOptions({
-        "strokeColor": '#00FF66',
-        "strokeOpacity": 0.5,
-        "strokeWeight": 4
+        strokeColor: '#00FF66',
+        strokeOpacity: 0.5,
+        strokeWeight: 4
       });
-    }else if( polyline.is_trkType() ){
+    } else if( polyline.isTrkType() ) {
       polyline.setOptions({
-        "strokeColor": '#0066FF',
-        "strokeOpacity": 0.5,
-        "strokeWeight": 4
+        strokeColor: '#0066FF',
+        strokeOpacity: 0.5,
+        strokeWeight: 4
       });
     }
   },
-  hook: 'on_create_polyline'
-}
+  hook: 'onCreatePolyline'
+};

@@ -1,8 +1,9 @@
-(function (){
+;(function (){
 
-  // Original code by Google
-  // https://developers.google.com/maps/documentation/javascript/examples/map-coordinates
-  function latlng_from_origin_by_pixel(/*LatLng*/origin, /*pixel*/delta_x, /*pixel*/delta_y, zoom){
+  function latlngFromOriginByPixel(/*LatLng*/origin, /*pixel*/delta_x, /*pixel*/delta_y, zoom) {
+
+    // Original code by Google
+    // https://developers.google.com/maps/documentation/javascript/examples/map-coordinates
     var TILE_SIZE = 256;
     function bound(value, opt_min, opt_max) {
       if (opt_min != null) value = Math.max(value, opt_min);
@@ -51,7 +52,7 @@
     return projection.fromPointToLatLng(new google.maps.Point(x, y));
   }
 
-  function index_of_vertex_nearest_latlng(/*MVCArray*/path, /*LatLng*/latlng, zoom){
+  function indexOfVertexNearestLatlng(/*MVCArray*/path, /*LatLng*/latlng, zoom) {
     var EARTH_ROUND = 6378137;
     var min         = EARTH_ROUND;
     var minindex    = -1;
@@ -60,14 +61,14 @@
     // looking for a pair of points that make a segment which latlng rides,
     // it is the smallest angle of two segments, (path[p] - path[p+1]) and (latlng - path[p+1])
     var min_heading = 180; // angle
-    for(var i=0,l=path.getLength()-1; i<l; ++i){
+    for (var i = 0, l = path.getLength() - 1; i < l; ++i) {
       // narrow down an area to search
       var b = new google.maps.LatLngBounds();
       b.extend(path.getAt(i));
       b.extend(path.getAt(i+1));
-      b.extend(latlng_from_origin_by_pixel(b.getNorthEast(),  margin, -margin, zoom));
-      b.extend(latlng_from_origin_by_pixel(b.getSouthWest(), -margin,  margin, zoom));
-      if( b.contains(latlng) ){
+      b.extend(latlngFromOriginByPixel(b.getNorthEast(),  margin, -margin, zoom));
+      b.extend(latlngFromOriginByPixel(b.getSouthWest(), -margin,  margin, zoom));
+      if ( b.contains(latlng) ) {
         var p0 = path.getAt(i);
         var p1 = latlng;
         var p2 = path.getAt(i+1);
@@ -76,14 +77,14 @@
         var p20x = p2.lng() - p0.lng();
         var p20y = p2.lat() - p0.lat();
         var m = Math.abs(Math.atan2(p10y,p10x) - Math.atan2(p20y,p20x));
-        if( m < min ){
+        if ( m < min ) {
           min = m;
           minindex = i;
           min_heading = google.maps.geometry.spherical.computeHeading(path.getAt(i), path.getAt(i+1));
         }
       }
     }
-    if( 0 <= minindex ){
+    if ( 0 <= minindex ) {
       // finally, which point is closer
       var i0 = google.maps.geometry.spherical.computeDistanceBetween(latlng, path.getAt(minindex   ));
       var i1 = google.maps.geometry.spherical.computeDistanceBetween(latlng, path.getAt(minindex +1));
@@ -92,25 +93,25 @@
     return minindex;
   }
 
-  GPXCasualViewer.plugin.vertex_info = {
-    callback: function (polyline){
-      polyline.addListener('click',function (mouseevent){
-        var path = this.getPath();
-        var index = index_of_vertex_nearest_latlng(path, mouseevent.latLng, this.getMap().getZoom());
-        if( 0 <= index ){
+  GPXCasualViewer.plugin.VertexInfo = {
+    callback: function(polyline) {
+      polyline.addListener('click', function(mouseevent) {
+        var path  = this.getPath();
+        var index = indexOfVertexNearestLatlng(path, mouseevent.latLng, this.getMap().getZoom());
+        if ( 0 <= index ) {
           var wpt = this.getSource()[index];
-          var content = "#"+ index +"<br/>lat="+ wpt.lat +"<br/>lon="+ wpt.lon;
-          if( wpt.time ){
-            content = content + "<br/>time="+ wpt.time;
+          var content = '#'+ index +'<br/>lat='+ wpt.lat +'<br/>lon='+ wpt.lon;
+          if ( wpt.time ) {
+            content = content + '<br/>time='+ wpt.time;
           }
           new google.maps.InfoWindow({
             content: content,
             position: path.getAt(index)
-            }).open(this.getMap());
+            }). open(this.getMap());
         }
       });
     },
-    hook: 'on_create_polyline'
-  }
+    hook: 'onCreatePolyline'
+   }
 
 })();
