@@ -325,42 +325,42 @@ GPXCasualViewer.prototype.fitBounds = function() {
     }
     this.map.fitBounds(bnd);
   }
+  return this;
 };
-GPXCasualViewer.prototype._overlayWpts = function(key, show) {
-  var gpx = this.data[key];
-  for ( var i = 0, l = gpx.wpt.length; i < l; ++i ) {
-    gpx.wpt[i].marker.setMap( show ? this.map : null );
+GPXCasualViewer.prototype._appearOverlay = function() {
+  var is_show = arguments[0] ? this.map : null;
+  var complex = arguments[1];
+  var keys = Array.prototype.slice.call(arguments, 2);
+  for ( var i = 0, l = keys.length; i < l; ++i ) {
+    var gpx = this.data[keys[i]];
+    for ( var j = 0, m = gpx[complex].length; j < m; ++j ) {
+      if ( gpx[complex][j].marker ){
+        gpx[complex][j].marker.setMap( is_show );
+      }
+      if ( gpx[complex][j].polyline ){
+        gpx[complex][j].polyline.setMap( is_show );
+      }
+    }
   }
+  return this;
 };
-GPXCasualViewer.prototype._overlayRtes = function(key, show) {
-  var gpx = this.data[key];
-  for ( var i = 0, l = gpx.rte.length; i < l; ++i ) {
-    gpx.rte[i].polyline.setMap( show ? this.map : null );
-  }
+GPXCasualViewer.prototype.showOverlayWpts = function() {
+  return this._appearOverlay( true, 'wpt', Array.prototype.slice.call(arguments));
 };
-GPXCasualViewer.prototype._overlayTrks = function(key, show) {
-  var gpx = this.data[key];
-  for ( var i = 0, l = gpx.trk.length; i < l; ++i ) {
-    gpx.trk[i].polyline.setMap( show ? this.map : null );
-  }
+GPXCasualViewer.prototype.hideOverlayWpts = function() {
+  return this._appearOverlay(false, 'wpt', Array.prototype.slice.call(arguments));
 };
-GPXCasualViewer.prototype.showOverlayWpts = function(key) {
-  this._overlayWpts(key, true );
+GPXCasualViewer.prototype.showOverlayRtes = function() {
+  return this._appearOverlay( true, 'rte', Array.prototype.slice.call(arguments));
 };
-GPXCasualViewer.prototype.hideOverlayWpts = function(key) {
-  this._overlayWpts(key, false);
+GPXCasualViewer.prototype.hideOverlayRtes = function() {
+  return this._appearOverlay(false, 'rte', Array.prototype.slice.call(arguments));
 };
-GPXCasualViewer.prototype.showOverlayRtes = function(key) {
-  this._overlayRtes(key, true );
+GPXCasualViewer.prototype.showOverlayTrks = function() {
+  return this._appearOverlay( true, 'trk', Array.prototype.slice.call(arguments));
 };
-GPXCasualViewer.prototype.hideOverlayRtes = function(key) {
-  this._overlayRtes(key, false);
-};
-GPXCasualViewer.prototype.showOverlayTrks = function(key) {
-  this._overlayTrks(key, true );
-};
-GPXCasualViewer.prototype.hideOverlayTrks = function(key) {
-  this._overlayTrks(key, false);
+GPXCasualViewer.prototype.hideOverlayTrks = function() {
+  return this._appearOverlay(false, 'trk', Array.prototype.slice.call(arguments));
 };
 GPXCasualViewer.prototype.addGPX = function(key, gpx_text) {
   this.removeGPX(key);
@@ -370,6 +370,7 @@ GPXCasualViewer.prototype.addGPX = function(key, gpx_text) {
   } catch(e) {
     throw( new Error('Catch an exception at addGPX with '+ key +', reason: '+ e) );
   }
+  return this;
 };
 GPXCasualViewer.prototype.removeGPX = function(key) {
   if ( this.data[key] ) {
@@ -378,6 +379,7 @@ GPXCasualViewer.prototype.removeGPX = function(key) {
     this.hideOverlayTrks(key);
   }
   this.data[key] = null;
+  return this;
 };
 GPXCasualViewer.prototype._build = function(gpx_text) {
   var gpx = GPXCasualViewer.GPXToJSON( GPXCasualViewer.parseXML(gpx_text) );
@@ -416,6 +418,7 @@ GPXCasualViewer.prototype.use = function(plugin) {
     console.log('Catch an exception on use('+ plugin + ') with hook "'+ hook +'"');
     throw ex;
   }
+  return this;
 };
 GPXCasualViewer.prototype.register = function(hook, callback) {
   try {
@@ -424,6 +427,7 @@ GPXCasualViewer.prototype.register = function(hook, callback) {
     console.log('Catch an exception on register('+ hook +')');
     throw ex;
   }
+  return this;
 };
 GPXCasualViewer.prototype._registerHook = function(hook, callback) {
   if ( hook ) {
@@ -443,6 +447,7 @@ GPXCasualViewer.prototype.applyHook = function() {
       throw ex;
     }
   }
+  return this;
 };
 
 // plugin mechanism
