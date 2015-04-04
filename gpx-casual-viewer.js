@@ -73,8 +73,8 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
       href: node.getAttribute('href')
       };
     var nc = node.childNodes;
-    for( var i = 0, l = nc.length; i < l; ++i ){
-      if( nc[i].firstChild ){
+    for ( var i = 0, l = nc.length; i < l; ++i ) {
+      if ( nc[i].firstChild ) {
         obj[nc[i].tagName] = nc[i].firstChild.nodeValue;
       }
     }
@@ -92,7 +92,7 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
       if ( tag == GPXCasualViewer.ELEMENTS.LINK ) {
         obj[GPXCasualViewer.ELEMENTS.LINK].push( linkTypeToJson(nc[i]) );
       } else if ( tag != GPXCasualViewer.ELEMENTS.EXTENSIONS ) {
-        if( nc[i].firstChild ){
+        if ( nc[i].firstChild ) {
           obj[nc[i].tagName] = nc[i].firstChild.nodeValue;
         }
       }
@@ -143,7 +143,7 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
       if ( tag == GPXCasualViewer.ELEMENTS.TRKSEG ) {
         obj[GPXCasualViewer.ELEMENTS.TRKSEG].push( trksegTypeToJson(nc[i]) );
       } else if ( tag != GPXCasualViewer.ELEMENTS.EXTENSIONS ) {
-        if ( nc[i].firstChild ){
+        if ( nc[i].firstChild ) {
           obj[tag] = nc[i].firstChild.nodeValue;
         }
       }
@@ -172,12 +172,12 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
       var tag = nc[i].tagName;
       if ( tag == GPXCasualViewer.ELEMENTS.WPT ) {
         obj[GPXCasualViewer.ELEMENTS.WPT].push( wptTypeToJson(nc[i]) );
-      } else if( tag == GPXCasualViewer.ELEMENTS.RTE ) {
+      } else if ( tag == GPXCasualViewer.ELEMENTS.RTE ) {
         obj[GPXCasualViewer.ELEMENTS.RTE].push( rteTypeToJson(nc[i]) );
-      } else if( tag == GPXCasualViewer.ELEMENTS.TRK ) {
+      } else if ( tag == GPXCasualViewer.ELEMENTS.TRK ) {
         obj[GPXCasualViewer.ELEMENTS.TRK].push( trkTypeToJson(nc[i]) );
-      } else if( tag != GPXCasualViewer.ELEMENTS.EXTENSIONS && tag != GPXCasualViewer.ELEMENTS.METADATA ) {
-        if ( nc[i].firstChild ){
+      } else if ( tag != GPXCasualViewer.ELEMENTS.EXTENSIONS && tag != GPXCasualViewer.ELEMENTS.METADATA ) {
+        if ( nc[i].firstChild ) {
           obj[tag] = nc[i].firstChild.nodeValue;
         }
       }
@@ -251,9 +251,6 @@ GPXCasualViewer.Marker = function (element_name, src, opts) {
   GPXCasualViewer.Marker.prototype.isTrk = function () {
     return this._element == GPXCasualViewer.TRK ? true : false
   };
-  GPXCasualViewer.Marker.prototype.isTrkseg = function () {
-    return this._element == GPXCasualViewer.TRKSEG ? true : false
-  };
   GPXCasualViewer.Marker.prototype.getSource = function () {
     return this._source;
   };
@@ -291,16 +288,13 @@ GPXCasualViewer.Polyline = function (element_name, src, opts) {
   GPXCasualViewer.Polyline.prototype.isTrk = function () {
     return this._element == GPXCasualViewer.ELEMENTS.TRK ? true : false
   };
-  GPXCasualViewer.Polyline.prototype.isTrkseg = function () {
-    return this._element == GPXCasualViewer.ELEMENTS.TRKSEG ? true : false
-  };
   GPXCasualViewer.Polyline.prototype.getSource = function () {
     return this._source;
   };
   GPXCasualViewer.Polyline.prototype.setMap = function (g_map) { // override
     this._overlayed = g_map ? true : false;
     this.super.setMap.call(this, g_map);
-  }
+  };
 
 // factories to create extended maps objects
 GPXCasualViewer.createLatlngbounds = function (bounds) {
@@ -330,13 +324,6 @@ GPXCasualViewer.createOverlayAsTrk = function (src, options) {
     return new GPXCasualViewer.Marker(GPXCasualViewer.ELEMENTS.TRK, src, options);
   }
 }
-GPXCasualViewer.createOverlayAsTrkseg = function (src, options) {
-  if ( src instanceof Array ) {
-    return new GPXCasualViewer.Polyline(GPXCasualViewer.ELEMENTS.TRKSEG, src, options);
-  } else {
-    return new GPXCasualViewer.Marker(GPXCasualViewer.ELEMENTS.TRK, src, options);
-  }
-}
 
 // constructor of class GPXCasualViewer
 GPXCasualViewer.prototype.initialize = function (map_id, options) {
@@ -354,7 +341,7 @@ GPXCasualViewer.prototype.initialize = function (map_id, options) {
     mapTypeId: google.maps.MapTypeId.ROADMAP
     };
   for (var attr in this.defaults) { this.settings[attr] = this.defaults[attr] }
-  for (var attr in this.options) {  this.settings[attr] = this.options[attr]  }
+  for (var attr in this.options ) { this.settings[attr] = this.options[attr]  }
 
   this.map  = new google.maps.Map(this.map_element, this.settings);
   this.data = {}
@@ -378,7 +365,7 @@ GPXCasualViewer.prototype.fitBounds = function() {
   }
   if ( 0 < keys.length ) {
     var bnd = this.data[keys[0]].metadata.latlngbounds;
-    for (var i = 1, l = keys.length; i < l; ++i) {
+    for ( var i = 1, l = keys.length; i < l; ++i ) {
       bnd.union( this.data[keys[i]].metadata.latlngbounds );
     }
     this.map.fitBounds(bnd);
@@ -397,9 +384,9 @@ GPXCasualViewer.prototype._appearOverlay = function() {
         elements[j].overlay.setMap( to_show );
       }
       for ( k in elements[j] ) {
-        if ( elements[j][k] instanceof Array ){
-          for ( m = 0, ml = elements[j][k].length; m < ml; ++m ){
-            if ( elements[j][k][m].overlay ){
+        if ( elements[j][k] instanceof Array ) {
+          for ( m = 0, ml = elements[j][k].length; m < ml; ++m ) {
+            if ( elements[j][k][m].overlay ) {
               elements[j][k][m].overlay.setMap( to_show );
             }
           }
@@ -482,7 +469,7 @@ GPXCasualViewer.prototype._build = function(gpx_text) {
   }else{
     for ( i = 0, l = gpx.trk.length; i < l; ++i ) {
       for ( j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ) {
-        gpx.trk[i].trkseg[j].overlay = GPXCasualViewer.createOverlayAsTrkseg(gpx.trk[i].trkseg[j].trkpt);
+        gpx.trk[i].trkseg[j].overlay = GPXCasualViewer.createOverlayAsTrk(gpx.trk[i].trkseg[j].trkpt);
         this.applyHook('onCreatePolyline', gpx.trk[i].trkseg[j].overlay);
       }
     }
@@ -549,15 +536,9 @@ GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline = {
         strokeOpacity: 0.75,
         strokeWeight: 2
       });
-    } else if( polyline.isTrk() ) {
+    } else if ( polyline.isTrk() ) {
       polyline.setOptions({
         strokeColor: '#0066FF',
-        strokeOpacity: 0.5,
-        strokeWeight: 4
-      });
-    } else if( polyline.isTrkseg() ) {
-      polyline.setOptions({
-        strokeColor: '#009999',
         strokeOpacity: 0.5,
         strokeWeight: 4
       });
