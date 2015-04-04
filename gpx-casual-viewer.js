@@ -261,11 +261,11 @@ GPXCasualViewer.Polyline = function (complex_type, src, opts) {
     this.super.setMap.call(this, g_map);
   }
 
-// factories to create extended maps overlay objects
-GPXCasualViewer.createLatlngbounds = function (gpx, options) {
+// factories to create extended maps objects
+GPXCasualViewer.createLatlngbounds = function (bounds) {
   return new google.maps.LatLngBounds(
-    new google.maps.LatLng(gpx.metadata.bounds.minlat, gpx.metadata.bounds.minlon),
-    new google.maps.LatLng(gpx.metadata.bounds.maxlat, gpx.metadata.bounds.maxlon)
+    new google.maps.LatLng(bounds.minlat, bounds.minlon),
+    new google.maps.LatLng(bounds.maxlat, bounds.maxlon)
     );
 }
 GPXCasualViewer.createOverlayAsWpt = function (src, options) {
@@ -384,7 +384,7 @@ GPXCasualViewer.prototype._build = function(gpx_text) {
   var gpx = GPXCasualViewer.GPXToJSON( GPXCasualViewer.parseXML(gpx_text) );
 
   // extend gpx.metadata
-  gpx.metadata.latlngbounds = GPXCasualViewer.createLatlngbounds(gpx);
+  gpx.metadata.latlngbounds = GPXCasualViewer.createLatlngbounds(gpx.metadata.bounds);
   this.applyHook('onCreateLatlngbounds', gpx.metadata.latlngbounds);
 
   // extend gpx.wpt(s)
