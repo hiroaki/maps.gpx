@@ -49,7 +49,7 @@ GPXCasualViewer.ELEMENTS  = {
   YEAR: 'year'
 }
 
-// global properties, this value can be changed
+// global properties, you can change
 GPXCasualViewer.strict      = true;
 GPXCasualViewer.join_trkseg = true;
 
@@ -161,7 +161,7 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
       obj['version'] = node.getAttribute('version');
       obj['creator'] = node.getAttribute('creator');
       if ( obj.version != '1.1' ) {
-        throw( new Error('GPX document is formatted as unsupported version, it requires 1.1 only') );
+        throw( new Error('GPX document is formatted as unsupported version, it requires 1.1 only.') );
       }
       if ( ! obj.creator ) {
         throw( new Error('Element "gpx" does not have attribute "creator" that is required.') );
@@ -310,16 +310,32 @@ GPXCasualViewer.createLatlngbounds = function (bounds) {
     );
 }
 GPXCasualViewer.createOverlayAsWpt = function (src, options) {
-  return new GPXCasualViewer.Marker(GPXCasualViewer.ELEMENTS.WPT, src, options);
+  if ( src instanceof Array ) {
+    throw( new Error('overlay for wpt is not created from Array') );
+  } else {
+    return new GPXCasualViewer.Marker(GPXCasualViewer.ELEMENTS.WPT, src, options);
+  }
 }
 GPXCasualViewer.createOverlayAsRte = function (src, options) {
-  return new GPXCasualViewer.Polyline(GPXCasualViewer.ELEMENTS.RTE, src, options);
+  if ( src instanceof Array ) {
+    return new GPXCasualViewer.Polyline(GPXCasualViewer.ELEMENTS.RTE, src, options);
+  } else {
+    return new GPXCasualViewer.Marker(GPXCasualViewer.ELEMENTS.RTE, src, options);
+  }
 }
 GPXCasualViewer.createOverlayAsTrk = function (src, options) {
-  return new GPXCasualViewer.Polyline(GPXCasualViewer.ELEMENTS.TRK, src, options);
+  if ( src instanceof Array ) {
+    return new GPXCasualViewer.Polyline(GPXCasualViewer.ELEMENTS.TRK, src, options);
+  } else {
+    return new GPXCasualViewer.Marker(GPXCasualViewer.ELEMENTS.TRK, src, options);
+  }
 }
 GPXCasualViewer.createOverlayAsTrkseg = function (src, options) {
-  return new GPXCasualViewer.Polyline(GPXCasualViewer.ELEMENTS.TRKSEG, src, options);
+  if ( src instanceof Array ) {
+    return new GPXCasualViewer.Polyline(GPXCasualViewer.ELEMENTS.TRKSEG, src, options);
+  } else {
+    return new GPXCasualViewer.Marker(GPXCasualViewer.ELEMENTS.TRK, src, options);
+  }
 }
 
 // constructor of class GPXCasualViewer
@@ -448,6 +464,10 @@ GPXCasualViewer.prototype._build = function(gpx_text) {
   for ( i = 0, l = gpx.rte.length; i < l; ++i ) {
     gpx.rte[i].overlay = GPXCasualViewer.createOverlayAsRte(gpx.rte[i].rtept);
     this.applyHook('onCreatePolyline', gpx.rte[i].overlay);
+    for ( j = 0, m = gpx.rte[i].rtept.length; j < m; ++j ){
+      gpx.rte[i].rtept[j].overlay = GPXCasualViewer.createOverlayAsRte(gpx.rte[i].rtept[j]);
+      this.applyHook('onCreateMarker', gpx.rte[i].rtept[j].overlay);
+    }
   }
   // extend gpx.trk(s)
   if( GPXCasualViewer.join_trkseg ){
@@ -526,8 +546,8 @@ GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline = {
     if ( polyline.isRte() ) {
       polyline.setOptions({
         strokeColor: '#00FF66',
-        strokeOpacity: 0.5,
-        strokeWeight: 4
+        strokeOpacity: 0.75,
+        strokeWeight: 2
       });
     } else if( polyline.isTrk() ) {
       polyline.setOptions({
