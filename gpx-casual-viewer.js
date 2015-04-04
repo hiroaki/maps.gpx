@@ -9,12 +9,45 @@ function GPXCasualViewer() {
 }
 
 // constants, do not change these value
-GPXCasualViewer.VERSION     = '2.1.0';
-GPXCasualViewer.GPX_TYPE    = 'gpxType';
-GPXCasualViewer.WPT_TYPE    = 'wptType';
-GPXCasualViewer.RTE_TYPE    = 'rteType';
-GPXCasualViewer.TRK_TYPE    = 'trkType';
-GPXCasualViewer.TRKSEG_TYPE = 'trksegType';
+GPXCasualViewer.VERSION   = '2.1.0';
+GPXCasualViewer.ELEMENTS  = {
+  AGEOFDGPSDATA: 'ageofdgpsdata',
+  AUTHOR: 'author',
+  BOUNDS: 'bounds',
+  CMT: 'cmt',
+  COPYRIGHT: 'copyright',
+  DESC: 'desc',
+  DGPSID: 'dgpsid',
+  ELE: 'ele',
+  EMAIL: 'email',
+  EXTENSIONS: 'extensions',
+  FIX: 'fix',
+  GEOIDHEIGHT: 'geoidheight',
+  GPX: 'gpx',
+  HDOP: 'hdop',
+  KEYWORDS: 'keywords',
+  LICENSE: 'license',
+  LINK: 'link',
+  MAGVAR: 'magvar',
+  METADATA: 'metadata',
+  NAME: 'name',
+  NUMBER: 'number',
+  PDOP: 'pdop',
+  PT: 'pt',
+  RTE: 'rte',
+  RTEPT: 'rtept',
+  SAT: 'sat',
+  SRC: 'src',
+  TEXT: 'text',
+  TIME: 'time',
+  TRK: 'trk',
+  TRKPT: 'trkpt',
+  TRKSEG: 'trkseg',
+  TYPE: 'type',
+  VDOP: 'vdop',
+  WPT: 'wpt',
+  YEAR: 'year'
+}
 
 // global properties, this value can be changed
 GPXCasualViewer.strict      = true;
@@ -56,9 +89,9 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
     var nc = node.childNodes;
     for ( var i = 0, l = nc.length; i < l; ++i ) {
       var tag = nc[i].tagName;
-      if ( tag == 'link' ) {
-        obj['link'].push( linkTypeToJson(nc[i]) );
-      } else if ( tag != 'extensions' ) {
+      if ( tag == GPXCasualViewer.ELEMENTS.LINK ) {
+        obj[GPXCasualViewer.ELEMENTS.LINK].push( linkTypeToJson(nc[i]) );
+      } else if ( tag != GPXCasualViewer.ELEMENTS.EXTENSIONS ) {
         if( nc[i].firstChild ){
           obj[nc[i].tagName] = nc[i].firstChild.nodeValue;
         }
@@ -73,9 +106,9 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
     var nc = node.childNodes;
     for ( var i = 0, l = nc.length; i < l; ++i ){
       var tag = nc[i].tagName;
-      if ( tag == 'rtept' ) {
-        obj['rtept'].push( wptTypeToJson(nc[i]) );
-      } else if ( tag != 'extensions' ) {
+      if ( tag == GPXCasualViewer.ELEMENTS.RTEPT ) {
+        obj[GPXCasualViewer.ELEMENTS.RTEPT].push( wptTypeToJson(nc[i]) );
+      } else if ( tag != GPXCasualViewer.ELEMENTS.EXTENSIONS ) {
         if ( nc[i].firstChild ){
           obj[tag] = nc[i].firstChild.nodeValue;
         }
@@ -90,9 +123,9 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
     var nc = node.childNodes;
     for ( var i = 0, l = nc.length; i < l; ++i ) {
       var tag = nc[i].tagName;
-      if ( tag == 'trkpt' ) {
-        obj['trkpt'].push( wptTypeToJson(nc[i]) );
-      } else if ( tag != 'extensions' ) {
+      if ( tag == GPXCasualViewer.ELEMENTS.TRKPT ) {
+        obj[GPXCasualViewer.ELEMENTS.TRKPT].push( wptTypeToJson(nc[i]) );
+      } else if ( tag != GPXCasualViewer.ELEMENTS.EXTENSIONS ) {
         if ( nc[i].firstChild ) {
           obj[tag] = nc[i].firstChild.nodeValue;
         }
@@ -107,9 +140,9 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
     var nc = node.childNodes;
     for ( var i = 0, l = nc.length; i < l; ++i ) {
       var tag = nc[i].tagName;
-      if ( tag == 'trkseg' ) {
-        obj['trkseg'].push( trksegTypeToJson(nc[i]) );
-      } else if ( tag != 'extensions' ) {
+      if ( tag == GPXCasualViewer.ELEMENTS.TRKSEG ) {
+        obj[GPXCasualViewer.ELEMENTS.TRKSEG].push( trksegTypeToJson(nc[i]) );
+      } else if ( tag != GPXCasualViewer.ELEMENTS.EXTENSIONS ) {
         if ( nc[i].firstChild ){
           obj[tag] = nc[i].firstChild.nodeValue;
         }
@@ -137,13 +170,13 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
     var nc = node.childNodes;
     for ( var i = 0, l = nc.length; i < l; ++i ) {
       var tag = nc[i].tagName;
-      if ( tag == 'wpt' ) {
-        obj['wpt'].push( wptTypeToJson(nc[i]) );
-      } else if( tag == 'rte' ) {
-        obj['rte'].push( rteTypeToJson(nc[i]) );
-      } else if( tag == 'trk' ) {
-        obj['trk'].push( trkTypeToJson(nc[i]) );
-      } else if( tag != 'extensions' && tag != 'metadata' ) {
+      if ( tag == GPXCasualViewer.ELEMENTS.WPT ) {
+        obj[GPXCasualViewer.ELEMENTS.WPT].push( wptTypeToJson(nc[i]) );
+      } else if( tag == GPXCasualViewer.ELEMENTS.RTE ) {
+        obj[GPXCasualViewer.ELEMENTS.RTE].push( rteTypeToJson(nc[i]) );
+      } else if( tag == GPXCasualViewer.ELEMENTS.TRK ) {
+        obj[GPXCasualViewer.ELEMENTS.TRK].push( trkTypeToJson(nc[i]) );
+      } else if( tag != GPXCasualViewer.ELEMENTS.EXTENSIONS && tag != GPXCasualViewer.ELEMENTS.METADATA ) {
         if ( nc[i].firstChild ){
           obj[tag] = nc[i].firstChild.nodeValue;
         }
@@ -152,18 +185,18 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
     return obj;
   };
 
-  var gpx = gpxTypeToJson( xml_document.getElementsByTagName('gpx')[0] );
+  var gpx = gpxTypeToJson( xml_document.getElementsByTagName(GPXCasualViewer.ELEMENTS.GPX)[0] );
   var bounds, i, j;
   bounds = GPXCasualViewer.boundsOf(gpx.wpt, bounds);
-  for (i = 0, l = gpx.rte.length; i < l; ++i ) {
+  for ( i = 0, l = gpx.rte.length; i < l; ++i ) {
     bounds = GPXCasualViewer.boundsOf(gpx.rte[i].rtept, bounds);
   }
-  for (i = 0, l = gpx.trk.length; i < l; ++i ) {
-    for (j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ) {
+  for ( i = 0, l = gpx.trk.length; i < l; ++i ) {
+    for ( j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ) {
       bounds = GPXCasualViewer.boundsOf(gpx.trk[i].trkseg[j].trkpt, bounds);
     }
   }
-  gpx.metadata['bounds'] = bounds;
+  gpx.metadata[GPXCasualViewer.ELEMENTS.BOUNDS] = bounds;
   return gpx;
 }
 
@@ -175,7 +208,7 @@ GPXCasualViewer.boundsOf = function (pts, bounds){
     minlon: 180.0,
     maxlon:-180.0
     };
-  for (var i = 0, l = pts.length; i < l; ++i ) {
+  for ( var i = 0, l = pts.length; i < l; ++i ) {
     if ( pts[i].lat < bounds.minlat ) {
       bounds.minlat = pts[i].lat;
     }
@@ -193,15 +226,15 @@ GPXCasualViewer.boundsOf = function (pts, bounds){
 }
 
 // extend google.maps.Marker
-GPXCasualViewer.Marker = function (complex_type, src, opts) {
-  this.super          = google.maps.Marker.prototype;
-  this._complex_type  = complex_type;
-  this._source        = src;
-  this._overlayed     = null;
+GPXCasualViewer.Marker = function (element_name, src, opts) {
+  this.super      = google.maps.Marker.prototype;
+  this._element   = element_name;
+  this._source    = src;
+  this._overlayed = null;
 
-  var wpt = src;
+  var wpt_type = src;
   var options = opts || {};
-  options.position = new google.maps.LatLng(wpt.lat, wpt.lon);
+  options.position = new google.maps.LatLng(wpt_type.lat, wpt_type.lon);
 
   google.maps.Marker.apply(this, [options]);
 }
@@ -209,17 +242,17 @@ GPXCasualViewer.Marker = function (complex_type, src, opts) {
     constructor: { value: GPXCasualViewer.Marker },
     overlayed: function () { return this._overlayed } // extend
   });
-  GPXCasualViewer.Marker.prototype.isWptType = function () {
-    return this._complex_type == GPXCasualViewer.WPT_TYPE ? true : false
+  GPXCasualViewer.Marker.prototype.isWpt = function () {
+    return this._element == GPXCasualViewer.WPT ? true : false
   };
-  GPXCasualViewer.Marker.prototype.isRteType = function () {
-    return this._complex_type == GPXCasualViewer.RTE_TYPE ? true : false
+  GPXCasualViewer.Marker.prototype.isRte = function () {
+    return this._element == GPXCasualViewer.RTE ? true : false
   };
-  GPXCasualViewer.Marker.prototype.isTrkType = function () {
-    return this._complex_type == GPXCasualViewer.TRK_TYPE ? true : false
+  GPXCasualViewer.Marker.prototype.isTrk = function () {
+    return this._element == GPXCasualViewer.TRK ? true : false
   };
-  GPXCasualViewer.Marker.prototype.isTrksegType = function () {
-    return this._complex_type == GPXCasualViewer.TRKSEG_TYPE ? true : false
+  GPXCasualViewer.Marker.prototype.isTrkseg = function () {
+    return this._element == GPXCasualViewer.TRKSEG ? true : false
   };
   GPXCasualViewer.Marker.prototype.getSource = function () {
     return this._source;
@@ -229,11 +262,11 @@ GPXCasualViewer.Marker = function (complex_type, src, opts) {
     this.super.setMap.call(this, g_map);
   }
 // extend google.maps.Polyline
-GPXCasualViewer.Polyline = function (complex_type, src, opts) {
-  this.super          = google.maps.Polyline.prototype;
-  this._complex_type  = complex_type;
-  this._source        = src;
-  this._overlayed     = null;
+GPXCasualViewer.Polyline = function (element_name, src, opts) {
+  this.super      = google.maps.Polyline.prototype;
+  this._element   = element_name;
+  this._source    = src;
+  this._overlayed = null;
 
   var pts = src;
   var options = opts || {};
@@ -249,17 +282,17 @@ GPXCasualViewer.Polyline = function (complex_type, src, opts) {
     constructor: { value: GPXCasualViewer.Polyline },
     overlayed: function () { return this._overlayed } // extend
   });
-  GPXCasualViewer.Polyline.prototype.isWptType = function () {
-    return this._complex_type == GPXCasualViewer.WPT_TYPE ? true : false
+  GPXCasualViewer.Polyline.prototype.isWpt = function () {
+    return this._element == GPXCasualViewer.ELEMENTS.WPT ? true : false
   };
-  GPXCasualViewer.Polyline.prototype.isRteType = function () {
-    return this._complex_type == GPXCasualViewer.RTE_TYPE ? true : false
+  GPXCasualViewer.Polyline.prototype.isRte = function () {
+    return this._element == GPXCasualViewer.ELEMENTS.RTE ? true : false
   };
-  GPXCasualViewer.Polyline.prototype.isTrkType = function () {
-    return this._complex_type == GPXCasualViewer.TRK_TYPE ? true : false
+  GPXCasualViewer.Polyline.prototype.isTrk = function () {
+    return this._element == GPXCasualViewer.ELEMENTS.TRK ? true : false
   };
-  GPXCasualViewer.Polyline.prototype.isTrksegType = function () {
-    return this._complex_type == GPXCasualViewer.TRKSEG_TYPE ? true : false
+  GPXCasualViewer.Polyline.prototype.isTrkseg = function () {
+    return this._element == GPXCasualViewer.ELEMENTS.TRKSEG ? true : false
   };
   GPXCasualViewer.Polyline.prototype.getSource = function () {
     return this._source;
@@ -277,16 +310,16 @@ GPXCasualViewer.createLatlngbounds = function (bounds) {
     );
 }
 GPXCasualViewer.createOverlayAsWpt = function (src, options) {
-  return new GPXCasualViewer.Marker(GPXCasualViewer.WPT_TYPE, src, options);
+  return new GPXCasualViewer.Marker(GPXCasualViewer.ELEMENTS.WPT, src, options);
 }
 GPXCasualViewer.createOverlayAsRte = function (src, options) {
-  return new GPXCasualViewer.Polyline(GPXCasualViewer.RTE_TYPE, src, options);
+  return new GPXCasualViewer.Polyline(GPXCasualViewer.ELEMENTS.RTE, src, options);
 }
 GPXCasualViewer.createOverlayAsTrk = function (src, options) {
-  return new GPXCasualViewer.Polyline(GPXCasualViewer.TRK_TYPE, src, options);
+  return new GPXCasualViewer.Polyline(GPXCasualViewer.ELEMENTS.TRK, src, options);
 }
 GPXCasualViewer.createOverlayAsTrkseg = function (src, options) {
-  return new GPXCasualViewer.Polyline(GPXCasualViewer.TRKSEG_TYPE, src, options);
+  return new GPXCasualViewer.Polyline(GPXCasualViewer.ELEMENTS.TRKSEG, src, options);
 }
 
 // constructor of class GPXCasualViewer
@@ -361,22 +394,22 @@ GPXCasualViewer.prototype._appearOverlay = function() {
   return this;
 };
 GPXCasualViewer.prototype.showOverlayWpts = function() {
-  return this._appearOverlay( true, 'wpt', Array.prototype.slice.call(arguments));
+  return this._appearOverlay( true, GPXCasualViewer.ELEMENTS.WPT, Array.prototype.slice.call(arguments));
 };
 GPXCasualViewer.prototype.hideOverlayWpts = function() {
-  return this._appearOverlay(false, 'wpt', Array.prototype.slice.call(arguments));
+  return this._appearOverlay(false, GPXCasualViewer.ELEMENTS.WPT, Array.prototype.slice.call(arguments));
 };
 GPXCasualViewer.prototype.showOverlayRtes = function() {
-  return this._appearOverlay( true, 'rte', Array.prototype.slice.call(arguments));
+  return this._appearOverlay( true, GPXCasualViewer.ELEMENTS.RTE, Array.prototype.slice.call(arguments));
 };
 GPXCasualViewer.prototype.hideOverlayRtes = function() {
-  return this._appearOverlay(false, 'rte', Array.prototype.slice.call(arguments));
+  return this._appearOverlay(false, GPXCasualViewer.ELEMENTS.RTE, Array.prototype.slice.call(arguments));
 };
 GPXCasualViewer.prototype.showOverlayTrks = function() {
-  return this._appearOverlay( true, 'trk', Array.prototype.slice.call(arguments));
+  return this._appearOverlay( true, GPXCasualViewer.ELEMENTS.TRK, Array.prototype.slice.call(arguments));
 };
 GPXCasualViewer.prototype.hideOverlayTrks = function() {
-  return this._appearOverlay(false, 'trk', Array.prototype.slice.call(arguments));
+  return this._appearOverlay(false, GPXCasualViewer.ELEMENTS.TRK, Array.prototype.slice.call(arguments));
 };
 GPXCasualViewer.prototype.addGPX = function(key, gpx_text) {
   this.removeGPX(key);
@@ -490,19 +523,19 @@ GPXCasualViewer.plugin.SetTitleOnCreateMarker = {
 };
 GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline = {
   callback: function(polyline) {
-    if ( polyline.isRteType() ) {
+    if ( polyline.isRte() ) {
       polyline.setOptions({
         strokeColor: '#00FF66',
         strokeOpacity: 0.5,
         strokeWeight: 4
       });
-    } else if( polyline.isTrkType() ) {
+    } else if( polyline.isTrk() ) {
       polyline.setOptions({
         strokeColor: '#0066FF',
         strokeOpacity: 0.5,
         strokeWeight: 4
       });
-    } else if( polyline.isTrksegType() ) {
+    } else if( polyline.isTrkseg() ) {
       polyline.setOptions({
         strokeColor: '#009999',
         strokeOpacity: 0.5,
