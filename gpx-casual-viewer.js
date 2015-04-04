@@ -151,45 +151,43 @@ GPXCasualViewer.GPXToJSON = function( xml_document ) {
   };
 
   var gpx = gpxTypeToJson( xml_document.getElementsByTagName('gpx')[0] );
-  var bounds = {
+  var bounds, i, j;
+  bounds = GPXCasualViewer.boundsOf(gpx.wpt, bounds);
+  for (i = 0, l = gpx.rte.length; i < l; ++i ) {
+    bounds = GPXCasualViewer.boundsOf(gpx.rte[i].rtept, bounds);
+  }
+  for (i = 0, l = gpx.trk.length; i < l; ++i ) {
+    for (j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ) {
+      bounds = GPXCasualViewer.boundsOf(gpx.trk[i].trkseg[j].trkpt, bounds);
+    }
+  }
+  gpx.metadata['bounds'] = bounds;
+  return gpx;
+}
+
+// make bounds
+GPXCasualViewer.boundsOf = function (pts, bounds){
+  bounds = bounds || {
     minlat:  90.0,
     maxlat: -90.0,
     minlon: 180.0,
     maxlon:-180.0
     };
-  var bounding = function(bounds, wptType) {
-    if ( wptType.lat < bounds.minlat ) {
-      bounds.minlat = wptType.lat;
+  for (var i = 0, l = pts.length; i < l; ++i ) {
+    if ( pts[i].lat < bounds.minlat ) {
+      bounds.minlat = pts[i].lat;
     }
-    if ( bounds.maxlat < wptType.lat ) {
-      bounds.maxlat = wptType.lat;
+    if ( bounds.maxlat < pts[i].lat ) {
+      bounds.maxlat = pts[i].lat;
     }
-    if ( wptType.lon < bounds.minlon ) {
-      bounds.minlon = wptType.lon;
+    if ( pts[i].lon < bounds.minlon ) {
+      bounds.minlon = pts[i].lon;
     }
-    if ( bounds.maxlon < wptType.lon ) {
-      bounds.maxlon = wptType.lon;
-    }
-    return bounds;
-  }
-  var i, j, k;
-  for (i = 0, l = gpx.wpt.length; i < l; ++i ) {
-    bounds = bounding(bounds, gpx.wpt[i]);
-  }
-  for (i = 0, l = gpx.rte.length; i < l; ++i ) {
-    for (j = 0, m = gpx.rte[i].rtept.length; j < m; ++j ) {
-      bounds = bounding(bounds, gpx.rte[i].rtept[j]);
+    if ( bounds.maxlon < pts[i].lon ) {
+      bounds.maxlon = pts[i].lon;
     }
   }
-  for (i = 0, l = gpx.trk.length; i < l; ++i ) {
-    for (j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ) {
-      for (k = 0, n = gpx.trk[i].trkseg[j].trkpt.length; k < n; ++k ) {
-        bounds = bounding(bounds, gpx.trk[i].trkseg[j].trkpt[k]);
-      }
-    }
-  }
-  gpx.metadata['bounds'] = bounds;
-  return gpx;
+  return bounds;
 }
 
 // extend google.maps.Marker
