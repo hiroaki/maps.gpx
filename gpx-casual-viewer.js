@@ -9,7 +9,7 @@ function GPXCasualViewer() {
 }
 
 // constants, do not change these value
-GPXCasualViewer.VERSION   = '2.0.0';
+GPXCasualViewer.VERSION   = '2.1.0';
 GPXCasualViewer.GPX_TYPE  = 'gpxType';
 GPXCasualViewer.WPT_TYPE  = 'wptType';
 GPXCasualViewer.RTE_TYPE  = 'rteType';
