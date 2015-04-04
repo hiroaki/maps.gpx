@@ -326,17 +326,14 @@ GPXCasualViewer.prototype.fitBounds = function() {
   return this;
 };
 GPXCasualViewer.prototype._appearOverlay = function() {
-  var is_show = arguments[0] ? this.map : null;
+  var to_show = arguments[0] ? this.map : null;
   var complex = arguments[1];
   var keys = Array.prototype.slice.call(arguments, 2);
   for ( var i = 0, l = keys.length; i < l; ++i ) {
     var gpx = this.data[keys[i]];
     for ( var j = 0, m = gpx[complex].length; j < m; ++j ) {
-      if ( gpx[complex][j].marker ){
-        gpx[complex][j].marker.setMap( is_show );
-      }
-      if ( gpx[complex][j].polyline ){
-        gpx[complex][j].polyline.setMap( is_show );
+      if ( gpx[complex][j].overlay ){
+        gpx[complex][j].overlay.setMap( to_show );
       }
     }
   }
@@ -389,15 +386,13 @@ GPXCasualViewer.prototype._build = function(gpx_text) {
 
   // extend gpx.wpt(s)
   for ( var i = 0, l = gpx.wpt.length; i < l; ++i ) {
-    gpx.wpt[i].marker = GPXCasualViewer.createOverlayAsWpt(gpx.wpt[i]);
-    gpx.wpt[i].polyline = null;
-    this.applyHook('onCreateMarker', gpx.wpt[i].marker);
+    gpx.wpt[i].overlay = GPXCasualViewer.createOverlayAsWpt(gpx.wpt[i]);
+    this.applyHook('onCreateMarker', gpx.wpt[i].overlay);
   }
   // extend gpx.rte(s)
   for ( var i = 0, l = gpx.rte.length; i < l; ++i ) {
-    gpx.rte[i].marker = null;
-    gpx.rte[i].polyline = GPXCasualViewer.createOverlayAsRte(gpx.rte[i].rtept);
-    this.applyHook('onCreatePolyline', gpx.rte[i].polyline);
+    gpx.rte[i].overlay = GPXCasualViewer.createOverlayAsRte(gpx.rte[i].rtept);
+    this.applyHook('onCreatePolyline', gpx.rte[i].overlay);
   }
   // extend gpx.trk(s)
   for ( var i = 0, l = gpx.trk.length; i < l; ++i ) {
@@ -405,9 +400,8 @@ GPXCasualViewer.prototype._build = function(gpx_text) {
     for ( var j = 0, m = gpx.trk[i].trkseg.length; j < m; ++j ) {
       pts = pts.concat(gpx.trk[i].trkseg[j].trkpt);
     }
-    gpx.trk[i].marker = null;
-    gpx.trk[i].polyline = GPXCasualViewer.createOverlayAsTrk(pts);
-    this.applyHook('onCreatePolyline', gpx.trk[i].polyline);
+    gpx.trk[i].overlay = GPXCasualViewer.createOverlayAsTrk(pts);
+    this.applyHook('onCreatePolyline', gpx.trk[i].overlay);
   }
   return gpx;
 };
