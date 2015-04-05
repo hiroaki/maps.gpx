@@ -1,6 +1,6 @@
 # GPX Casual Viewer v3
 
-GPX Casual Viewer is a small framework of JavaScript to overlay GPX file on Google Maps.
+GPX Casual Viewer is a small framework of JavaScript to overlay GPX on Google Maps embedded HTML page.
 
 
 ## Usage
@@ -161,7 +161,7 @@ google.maps.event.addDomListener(window, 'load', function() {
 
 Because GPX Casual Viewer is under development, API will be changed without notice.
 
-The current version is `v2.0.0`.
+The current version is `v2.1.x`.
 When there is a change in the API, the number of middle will go up.
 
 
@@ -173,24 +173,41 @@ The core in this library.
 
 class property | type    | description
 ---------------|---------|------------
-strict         | boolean | with check about GPX is valid (but not yet completely), when call instance method `addGPX`. default `true`. it throws an exception if received invalid one.
+strict         | boolean | with check about GPX is valid (but not yet completely), when call instance method `addGPX`. default `true`. it throws an exception if received invalid one
+join_trkseg    | boolean | merge all trkseg in a trk, one polyline per one trk. default `true`
 
 ### Class method
 
 class method                            | return value             | description
 ----------------------------------------|--------------------------|------------
 parseXML(String:str)                    | XML document             | parse str as XML, and return document DOM
-GPXToJSON(XML document)                 | Hash                     | convert document to JSON
-createLatlngbounds(Hash:gpx, Hash:opt)  | LatLngBounds             | create instance of `google.maps.LatLngBounds` from `gpx.metadata.bounds`
-createOverlayAsWpt(Hash:src, Hash:opt)  | GPXCasualViewer.Marker   | create overlay as wptType
-createOverlayAsRte(Hash:src, Hash:opt)  | GPXCasualViewer.Polyline | create overlay as rteType
-createOverlayAsTrk(Hash:src, Hash:opt)  | GPXCasualViewer.Polyline | create overlay as trkType
+GPXToJSON(XML document)                 | Hash:gpxType             | convert XML document as GPX to JSON
+boundsOf(Array:pts, Hash?:boundsType)   | Hash:boundsType          | return boundsType which contains all pts. when optional boundsType was set, it is based to extend
+createLatlngbounds(Hash:boundsType)     | LatLngBounds             | create instance of `google.maps.LatLngBounds` from boundsType
+createOverlayAsWpt(Hash:wptType, Hash:opt)  | GPXCasualViewer.Marker   | create overlay as wpt
+createOverlayAsWpt(Array:wptType, Hash:opt) | GPXCasualViewer.Polyline | create overlay as wpt
+createOverlayAsRte(Hash:wptType, Hash:opt)  | GPXCasualViewer.Marker   | create overlay as rte
+createOverlayAsRte(Array:wptType, Hash:opt) | GPXCasualViewer.Polyline | create overlay as rte
+createOverlayAsTrk(Hash:wptType, Hash:opt)  | GPXCasualViewer.Marker   | create overlay as trk
+createOverlayAsTrk(Array:wptType, Hash:opt) | GPXCasualViewer.Polyline | create overlay as trk
+
+NOTE:
+
+`createOverlayAs*` methods will return an overlay.
+If wptType is Hash then it returns Maker, or wptType is Array then it returns Polyline.
+
+Because a marker and the polyline have the same interface as the overlay which is a broader term,
+GPXCasualViewer is designed to create overlay without distinguish  about which is Marker or Polyline
+
+To make that possible, when creating Marker or Polyline, you have to use these factory methods 
+and do not use constructor of `GPXCasualViewer.Marker`, `GPXCasualViewer.Polyline` and `google.maps.*` directly.
+
 
 ### Constructor
 
 constructor                              | description
 -----------------------------------------|------------
-GPXCasualViewer(String:map_id, Hash:opt) | arguments are same as constructor of `google.maps.Map`, please see its document for details.
+GPXCasualViewer(String:map_id, Hash?:opt) | arguments are same as constructor of `google.maps.Map`, please see its document for details.
 
 
 ### Instance method
@@ -198,12 +215,12 @@ GPXCasualViewer(String:map_id, Hash:opt) | arguments are same as constructor of 
 instance method              | return value | description
 -----------------------------|--------------|------------
 fitBounds(String?:key)       | this | sets the viewport to contain the given GPX as "key". it accepts multiple keys, or void means all
-showOverlayWpts(String?:key) | this | show overlays for wptType in specified GPX with key
-hideOverlayWpts(String?:key) | this | hide overlays for wptType in specified GPX with key
-showOverlayRtes(String?:key) | this | show overlays for rteType in specified GPX with key
-hideOverlayRtes(String?:key) | this | hide overlays for rteType in specified GPX with key
-showOverlayTrks(String?:key) | this | show overlays for trkType in specified GPX with key
-hideOverlayTrks(String?:key) | this | hide overlays for trkType in specified GPX with key
+showOverlayWpts(String?:key) | this | show overlays for waypoints in specified GPX with key
+hideOverlayWpts(String?:key) | this | hide overlays for waypoints in specified GPX with key
+showOverlayRtes(String?:key) | this | show overlays for routes in specified GPX with key
+hideOverlayRtes(String?:key) | this | hide overlays for routes in specified GPX with key
+showOverlayTrks(String?:key) | this | show overlays for tracks in specified GPX with key
+hideOverlayTrks(String?:key) | this | hide overlays for tracks in specified GPX with key
 addGPX(String:key, String:src)           | this | add GPX by src text as "key". if the instance alredy has key, it is overwrite
 removeGPX(String:key)                    | this | remove GPX by "key" that the instance has
 use(String:plugin)                       | this | use plug-in specified identifier
@@ -241,9 +258,9 @@ Explain about the added method here.
 
 instance method | return value | description
 ----------------|--------------|------------
-isWptType()     | boolean      | `true` if it is the marker as the way point
-isRteType()     | boolean      | `true` if it is the marker as the route
-isTrkType()     | boolean      | `true` if it is the marker as the track
+isWpt()         | boolean      | `true` if it is the marker as the waypoint
+isRte()         | boolean      | `true` if it is the marker as the route
+isTrk()         | boolean      | `true` if it is the marker as the track
 getSource()     | Hash         | get parameter when it was created
 
 ---
@@ -259,9 +276,9 @@ Explain about the added method here.
 
 instance method | return value | description
 ----------------|--------------|------------
-isWptType()     | boolean      | `true` if it is the polyline as the way point
-isRteType()     | boolean      | `true` if it is the polyline as the route
-isTrkType()     | boolean      | `true` if it is the polyline as the track
+isWpt()         | boolean      | `true` if it is the polyline as the waypoint
+isRte()         | boolean      | `true` if it is the polyline as the route
+isTrk()         | boolean      | `true` if it is the polyline as the track
 getSource()     | Hash         | get parameter when it was created
 
 ---
@@ -305,6 +322,9 @@ Concretely, it's about color, width and opacity.
 
 
 # See also
+
+GPX 1.1 Schema Documentation
+<http://www.topografix.com/gpx/1/1/>
 
 Google Maps JavaScript API v3
 <https://developers.google.com/maps/documentation/javascript/>

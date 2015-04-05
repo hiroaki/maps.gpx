@@ -1,7 +1,7 @@
 # GPX Casual Viewer v3
 
 GPX Casual Viewer は、位置情報のデータフォーマットとして一般的な GPX ファイルを
-Google Maps 上にオーバレイして視覚化するための JavaScript ライブラリです。
+HTML ページに埋め込んだ Google Maps 上にオーバレイして視覚化するための JavaScript フレームワークです。
 
 
 ## 使い方
@@ -164,7 +164,7 @@ google.maps.event.addDomListener(window, 'load', function() {
 
 GPX Casual Viewer は現在も開発中のため、 API は予告なく変更されることがあります。
 
-現在のバージョンは v2.0.0 です。 API の変更があるとき、真ん中の数字が上がります。
+現在のバージョンは v2.1.x です。 API の変更があるとき、真ん中の数字が上がります。
 
 
 ## クラス GPXCasualViewer
@@ -176,23 +176,40 @@ GPX Casual Viewer は現在も開発中のため、 API は予告なく変更さ
 クラス・プロパティ|型        | 説明
 ----------------|---------|------------------------------------------------------------
 strict          | boolean | インスタンス・メソッド `addGPX` にて登録される GPX が正しい GPX であるかのチェックを厳密にします（完璧ではありません）。デフォルト `true` 。正しくない GPX と認識されたとき、 `addGPX` は例外を投げます。
+join_trkseg     | boolean | トラックに含まれるすべてのトラックセグメントをマージして、一本のポリラインとします。デフォルト `true`
 
 ### クラス・メソッド
 
 クラス・メソッド   | 戻り値   | 説明
 -----------------|--------|------------------------------------------------------------
 parseXML(String:str)       | XML document | 入力のテキスト str を XML としてパースし、 XML ドキュメント (DOM) として返します。
-GPXToJSON(Object:document) | Hash | 入力の XML ドキュメントを JSON に変換したハッシュを返します。
-createLatlngbounds(Hash:gpx, Hash:opt) | LatLngBounds | `gpx.metadata.bounds` を元にした `google.maps.LatLngBounds` のインスタンスを生成して返します。
-createOverlayAsWpt(Hash:src, Hash:opt) | GPXCasualViewer.Marker | ウェイポイントとしてマーカーを生成し、返します。
-createOverlayAsRte(Hash:src, Hash:opt) | GPXCasualViewer.Polyline | ルートとしてポリラインを生成し、返します。
-createOverlayAsTrk(Hash:src, Hash:opt) | GPXCasualViewer.Polyline | トラックとしてポリラインを生成し、返します。
+GPXToJSON(Object:document) | Hash:gpxType | 入力の XML ドキュメントを GPX として解釈し、それを JSON に変換したハッシュを返します。
+boundsOf(Array:pts, Hash?:boundsType) | Hash:boundsType | wptType のリスト pts を全て含む最小の境界の座標をハッシュで返します。オプションに Hash:boundsType を渡したとき、その境界を pts で拡張して返します。
+createLatlngbounds(Hash:boundsType) | LatLngBounds | boundsType を元にした `google.maps.LatLngBounds` のインスタンスを生成して返します。
+createOverlayAsWpt(Hash:wptType, Hash:opt) | GPXCasualViewer.Marker | ウェイポイントとしてオーバーレイを生成し、返します。
+createOverlayAsWpt(Array:wptType, Hash:opt) | GPXCasualViewer.Polyline | 対称性のためのメソッドで、ウィエポイントをオーバーレイとして生成できない旨の例外を出します。
+createOverlayAsRte(Hash:wptType, Hash:opt) | GPXCasualViewer.Marker | ルートとしてオーバーレイを生成し、返します。
+createOverlayAsRte(Array:wptType, Hash:opt) | GPXCasualViewer.Polyline | ルートとしてオーバーレイを生成し、返します。
+createOverlayAsTrk(Hash:wptType, Hash:opt) | GPXCasualViewer.Marker | トラックとしてオーバーレイを生成し、返します。
+createOverlayAsTrk(Array:wptType, Hash:opt) | GPXCasualViewer.Polyline | トラックとしてオーバーレイを生成し、返します。
+
+ノート：
+
+`createOverlayAs*` メソッドは、 wptType を渡すとマーカーを、 wptType のリストを渡すとポリラインを生成して返します。
+マーカーとポリラインは、上位概念であるオーバーレイとして同じインタフェースを持っているため、
+GPXCasualViewer ではマーカーやポリラインを区別して生成することのないように設計しています。
+しかしながら生成されたオーバーレイが、どの GPX 要素のものなのかを区別するためには、
+オーバーレイ自身にその属性を持たせなければなりません。
+そのために、マーカーやポリラインを生成するときは、
+`GPXCasualViewer.Marker` や `GPXCasualViewer.Polyline` および `google.maps` のコンストラクタを使わずに、
+これらのファクトリ・メソッドを使う必要があります。
+
 
 ### コンストラクタ
 
 コンストラクタ  | 説明
 -----------------|-------------------------------------------------------------
-GPXCasualViewer(String:map_id, Hash:opt) | インスタンス化します。 map_id および opt は、内部で `google.maps.Map` のコンストラクタに渡され、地図が初期化されます。 `google.maps.Map` のドキュメントを参照してください。
+GPXCasualViewer(String:map_id, Hash?:opt) | インスタンス化します。 map_id および opt は、内部で `google.maps.Map` のコンストラクタに渡され、地図が初期化されます。 `google.maps.Map` のドキュメントを参照してください。
 
 
 ### インスタンス・メソッド
@@ -200,12 +217,12 @@ GPXCasualViewer(String:map_id, Hash:opt) | インスタンス化します。 map
 インスタンス・メソッド  | 戻り値   | 説明
 -----------------|--------|------------------------------------------------------------
 fitBounds(String?:key) | this | 指定した key の GPX データが画面に収まるように地図をフィットさせます。 複数の key を指定でき（配列ではなく、引数として足してください）、インスタンスに登録されているそれら GPX データがすべて収まるようにします。 key を省略すると、すべての GPX を指定したことになります。（以下同様）
-showOverlayWpts(String?:key) | this | 指定した key の GPX データのうち、ウェイポイントについて表示させます。
-hideOverlayWpts(String?:key) | this | 指定した key の GPX データのうち、ウェイポイントについて非表示にします。
-showOverlayRtes(String?:key) | this | 指定した key の GPX データのうち、ルートについて表示させます。
-hideOverlayRtes(String?:key) | this | 指定した key の GPX データのうち、ルートについて非表示にします。
-showOverlayTrks(String?:key) | this | 指定した key の GPX データのうち、トラックについて表示させます。
-hideOverlayTrks(String?:key) | this | 指定した key の GPX データのうち、トラックについて非表示にします。
+showOverlayWpts(String?:key) | this | 指定した key の GPX データのうち、ウェイポイントのオーバーレイについて表示させます。
+hideOverlayWpts(String?:key) | this | 指定した key の GPX データのうち、ウェイポイントのオーバーレイについて非表示にします。
+showOverlayRtes(String?:key) | this | 指定した key の GPX データのうち、ルートのオーバーレイについて表示させます。
+hideOverlayRtes(String?:key) | this | 指定した key の GPX データのうち、ルートのオーバーレイについて非表示にします。
+showOverlayTrks(String?:key) | this | 指定した key の GPX データのうち、トラックのオーバーレイについて表示させます。
+hideOverlayTrks(String?:key) | this | 指定した key の GPX データのうち、トラックのオーバーレイについて非表示にします。
 addGPX(String:key, String:src) | this | src に指定した、文字列の GPX データを、キー key として登録します。すでに key のデータがある場合は上書きされます。
 removeGPX(String:key) | this | キー key として登録されている GPX データを削除します。
 use(String:plugin) | this | プラグイン plugin を利用します。作用はプラグインによります。
@@ -238,9 +255,9 @@ onAddGPX            | インスタンス・メソッド addGPX により GPX が
 
 インスタンス・メソッド  | 戻り値   | 説明
 -----------------|--------|------------------------------------------------------------
-isWptType() | boolean | ウェイポイントとしてのマーカーであれば `true` です。
-isRteType() | boolean | ルートとしてのマーカーであれば `true` です。
-isTrkType() | boolean | トラックとしてのマーカーであれば `true` です。
+isWpt() | boolean | ウェイポイントとしてのマーカーであれば `true` です。
+isRte() | boolean | ルートとしてのマーカーであれば `true` です。
+isTrk() | boolean | トラックとしてのマーカーであれば `true` です。
 getSource() | Hash | インスタンスを生成する際に与えらたパラメータを返します。
 
 ---
@@ -251,13 +268,14 @@ getSource() | Hash | インスタンスを生成する際に与えらたパラ�
 
 ### インスタンス・メソッド
 
-すべての `google.maps.Polyline`クラスのインスタンス・メソッドが利用できます。ここでは、追加されたメソッドについて説明します。
+すべての `google.maps.Polyline`クラスのインスタンス・メソッドが利用できます。
+ここでは、追加されたメソッドについて説明します。
 
 インスタンス・メソッド  | 戻り値   | 説明
 -----------------|--------|------------------------------------------------------------
-isWptType() | boolean | ウェイポイントとしてのポリラインであれば `true` です。
-isRteType() | boolean | ルートとしてのポリラインであれば `true` です。
-isTrkType() | boolean | トラックとしてのポリラインであれば `true` です。
+isWpt() | boolean | ウェイポイントとしてのポリラインであれば `true` です。
+isRte() | boolean | ルートとしてのポリラインであれば `true` です。
+isTrk() | boolean | トラックとしてのポリラインであれば `true` です。
 getSource() | Hash | インスタンスを生成する際に与えらたパラメータを返します。
 
 ---
@@ -299,6 +317,9 @@ app.use('pluginName');
 
 
 # 参照
+
+GPX 1.1 Schema Documentation
+<http://www.topografix.com/gpx/1/1/>
 
 Google Maps JavaScript API v3
 <https://developers.google.com/maps/documentation/javascript/>
