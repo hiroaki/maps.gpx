@@ -1,23 +1,5 @@
 GPXCasualViewer.plugin.URL = {
   separator: ';',
-  readGPXTextFromURL: function (url) {
-    var xhr = GPXCasualViewer.plugin.URL.createXMLHttpRequest();
-    xhr.open('GET', url, false);
-    xhr.send(null);
-    return xhr.responseText;
-  },
-  createXMLHttpRequest: function() {
-    try {
-      if ( typeof ActiveXObject != 'undefined' ) {
-        return new ActiveXObject('Microsoft.XMLHTTP');
-      } else if ( window['XMLHttpRequest'] ) {
-        return new XMLHttpRequest();
-      }
-    } catch(e) {
-      throw( new Error('Cannot create XmlHttpRequest object.') );
-    }
-    return null;
-  },
   parseQueryString: function(/* usually 'location.search' */qstring) {
     var params = {};
     if ( qstring ) {
@@ -33,10 +15,16 @@ GPXCasualViewer.plugin.URL = {
     return params;
   },
   callback: function() {
+    // if query-string has a param "url",
+    // then add it on load
     var query = GPXCasualViewer.plugin.URL.parseQueryString(location.search);
     if ( query.url ) {
       console.log('url=['+ query.url +']');
-      this.addGPX(query.url, GPXCasualViewer.plugin.URL.readGPXTextFromURL(query.url));
+      if ( new RegExp('\.jpe?g$', 'i').test(query.url) ) {
+        this.promiseToReadEXIF(query.url, query.url);
+      } else {
+        this.promiseToAddGPX(query.url, query.url);
+      }
     }
   }
 };

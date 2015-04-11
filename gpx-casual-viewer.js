@@ -65,6 +65,82 @@ GPXCasualViewer.parseXML = function(str) {
   }
   throw( new Error('Cannot parse string as XML stream.') );
 }
+GPXCasualViewer.createXMLHttpRequest = function() {
+  try {
+    if ( typeof ActiveXObject != 'undefined' ) {
+      return new ActiveXObject('Microsoft.XMLHTTP');
+    } else if ( window['XMLHttpRequest'] ) {
+      return new XMLHttpRequest();
+    }
+  } catch(e) {
+    throw( new Error('Cannot create XmlHttpRequest object.') );
+  }
+  return null;
+},
+GPXCasualViewer.createPromiseReadingBlobAsArrayBuffer = function(blob) {
+  if (typeof blob == 'string') {
+    var url = blob;
+    var xhr = GPXCasualViewer.createXMLHttpRequest();
+    xhr.open('GET', url, false);
+    xhr.responseType = 'blob';
+    xhr.send(null);
+    blob = xhr.response;
+  }
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      resolve(event.target.result);
+    };
+    reader.readAsArrayBuffer(blob);
+  });
+}
+GPXCasualViewer.createPromiseReadingBlobAsObjectURL = function(blob) {
+  if (typeof blob == 'string') {
+    var url = blob;
+    var xhr = GPXCasualViewer.createXMLHttpRequest();
+    xhr.open('GET', url, false);
+    xhr.responseType = 'blob';
+    xhr.send(null);
+    blob = xhr.response;
+  }
+  return new Promise(function(resolve, reject) {
+    resolve(URL.createObjectURL(blob));
+  });
+}
+GPXCasualViewer.createPromiseReadingBlobAsDataURL = function(blob) {
+  if (typeof blob == 'string') {
+    var url = blob;
+    var xhr = GPXCasualViewer.createXMLHttpRequest();
+    xhr.open('GET', url, false);
+    xhr.responseType = 'blob';
+    xhr.send(null);
+    blob = xhr.response;
+  }
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      resolve(event.target.result);
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+GPXCasualViewer.createPromiseReadingBlobAsText = function(blob, encoding) {
+  if (typeof blob == 'string') {
+    var url = blob;
+    var xhr = GPXCasualViewer.createXMLHttpRequest();
+    xhr.open('GET', url, false);
+    xhr.responseType = 'blob';
+    xhr.send(null);
+    blob = xhr.response;
+  }
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      resolve(event.target.result);
+    };
+    reader.readAsText(blob, encoding || 'UTF-8');
+  });
+}
 
 // convert gpx document to json
 GPXCasualViewer.GPXToJSON = function( xml_document ) {
@@ -413,6 +489,13 @@ GPXCasualViewer.prototype.showOverlayTrks = function() {
 };
 GPXCasualViewer.prototype.hideOverlayTrks = function() {
   return this._appearOverlay(false, GPXCasualViewer.ELEMENTS.TRK, Array.prototype.slice.call(arguments));
+};
+GPXCasualViewer.prototype.promiseToAddGPX = function(key, src) {
+  return GPXCasualViewer.createPromiseReadingBlobAsText(src)
+  .then((function (gpx_text){
+    this.addGPX(key, gpx_text);
+    return key;
+  }).bind(this))
 };
 GPXCasualViewer.prototype.addGPX = function(key, gpx_text) {
   this.removeGPX(key);
