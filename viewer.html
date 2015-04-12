@@ -17,6 +17,7 @@ img.info-window { max-width: 200px; max-height: 200px; }
 <script type="text/javascript" src="plugin-url.js"></script>
 <script type="text/javascript" src="extlib/exif.js"></script>
 <script type="text/javascript" src="plugin-exif.js"></script>
+<script type="text/javascript" src="plugin-exif-markers/loader.js"></script>
 <script type="text/javascript">
 (function (){
   GPXCasualViewer.strict = false;
@@ -26,6 +27,7 @@ img.info-window { max-width: 200px; max-height: 200px; }
     app.use('File');
     app.use('URL');
     app.use('EXIF');
+    app.use('EXIFMarkers');
 
     app.register('onAddGPX', function(key) {
       this.fitBounds(key);
@@ -34,15 +36,6 @@ img.info-window { max-width: 200px; max-height: 200px; }
       this.showOverlayTrks(key);
     });
 
-    // app.register('onReadEXIF', (function (key, values){
-    //   var contents = '<div><strong>'+ values.exif['DateTimeOriginal'] +' - '+ key + '</strong></div><hr/>'+
-    //                  '<div><img class="info-window" src="'+ values.url +'"/></div>';
-    //   this.map.panTo(values.latlng);
-    //   new google.maps.InfoWindow({
-    //     content: contents,
-    //     position: values.latlng
-    //     }).open(this.map);
-    // }).bind(app));
 
   });
 })();
