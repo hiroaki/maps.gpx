@@ -12,7 +12,7 @@ GPXCasualViewer.plugin.EXIFMarkers = {
       }
 
       var pinpoint = null;
-      if ( 0 == values.alternatives.length ) {
+      if ( values.alternatives.length <= 1 ) {
         pinpoint = values.latlng;
       } else {
         for ( var i = 0, l = values.alternatives.length; i < l; ++i ) {
