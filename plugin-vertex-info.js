@@ -89,24 +89,36 @@ GPXCasualViewer.plugin.VertexInfo = {
     }
     return minindex;
   },
-  callback: function(polyline) {
-    polyline.addListener('click', function(mouseevent) {
-      var path  = this.getPath(),
-          idx   = GPXCasualViewer.plugin.VertexInfo.indexOfVertexNearestLatlng(path, mouseevent.latLng, this.getMap().getZoom()),
-          wpt,
-          content;
-      if ( 0 <= idx ) {
-        wpt = this.getSource()[idx];
-        content = '#'+ idx +'<br/>lat='+ wpt.lat +'<br/>lon='+ wpt.lon;
-        if ( wpt.time ) {
-          content = content + '<br/>time='+ wpt.time;
+  callback: function() {
+    // add hook points
+    console.log('add hook points: "onVertexInfo"');
+    this.hook['onVertexInfo'] = this.hook['onVertexInfo'] || [];
+    // 
+    this.register('onCreatePolyline', (function(polyline) {
+      polyline.addListener('click', (function(mouseevent) {
+        var idx = GPXCasualViewer.plugin.VertexInfo.indexOfVertexNearestLatlng(
+                    this.polyline.getPath(), mouseevent.latLng, this.polyline.getMap().getZoom());
+        if ( this.app.hook['onVertexInfo'].length != 0 ) {
+          this.app.applyHook('onVertexInfo', polyline, idx, mouseevent);
+        } else {
+          GPXCasualViewer.plugin.VertexInfo._handlerHookOnClickPolylineDefault.call(this.app, polyline, idx, mouseevent);
         }
-        new google.maps.InfoWindow({
-          content: content,
-          position: path.getAt(idx)
-          }). open(this.getMap());
-      }
-    });
+      }).bind({app: this, polyline: polyline}));
+    }).bind(this));
+
   },
-  hook: 'onCreatePolyline'
+  _handlerHookOnClickPolylineDefault: function(polyline, index, mouseevent) {
+    if ( 0 <= index && polyline.isTrk() ) {
+      var wpt = polyline.getSource()[index],
+          content = '#'+ index +'<br/>lat='+ wpt.lat +'<br/>lon='+ wpt.lon;
+      if ( wpt.time ) {
+        content = content + '<br/>time='+ wpt.time;
+      }
+      new google.maps.InfoWindow({
+        content: content,
+        position: polyline.getPath().getAt(index)
+        }).open(polyline.getMap());
+    }
+
+  }
 };
