@@ -19,6 +19,8 @@ img.info-window { max-width: 200px; max-height: 200px; }
 <script type="text/javascript" src="extlib/exif.js"></script>
 <script type="text/javascript" src="plugin-exif.js"></script>
 <script type="text/javascript" src="plugin-exif-markers/loader.js"></script>
+<script type="text/javascript" src="plugin-search-control/loader.js"></script>
+<link type="text/css" rel="stylesheet" href="plugin-search-control/loader.css" />
 <script type="text/javascript">
 (function (){
   GPXCasualViewer.strict = false;
@@ -32,6 +34,7 @@ img.info-window { max-width: 200px; max-height: 200px; }
     app.use('URL');
     app.use('EXIF');
     app.use('EXIFMarkers');
+    app.use('SearchControl');
 
     app.register('onAddGPX', function(key) {
       this.fitBounds(key);
