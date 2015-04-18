@@ -413,6 +413,7 @@ GPXCasualViewer.prototype.initialize = function (map_id, options) {
   this.settings = {};
   this.defaults = {
     zoom: 5,
+    keyboardShortcuts: false,
     center: new google.maps.LatLng(35.6841306, 139.774103),
     mapTypeId: google.maps.MapTypeId.ROADMAP
     };
@@ -607,25 +608,27 @@ GPXCasualViewer.plugin = {};
 // define default plugins
 GPXCasualViewer.plugin.SetTitleOnCreateMarker = {
   callback: function(marker) {
-    marker.setTitle(marker.getSource().name);
-  },
-  hook: 'onCreateMarker'
+    this.register('onCreateMarker', (function(marker) {
+      marker.setTitle(marker.getSource().name);
+    }).bind(this));
+  }
 };
 GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline = {
   callback: function(polyline) {
-    if ( polyline.isRte() ) {
-      polyline.setOptions({
-        strokeColor: '#00FF66',
-        strokeOpacity: 0.75,
-        strokeWeight: 2
-      });
-    } else if ( polyline.isTrk() ) {
-      polyline.setOptions({
-        strokeColor: '#0066FF',
-        strokeOpacity: 0.5,
-        strokeWeight: 4
-      });
-    }
-  },
-  hook: 'onCreatePolyline'
+    this.register('onCreatePolyline', (function(polyline) {
+      if ( polyline.isRte() ) {
+        polyline.setOptions({
+          strokeColor: '#00FF66',
+          strokeOpacity: 0.75,
+          strokeWeight: 2
+        });
+      } else if ( polyline.isTrk() ) {
+        polyline.setOptions({
+          strokeColor: '#0066FF',
+          strokeOpacity: 0.5,
+          strokeWeight: 4
+        });
+      }
+    }).bind(this));
+  }
 };
