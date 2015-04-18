@@ -413,6 +413,7 @@ GPXCasualViewer.prototype.initialize = function (map_id, options) {
   this.settings = {};
   this.defaults = {
     zoom: 5,
+    keyboardShortcuts: false,
     center: new google.maps.LatLng(35.6841306, 139.774103),
     mapTypeId: google.maps.MapTypeId.ROADMAP
     };
