@@ -128,7 +128,7 @@ GPXCasualViewer.plugin.EXIF = {
         }
       }
     }
-    if ( pinpoint ) {
+    if ( ! pinpoint ) {
       window.alert('Could not detect coordinate of the image "'+ key +'"')
     } else {
       var contents = values.exif['DateTimeOriginal'] +' - '+ key +
