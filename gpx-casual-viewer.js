@@ -76,69 +76,64 @@ GPXCasualViewer.createXMLHttpRequest = function() {
     throw( new Error('Cannot create XmlHttpRequest object.') );
   }
   return null;
-},
-GPXCasualViewer.createPromiseReadingBlobAsArrayBuffer = function(blob) {
-  if (typeof blob == 'string') {
-    var url = blob;
-    var xhr = GPXCasualViewer.createXMLHttpRequest();
-    xhr.open('GET', url, false);
-    xhr.responseType = 'blob';
-    xhr.send(null);
-    blob = xhr.response;
+}
+GPXCasualViewer.preloadAsBlob = function(src) {
+  if ((src instanceof Blob) || (src instanceof File)) {
+    return Promise.resolve(src);
+  } else if (typeof src == 'string') {
+    return new Promise(function(resolve, reject) {
+      var xhr = GPXCasualViewer.createXMLHttpRequest();
+      xhr.open('GET', src, true);
+      xhr.responseType = 'blob';
+      xhr.onload = function (ev){
+        if (this.readyState === 4 ) {
+          if (this.status === 200 || this.status === 0 ) {
+            resolve(this.response);
+          }
+        }
+      };
+      xhr.send();
+    });
   }
-  return new Promise(function(resolve, reject) {
-    var reader = new FileReader();
-    reader.onload = function(event) {
-      resolve(event.target.result);
-    };
-    reader.readAsArrayBuffer(blob);
+}
+GPXCasualViewer.createPromiseReadingBlobAsArrayBuffer = function(src) {
+  return GPXCasualViewer.preloadAsBlob(src).then(function(blob) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        resolve(event.target.result);
+      };
+      reader.readAsArrayBuffer(blob);
+    });
   });
 }
-GPXCasualViewer.createPromiseReadingBlobAsObjectURL = function(blob) {
-  if (typeof blob == 'string') {
-    var url = blob;
-    var xhr = GPXCasualViewer.createXMLHttpRequest();
-    xhr.open('GET', url, false);
-    xhr.responseType = 'blob';
-    xhr.send(null);
-    blob = xhr.response;
-  }
-  return new Promise(function(resolve, reject) {
-    resolve(URL.createObjectURL(blob));
+GPXCasualViewer.createPromiseReadingBlobAsObjectURL = function(src) {
+  return GPXCasualViewer.preloadAsBlob(src).then(function(blob) {
+    return new Promise(function(resolve, reject) {
+      resolve(URL.createObjectURL(blob));
+    });
   });
 }
-GPXCasualViewer.createPromiseReadingBlobAsDataURL = function(blob) {
-  if (typeof blob == 'string') {
-    var url = blob;
-    var xhr = GPXCasualViewer.createXMLHttpRequest();
-    xhr.open('GET', url, false);
-    xhr.responseType = 'blob';
-    xhr.send(null);
-    blob = xhr.response;
-  }
-  return new Promise(function(resolve, reject) {
-    var reader = new FileReader();
-    reader.onload = function(event) {
-      resolve(event.target.result);
-    };
-    reader.readAsDataURL(blob);
+GPXCasualViewer.createPromiseReadingBlobAsDataURL = function(src) {
+  return GPXCasualViewer.preloadAsBlob(src).then(function(blob) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        resolve(event.target.result);
+      };
+      reader.readAsDataURL(blob);
+    });
   });
 }
-GPXCasualViewer.createPromiseReadingBlobAsText = function(blob, encoding) {
-  if (typeof blob == 'string') {
-    var url = blob;
-    var xhr = GPXCasualViewer.createXMLHttpRequest();
-    xhr.open('GET', url, false);
-    xhr.responseType = 'blob';
-    xhr.send(null);
-    blob = xhr.response;
-  }
-  return new Promise(function(resolve, reject) {
-    var reader = new FileReader();
-    reader.onload = function(event) {
-      resolve(event.target.result);
-    };
-    reader.readAsText(blob, encoding || 'UTF-8');
+GPXCasualViewer.createPromiseReadingBlobAsText = function(src, encoding) {
+  return GPXCasualViewer.preloadAsBlob(src).then(function(blob) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        resolve(event.target.result);
+      };
+      reader.readAsText(blob, encoding || 'UTF-8');
+    });
   });
 }
 
