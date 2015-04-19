@@ -14,17 +14,20 @@ GPXCasualViewer.plugin.URL = {
     }
     return params;
   },
+  handlerIncludeObjectFromURL: function (url){
+    console.log('url=['+ url +']');
+    if ( new RegExp('\.jpe?g$', 'i').test(url) ) {
+      return this.promiseToReadEXIF(url, url);
+    } else {
+      return this.promiseToAddGPX(url, url);
+    }
+  },
   callback: function() {
     // if query-string has a param "url",
     // then add it on load
     var query = GPXCasualViewer.plugin.URL.parseQueryString(location.search);
     if ( query.url ) {
-      console.log('url=['+ query.url +']');
-      if ( new RegExp('\.jpe?g$', 'i').test(query.url) ) {
-        this.promiseToReadEXIF(query.url, query.url);
-      } else {
-        this.promiseToAddGPX(query.url, query.url);
-      }
+      GPXCasualViewer.plugin.URL.handlerIncludeObjectFromURL.bind(this)(query.url);
     }
   }
 };
