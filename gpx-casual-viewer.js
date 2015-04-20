@@ -371,6 +371,25 @@ GPXCasualViewer.Polyline = function (element_name, src, opts) {
     this._overlayed = g_map ? true : false;
     this.super.setMap.call(this, g_map);
   };
+  GPXCasualViewer.Polyline.prototype.computeDistanceLinear = function(origin, destination) {
+    var src = this.getSource();
+    return google.maps.geometry.spherical.computeDistanceBetween(
+      new google.maps.LatLng(src[parseInt(origin)].lat, src[parseInt(origin)].lon),
+      new google.maps.LatLng(src[parseInt(destination)].lat, src[parseInt(destination)].lon)
+      );
+  };
+  GPXCasualViewer.Polyline.prototype.computeDistanceTrack = function(origin, destination) {
+    var src = this.getSource();
+    var sum = 0.0;
+    for ( var i = parseInt(origin), l = parseInt(destination); i < l; ++i ) {
+      var s = google.maps.geometry.spherical.computeDistanceBetween(
+              new google.maps.LatLng(src[i].lat, src[i].lon),
+              new google.maps.LatLng(src[i + 1].lat, src[i + 1].lon)
+              );
+      sum = parseFloat(sum) + parseFloat(s);
+    }
+    return sum;
+  };
 
 // factories to create extended maps objects
 GPXCasualViewer.createLatlngbounds = function (bounds) {
