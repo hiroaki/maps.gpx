@@ -30,7 +30,7 @@ GPXCasualViewer.plugin.EXIFMarkers = {
         var marker = new google.maps.Marker({
           position: values.latlng,
           draggable: true,
-          icon: new google.maps.MarkerImage('plugin-exif-markers/photo.png', new google.maps.Size(32,37))
+          icon: new google.maps.MarkerImage('plugins/EXIFMarkers/photo.png', new google.maps.Size(32,37))
         });
         marker.addListener('click', function(mouseevent) {
           new google.maps.InfoWindow({
