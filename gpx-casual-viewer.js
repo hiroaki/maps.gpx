@@ -375,13 +375,25 @@ GPXCasualViewer.Polyline = function (element_name, src, opts) {
   };
   GPXCasualViewer.Polyline.prototype.computeDistanceTrack = function(origin, destination) {
     var src = this.getSource();
-    var sum = 0.0;
-    for ( var i = parseInt(origin), l = parseInt(destination); i < l; ++i ) {
-      var s = google.maps.geometry.spherical.computeDistanceBetween(
-              new google.maps.LatLng(src[i].lat, src[i].lon),
-              new google.maps.LatLng(src[i + 1].lat, src[i + 1].lon)
-              );
-      sum = parseFloat(sum) + parseFloat(s);
+    var sum = 0.0, i, l;
+    origin = parseInt(origin);
+    destination = parseInt(destination);
+    if ( origin <= destination ) {
+      for ( i = origin, l = destination; i < l; ++i ) {
+        var s = google.maps.geometry.spherical.computeDistanceBetween(
+                new google.maps.LatLng(src[i].lat, src[i].lon),
+                new google.maps.LatLng(src[i + 1].lat, src[i + 1].lon)
+                );
+        sum = parseFloat(sum) + parseFloat(s);
+      }
+    } else {
+      for ( i = origin, l = destination; l < i; --i ) {
+        var s = google.maps.geometry.spherical.computeDistanceBetween(
+                new google.maps.LatLng(src[i].lat, src[i].lon),
+                new google.maps.LatLng(src[i - 1].lat, src[i - 1].lon)
+                );
+        sum = parseFloat(sum) - parseFloat(s);
+      }
     }
     return sum;
   };
