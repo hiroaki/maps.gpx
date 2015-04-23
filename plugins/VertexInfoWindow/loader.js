@@ -128,7 +128,11 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
             if ( src[index_origin].time && src[index_current].time ) {
               sec = (new Date(src[index_current].time) - new Date(src[index_origin].time)) / 1000;
               min = Math.round(sec / 60);
-              avg = Math.abs((Math.round( ((distance_track / 1000) / (sec / 60 / 60)) * 10 ) / 10)).toString() + ' km/h';
+              if ( sec != 0 ) {
+                avg = Math.abs((Math.round( ((distance_track / 1000) / (sec / 60 / 60)) * 10 ) / 10)).toString() + ' km/h';
+              } else {
+                avg = '0 km/h';
+              }
             }
             div.getElementsByClassName('measure').item(0)
             .innerHTML = [PLUGIN.commify(Math.round(distance_track)) +' meters', min +' mins', avg].join(', ');
