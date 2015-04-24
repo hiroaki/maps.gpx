@@ -9,7 +9,7 @@ function GPXCasualViewer() {
 }
 
 // constants, do not change these value
-GPXCasualViewer.VERSION   = '2.1.0';
+GPXCasualViewer.VERSION   = '2.2.0';
 GPXCasualViewer.ELEMENTS  = {
   AGEOFDGPSDATA: 'ageofdgpsdata',
   AUTHOR: 'author',
