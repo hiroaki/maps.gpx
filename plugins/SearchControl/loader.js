@@ -16,7 +16,7 @@ GPXCasualViewer.plugin.SearchControl = {
     google.maps.event.addDomListener(input, 'change', (function(ev) {
       var val = ev.target.value.trim();
       if ( val != '' ) {
-        GPXCasualViewer.plugin.URL.handlerIncludeObjectFromURL.bind(this)(val);
+        this.handlerIncludeObjectFromURL(val);
       }
     }).bind(this));
   }
