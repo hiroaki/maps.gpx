@@ -48,9 +48,7 @@ GPXCasualViewer.plugin.EXIF = {
       }
     };
 
-    // add an instance method to GPXCasualViewer
-    console.log('extends GPXCasualViewer.prototype._inputHandlerImageJPEG');
-    GPXCasualViewer.prototype._inputHandlerImageJPEG = function(key, src) {
+    var input_handler = function(key, src) {
       var p1 = GPXCasualViewer.createPromiseReadingBlobAsArrayBuffer(src);
 //    var p2 = GPXCasualViewer.createPromiseReadingBlobAsDataURL(src);
       var p2 = GPXCasualViewer.createPromiseReadingBlobAsObjectURL(src);
@@ -126,7 +124,7 @@ GPXCasualViewer.plugin.EXIF = {
     }
 
     // register it as the input handler for 'image/jpeg'
-    this._registerInputHandler('image/jpeg', this._inputHandlerImageJPEG);
+    this.registerInputHandler(new GPXCasualViewer.InputHandler('image/jpeg', input_handler));
   },
   _handlerHookOnReadExifDefault: function(key, values) {
     var pinpoint = null;

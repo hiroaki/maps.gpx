@@ -441,8 +441,47 @@ GPXCasualViewer.createOverlayAsTrk = function (src, options) {
   }
 }
 
+// Interface GPXCasualViewer.InputHandler
+GPXCasualViewer.InputHandler = function() {
+  this.initialize.apply(this, arguments);
+}
+GPXCasualViewer.InputHandler.prototype.initialize = function(type, handler) {
+  this.type = type;
+  this.handler = handler;
+};
+GPXCasualViewer.InputHandler.prototype.setType = function(type) {
+  this.type = type;
+  return this;
+};
+GPXCasualViewer.InputHandler.prototype.getType = function() {
+  return this.type;
+};
+GPXCasualViewer.InputHandler.prototype.setHandler = function(handler) {
+  this.handler = handler;
+  return this;
+};
+GPXCasualViewer.InputHandler.prototype.getHandler = function() {
+  return this.handler;
+};
+GPXCasualViewer.InputHandler.defaultHandler = function(key, src) {
+  return Promise.then(function (obj){ return key });
+};
+GPXCasualViewer.InputHandler.prototype.execute = function (bind, key, src){
+  return (this.getHandler() || GPXCasualViewer.InputHandler.defaultHandler).call(bind, key, src);
+};
+
+// default input handler for application/gpx
+GPXCasualViewer.defaultInputHandlerApplicationGPX = function(key, src) {
+  return GPXCasualViewer.createPromiseReadingBlobAsText(src)
+    .then((function (gpx_text){ // createPromiseReadingBlobAsText makes gpx_text from src
+      this.addGPX(key, gpx_text);
+      return key;
+    }).bind(this));
+};
+
 // constructor of class GPXCasualViewer
-GPXCasualViewer.prototype.initialize = function (map_id, map_options, options) {
+GPXCasualViewer.prototype.initialize = function(map_id, map_options, options) {
+  this.map          = null;
   this.map_id       = map_id;
   this.map_options  = map_options || {};
   this.map_element  = document.getElementById(this.map_id);
@@ -482,11 +521,21 @@ GPXCasualViewer.prototype._afterInitialize = function() {
   this.map = new google.maps.Map(this.map_element, this.map_settings);
 
   // register default input handler for 'application/gpx'
-  this._registerInputHandler('application/gpx', this._inputHandlerApplicationGPX);
+  this.registerInputHandler(
+    new GPXCasualViewer.InputHandler('application/gpx', GPXCasualViewer.defaultInputHandlerApplicationGPX));
 
   // apply default plugins
   this.use('SetTitleOnCreateMarker');
   this.use('SetStrokeOptionOnCreatePolyline');
+};
+GPXCasualViewer.prototype.getMap = function() {
+  return this.map;
+};
+GPXCasualViewer.prototype.getMapElement = function() {
+  return this.map_element;
+};
+GPXCasualViewer.prototype.getMapSettings = function() {
+  return this.map_settings;
 };
 GPXCasualViewer.prototype.fitBounds = function() {
   var keys = [];
@@ -559,12 +608,15 @@ GPXCasualViewer._guessType = function(src) {
   }
   return 'application/gpx';
 };
-GPXCasualViewer.prototype._registerInputHandler = function(type, handler) {
-  // Note: handler should return an instance of Promise
-  this.input_handler[type] = handler;
+GPXCasualViewer.prototype.registerInputHandler = function(input_handler) {
+  if ( input_handler instanceof GPXCasualViewer.InputHandler ) {
+    this.input_handler[input_handler.type] = input_handler;
+  }else{
+    throw( new Error('invalid argument, it requires instance of GPXCasualViewer.InputHandler') );
+  }
   return this;
 };
-GPXCasualViewer.prototype._getInputHandler = function(type) {
+GPXCasualViewer.prototype._getInputHandlerByType = function(type) {
   var handler = this.input_handler[type];
   if ( handler ) {
     return handler;
@@ -573,21 +625,13 @@ GPXCasualViewer.prototype._getInputHandler = function(type) {
 };
 GPXCasualViewer.prototype.input = function(key, src, type) {
   type = type || GPXCasualViewer._guessType(src);
-  var handler = this._getInputHandler(type);
+  var handler = this._getInputHandlerByType(type);
   if ( handler ) {
-    return handler.call(this, key, src);
+    return handler.execute(this, key, src);
   } else {
     console.log('There is no handler for type=['+ type +']');
-    return new Promise();
+    return new GPXCasualViewer.InputHandler().execute(this, key, src);
   }
-};
-// the default input handler for 'application/gpx'
-GPXCasualViewer.prototype._inputHandlerApplicationGPX = function(key, src) {
-  return GPXCasualViewer.createPromiseReadingBlobAsText(src)
-  .then((function (gpx_text){
-    this.addGPX(key, gpx_text);
-    return key;
-  }).bind(this))
 };
 GPXCasualViewer.prototype.addGPX = function(key, gpx_text) {
   this.removeGPX(key);
