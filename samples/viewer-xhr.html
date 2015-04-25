@@ -10,24 +10,18 @@ img.info-window { max-width: 200px; max-height: 200px; }
 <script src="../plugins/EXIF/loader.js"></script>
 <script>
 google.maps.event.addDomListener(window, 'load', function() {
-
-  var ids   = ['R1', 'sosui'];
+  var ids   = ['R1', 'sosui', 'exif'];
   var apps  = [];
   for ( var i = 0, l = ids.length; i < l; ++i ) { 
     apps[i] = new GPXCasualViewer(ids[i]);
-    var url = document.getElementById(ids[i]).getAttribute('data-url');
-    apps[i].promiseToAddGPX(url, url).then((function (key){
+    apps[i].use('EXIF');
+    var url = apps[i].map_element.getAttribute('data-url');
+    apps[i].input(url, url).then(function (key){
       this.fitBounds(key);
       this.showOverlayWpts(key);
       this.showOverlayTrks(key);
-    }).bind(apps[i]));
+    }.bind(apps[i]));
   }
-
-  var id  = 'exif';
-  var url = document.getElementById(id).getAttribute('data-url');
-  var key = url;
-  new GPXCasualViewer(id).use('EXIF').promiseToReadEXIF(key, url);
-
 });
 </script>
 </head><body>

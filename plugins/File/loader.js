@@ -14,11 +14,7 @@ GPXCasualViewer.plugin.File = {
       for (var i = 0, l = files.length; i < l; ++i) {
         var file = files[i];
         console.log('name=['+ file.name +'] type=['+ file.type +'] size=['+ file.size +']');
-        if ( file.type == 'image/jpeg' ) {
-          this.promiseToReadEXIF(file.name, file);
-        } else {
-          this.promiseToAddGPX(file.name, file);
-        }
+        this.input(file.name, file);
       }
     }).bind(this));
   }

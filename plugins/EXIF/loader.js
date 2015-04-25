@@ -23,6 +23,7 @@ GPXCasualViewer.plugin.EXIF = {
     // add hook points
     console.log('add hook points: "onReadEXIF"');
     this.hook['onReadEXIF'] = this.hook['onReadEXIF'] || [];
+
     // add an instance method to GPXCasualViewer.Polyline
     console.log('extends GPXCasualViewer.Polyline.prototype.findNearestVertexByDate');
     GPXCasualViewer.Polyline.prototype.findNearestVertexByDate = function(date) {
@@ -46,9 +47,10 @@ GPXCasualViewer.plugin.EXIF = {
         return null;
       }
     };
+
     // add an instance method to GPXCasualViewer
-    console.log('extends GPXCasualViewer.prototype.promiseToReadEXIF');
-    GPXCasualViewer.prototype.promiseToReadEXIF = function(key, src) {
+    console.log('extends GPXCasualViewer.prototype._inputHandlerImageJPEG');
+    GPXCasualViewer.prototype._inputHandlerImageJPEG = function(key, src) {
       var p1 = GPXCasualViewer.createPromiseReadingBlobAsArrayBuffer(src);
 //    var p2 = GPXCasualViewer.createPromiseReadingBlobAsDataURL(src);
       var p2 = GPXCasualViewer.createPromiseReadingBlobAsObjectURL(src);
@@ -102,7 +104,14 @@ GPXCasualViewer.plugin.EXIF = {
             alternatives  = founds;
           }
         }
-        var stash = {exif: exif, url: values[1], src: values[2], gpx: null, latlng: latlng, alternatives: alternatives};
+        var stash = {
+                  exif: exif,
+                   url: values[1],
+                   src: values[2],
+                   gpx: null,
+                latlng: latlng,
+          alternatives: alternatives
+        };
         if ( ! latlng ) {
           throw( new Error('Could not detect coordinate of the image "'+ key +'"') );
         } else {
@@ -115,6 +124,9 @@ GPXCasualViewer.plugin.EXIF = {
         return key;
       }).bind(this));
     }
+
+    // register it as the input handler for 'image/jpeg'
+    this._registerInputHandler('image/jpeg', this._inputHandlerImageJPEG);
   },
   _handlerHookOnReadExifDefault: function(key, values) {
     var pinpoint = null;

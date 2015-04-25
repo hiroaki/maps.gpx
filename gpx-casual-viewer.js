@@ -442,32 +442,47 @@ GPXCasualViewer.createOverlayAsTrk = function (src, options) {
 }
 
 // constructor of class GPXCasualViewer
-GPXCasualViewer.prototype.initialize = function (map_id, options) {
+GPXCasualViewer.prototype.initialize = function (map_id, map_options, options) {
   this.map_id       = map_id;
-  this.options      = options || {};
+  this.map_options  = map_options || {};
   this.map_element  = document.getElementById(this.map_id);
   if ( ! this.map_element ) {
     throw( new Error('Could not get element by #'+ map_id) );
   }
 
-  this.settings = {};
-  this.defaults = {
+  this.map_settings = {};
+  this.map_defaults = {
     zoom: 5,
     keyboardShortcuts: false,
     center: new google.maps.LatLng(35.6841306, 139.774103),
     mapTypeId: google.maps.MapTypeId.ROADMAP
     };
-  for (var attr in this.defaults) { this.settings[attr] = this.defaults[attr] }
-  for (var attr in this.options ) { this.settings[attr] = this.options[attr]  }
+  for (var attr in this.map_defaults) { this.map_settings[attr] = this.map_defaults[attr] }
+  for (var attr in this.map_options ) { this.map_settings[attr] = this.map_options[attr]  }
 
-  this.map  = new google.maps.Map(this.map_element, this.settings);
+  // stash for gpx objects
   this.data = {}
+
+  // stash for hooks
   this.hook = {
     onCreateLatlngbounds: [],
     onCreateMarker: [],
     onCreatePolyline: [],
     onAddGPX: []
   };
+
+  // stash for input handlers by media types
+  this.input_handler = {};
+
+  // reset all
+  this._afterInitialize();
+};
+GPXCasualViewer.prototype._afterInitialize = function() {
+  // create universe
+  this.map = new google.maps.Map(this.map_element, this.map_settings);
+
+  // register default input handler for 'application/gpx'
+  this._registerInputHandler('application/gpx', this._inputHandlerApplicationGPX);
 
   // apply default plugins
   this.use('SetTitleOnCreateMarker');
@@ -531,15 +546,43 @@ GPXCasualViewer.prototype.showOverlayTrks = function() {
 GPXCasualViewer.prototype.hideOverlayTrks = function() {
   return this._appearOverlay(false, GPXCasualViewer.ELEMENTS.TRK, Array.prototype.slice.call(arguments));
 };
-GPXCasualViewer.prototype.handlerIncludeObjectFromURL = function (url){
-  console.log('url=['+ url +']');
-  if ( new RegExp('\.jpe?g$', 'i').test(url) ) {
-    return this.promiseToReadEXIF(url, url);
+GPXCasualViewer._guessType = function(src) {
+  if ( typeof src == 'string' ) {
+    // src may be URL string
+    if ( new RegExp('\.jpe?g$', 'i').test(src) ) {
+      return 'image/jpeg';
+    }
+  } else if ( src instanceof File ) {
+    if ( src.type == 'image/jpeg' ) {
+      return 'image/jpeg';
+    }
+  }
+  return 'application/gpx';
+};
+GPXCasualViewer.prototype._registerInputHandler = function(type, handler) {
+  // Note: handler should return an instance of Promise
+  this.input_handler[type] = handler;
+  return this;
+};
+GPXCasualViewer.prototype._getInputHandler = function(type) {
+  var handler = this.input_handler[type];
+  if ( handler ) {
+    return handler;
+  }
+  return null;
+};
+GPXCasualViewer.prototype.input = function(key, src, type) {
+  type = type || GPXCasualViewer._guessType(src);
+  var handler = this._getInputHandler(type);
+  if ( handler ) {
+    return handler.call(this, key, src);
   } else {
-    return this.promiseToAddGPX(url, url);
+    console.log('There is no handler for type=['+ type +']');
+    return new Promise();
   }
 };
-GPXCasualViewer.prototype.promiseToAddGPX = function(key, src) {
+// the default input handler for 'application/gpx'
+GPXCasualViewer.prototype._inputHandlerApplicationGPX = function(key, src) {
   return GPXCasualViewer.createPromiseReadingBlobAsText(src)
   .then((function (gpx_text){
     this.addGPX(key, gpx_text);
