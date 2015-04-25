@@ -747,6 +747,25 @@ GPXCasualViewer.prototype.applyHook = function() {
 // plugin mechanism
 GPXCasualViewer.plugin = {};
 
+// provide utility
+GPXCasualViewer.detectPathOfPlugin = function(plugin_name) {
+  if ( GPXCasualViewer.plugin[plugin_name].path ) {
+    return false;
+  }
+  GPXCasualViewer.plugin[plugin_name].path = '';
+  var scripts = document.getElementsByTagName('script'),
+      re = new RegExp('/'+ plugin_name +'/loader.js$'),
+      i, l, src;
+  for ( i = 0, l = scripts.length; i < l; ++i ) {
+    src = scripts.item(i).getAttribute('src');
+    if ( re.test(src) ) {
+      GPXCasualViewer.plugin[plugin_name].path = src.replace(re, '/'+ plugin_name +'/');
+      break;
+    }
+  }
+  return true;
+}
+
 // define default plugins
 GPXCasualViewer.plugin.SetTitleOnCreateMarker = {
   callback: function(marker) {
