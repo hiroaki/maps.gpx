@@ -61,7 +61,7 @@ GPXCasualViewer.plugin.EXIF = {
           // search coordinate of the image by matching date with all polylines
           var dt = exif['DateTimeOriginal'].split(/\s+/),
               origin = new Date( dt[0].replace(/:/g, '/')+ ' ' + dt[1] ), // localtime
-              i, j, k, l, m, n, gpx;
+              i, j;
           var nearestVertex = function(overlay, key) {
             if( ! overlay ){
               return false;
@@ -74,16 +74,17 @@ GPXCasualViewer.plugin.EXIF = {
               return true;
             }
           };
-          for ( i in this.data ) {
-            gpx = this.data[i];
+          this.eachGPX((function (gpx, key){
+            var k, l, m, n;
             for ( k = 0, l = gpx.trk.length; k < l; ++k ) {
-              if ( ! nearestVertex.call(founds, gpx.trk[k].overlay, i) ) {
+              if ( ! nearestVertex.call(this, gpx.trk[k].overlay, key) ) {
                 for ( m = 0, n = gpx.trk[k].trkseg.length; m < n; ++m ) {
-                  nearestVertex.call(founds, gpx.trk[k].trkseg[m].overlay, i);
+                  nearestVertex.call(this, gpx.trk[k].trkseg[m].overlay, key);
                 }
               }
             }
-          }
+          }).bind(founds));
+
           if ( 0 < founds.length ) {
             // pickup the best points which has minimum diff
             var sorted = founds.sort(function(a, b) {
