@@ -1,11 +1,11 @@
-GPXCasualViewer.plugin.EXIFMarkers = {
+GPXCasualViewer.plugin.EXIFMarker = {
   pts: [],
   callback: function() {
     this.register('onReadEXIF', (function (key, values){
 
-      GPXCasualViewer.plugin.EXIFMarkers.pts.push({lat: values.latlng.lat(), lon: values.latlng.lng()});
-      if ( 1 < GPXCasualViewer.plugin.EXIFMarkers.pts.length ) {
-        var bounds = GPXCasualViewer.boundsOf(GPXCasualViewer.plugin.EXIFMarkers.pts);
+      GPXCasualViewer.plugin.EXIFMarker.pts.push({lat: values.latlng.lat(), lon: values.latlng.lng()});
+      if ( 1 < GPXCasualViewer.plugin.EXIFMarker.pts.length ) {
+        var bounds = GPXCasualViewer.boundsOf(GPXCasualViewer.plugin.EXIFMarker.pts);
         this.map.fitBounds(GPXCasualViewer.createLatlngbounds(bounds));
       } else {
         this.map.panTo(values.latlng);
@@ -30,7 +30,7 @@ GPXCasualViewer.plugin.EXIFMarkers = {
         var marker = new google.maps.Marker({
           position: values.latlng,
           draggable: true,
-          icon: new google.maps.MarkerImage('plugins/EXIFMarkers/photo.png', new google.maps.Size(32,37))
+          icon: new google.maps.MarkerImage('plugins/EXIFMarker/photo.png', new google.maps.Size(32,37))
         });
         marker.addListener('click', function(mouseevent) {
           new google.maps.InfoWindow({
