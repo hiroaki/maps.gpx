@@ -11,22 +11,20 @@ img.info-window { max-width: 200px; max-height: 200px; }
 <script>
 google.maps.event.addDomListener(window, 'load', function() {
 
-  var ids   = ['R1', 'sosui'];
-  var apps  = [];
-  for ( var i = 0, l = ids.length; i < l; ++i ) { 
-    apps[i] = new GPXCasualViewer(ids[i]);
-    var url = document.getElementById(ids[i]).getAttribute('data-url');
-    apps[i].promiseToAddGPX(url, url).then((function (key){
+  var maps = document.getElementsByClassName('map');
+  var apps = [];
+  for ( var i = 0, l = maps.length; i < l; ++i ) { 
+    var item = maps.item(i);
+    var id = item.getAttribute('id');
+    apps[i] = new GPXCasualViewer(id);
+    apps[i].use('EXIF');
+    var url = item.getAttribute('data-url');
+    apps[i].input(id, url).then(function (key){
       this.fitBounds(key);
       this.showOverlayWpts(key);
       this.showOverlayTrks(key);
-    }).bind(apps[i]));
+    }.bind(apps[i]));
   }
-
-  var id  = 'exif';
-  var url = document.getElementById(id).getAttribute('data-url');
-  var key = url;
-  new GPXCasualViewer(id).use('EXIF').promiseToReadEXIF(key, url);
 
 });
 </script>

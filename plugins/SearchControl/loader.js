@@ -1,10 +1,6 @@
 GPXCasualViewer.plugin.SearchControl = {
   id: 'searchcontrol-general-input-field',
   callback: function() {
-    if ( ! GPXCasualViewer.plugin.URL ) {
-      console.log('Warning: plugin.SearchControl requires plugin.URL');
-    }
-
     var input = document.createElement('input');
     input.setAttribute('id', GPXCasualViewer.plugin.SearchControl.id);
     input.setAttribute('type', 'text');
@@ -16,7 +12,7 @@ GPXCasualViewer.plugin.SearchControl = {
     google.maps.event.addDomListener(input, 'change', (function(ev) {
       var val = ev.target.value.trim();
       if ( val != '' ) {
-        this.handlerIncludeObjectFromURL(val);
+        this.input(val, val);
       }
     }).bind(this));
   }
