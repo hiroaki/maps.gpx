@@ -54,6 +54,20 @@ GPXCasualViewer.strict      = true;
 GPXCasualViewer.join_trkseg = true;
 
 // common util
+GPXCasualViewer.parseQueryString = function(/* usually 'location.search' */qstring) {
+  var params = {};
+  if ( qstring ) {
+    var str = qstring.match(/^\?/) ? qstring.substring(1) : qstring;
+    var pairs = str.split(/[;&]/);
+    for (var i = 0, l = pairs.length; i < l; ++i) {
+      var pair = pairs[i].split('=');
+      if ( pair[0] ) {
+        params[pair[0]] = decodeURIComponent(pair[1]);
+      }
+    }
+  }
+  return params;
+}
 GPXCasualViewer.parseXML = function(str) {
   if ( typeof ActiveXObject != 'undefined' && typeof GetObject != 'undefined' ) {
     var doc = new ActiveXObject('Microsoft.XMLDOM');
@@ -516,6 +530,14 @@ GPXCasualViewer.prototype.showOverlayTrks = function() {
 };
 GPXCasualViewer.prototype.hideOverlayTrks = function() {
   return this._appearOverlay(false, GPXCasualViewer.ELEMENTS.TRK, Array.prototype.slice.call(arguments));
+};
+GPXCasualViewer.prototype.handlerIncludeObjectFromURL = function (url){
+  console.log('url=['+ url +']');
+  if ( new RegExp('\.jpe?g$', 'i').test(url) ) {
+    return this.promiseToReadEXIF(url, url);
+  } else {
+    return this.promiseToAddGPX(url, url);
+  }
 };
 GPXCasualViewer.prototype.promiseToAddGPX = function(key, src) {
   return GPXCasualViewer.createPromiseReadingBlobAsText(src)
