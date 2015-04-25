@@ -537,6 +537,13 @@ GPXCasualViewer.prototype.getMapElement = function() {
 GPXCasualViewer.prototype.getMapSettings = function() {
   return this.map_settings;
 };
+GPXCasualViewer.prototype.eachGPX = function(callback) {
+  for ( i in this.data ) {
+    gpx = this.data[i];
+    callback(gpx, i);
+  }
+  return this;
+};
 GPXCasualViewer.prototype.fitBounds = function() {
   var keys = [];
   if ( 0 < arguments.length ) {
