@@ -22,6 +22,8 @@ img.info-window { max-width: 200px; max-height: 200px; }
 <script type="text/javascript" src="plugins/GeoLocation/loader.js"></script>
 <script type="text/javascript" src="plugins/GeoLocationControl/loader.js"></script>
 <link type="text/css" rel="stylesheet" href="plugins/GeoLocationControl/loader.css" />
+<script type="text/javascript" src="plugins/InputFileControl/loader.js"></script>
+<link type="text/css" rel="stylesheet" href="plugins/InputFileControl/loader.css" />
 <script type="text/javascript">
 (function (){
   GPXCasualViewer.strict = false;
@@ -35,6 +37,7 @@ img.info-window { max-width: 200px; max-height: 200px; }
     app.use('EXIF');
     app.use('EXIFMarker');
     app.use('QueryURL');
+    app.use('InputFileControl');
     app.use('SearchControl');
     app.use('GeoLocation');
     app.use('GeoLocationControl');
