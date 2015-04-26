@@ -608,7 +608,7 @@ GPXCasualViewer._guessType = function(src) {
     if ( new RegExp('\.jpe?g$', 'i').test(src) ) {
       return 'image/jpeg';
     }
-  } else if ( src instanceof File ) {
+  } else if ( src instanceof Blob ) {
     if ( src.type == 'image/jpeg' ) {
       return 'image/jpeg';
     }
