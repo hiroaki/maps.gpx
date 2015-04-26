@@ -1,4 +1,4 @@
-GPXCasualViewer.plugin.File = {
+GPXCasualViewer.plugin.Droppable = {
   callback: function() {
     var elem = document.getElementById(this.map_id);
 
