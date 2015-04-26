@@ -1,6 +1,15 @@
 # GPX Casual Viewer v3
 
-GPX Casual Viewer is a small framework of JavaScript to overlay GPX on Google Maps embedded HTML page.
+GPX Casual Viewer is a HTML5 application for overlay GPX on the Google Maps.
+
+The main part of this project is `gpx-casual-viewer.js` JavaScript library
+that provides each functions.
+And HTML files are built by its several functions according to application.
+
+Bundled `viewer.html` is one of an example of application.
+And there are other examples in `samples` directory.
+
+Below is the explanation of the main JavaScript library `gpx-casual-viewer.js`.
 
 
 ## Usage
@@ -16,9 +25,9 @@ Class `GPXCasualViewer` is defined by this.
 ```
 
 To instantiate the class,
-you have to give parameter that is the same as `google.maps.Map` of Google Maps API
+it accepts two parameters that are the same as `google.maps.Map` of Google Maps API.
 
-The first argument is the ID for the DIV element that should be drawn the map.
+The first argument is the ID for the viewport (DIV element) that should be drawn the map.
 
 And the second argument gives options by Hash,
 it will be passed inside to constructor of `google.maps.Map` directly.
@@ -32,42 +41,55 @@ var app = new GPXCasualViewer('map_canvas');
 </script>
 ```
 
-Now a map is ready. Let's give GPX files to this map to overlay.
+Now a map is ready. Let's give GPX data to this map to overlay.
 
-There are several ways to give GPX, and it's implemented by different JavaScript file as plug-in mainly.
-Therefore, it is necessary to add `script` tag for each way.
+There are several ways to give GPX:
 
-Specifically, please consult several examples described to below,
-and complete your application using the methods of instance, plug-ins and more things.
+* String of GPX directly
+* via binary of GPX (File or Blob object)
+* via URL of GPX
+
+API is prepared for each, but part of user interface is left to user.
+However, it's possible to use the plug-in offered by external file instead of writing code.
+
+Therefore, if use plug-in, it is necessary to add `script` tag.
+Specifically, please see examples described to below,
+and build your application using the methods of instance, plug-ins and more things.
 
 
 ## Example 1
 
-The following example is using plug-in `File`.
+This example is using plug-in `Droppable`, which provides one of user interface.
 
 This is an application that overlays waypoints and tracks as markers and polylines,
 by you drag and drop GPX files into browser window.
+
+And as the action when GPX was added:
+- Fit the map so that all coordinates be contained in the viewport.
+- Show all the waypoints and the tracks for adding GPX.
+
+Like this example, when not directing specifically, overlays won't be shown.
+
+It is possible to show/hide overlays anytime.
 
 ```
 <!DOCTYPE html>
 <html><head><title>GPX Casual Viewer v3</title>
 <style>
-html { height: 100% }
-body { height: 100%; margin: 0px; padding: 0px }
-#map_canvas { height: 100% }
+html, body, #map_canvas { height: 100%; margin: 0px; padding: 0px; }
 </style>
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script src="gpx-casual-viewer.js"></script>
-<script src="plugin-file.js"></script>
+<script src="../gpx-casual-viewer.js"></script>
+<script src="../plugins/Droppable/loader.js"></script>
 <script>
   google.maps.event.addDomListener(window, 'load', function() {
     var app = new GPXCasualViewer('map_canvas');
     app.register('onAddGPX', function(key) {
-      this.fitBounds();
+      this.fitBounds(key);
       this.showOverlayWpts(key);
       this.showOverlayTrks(key);
     });
-    app.use('File');
+    app.use('Droppable');
   });
 </script>
 </head><body>
@@ -75,85 +97,47 @@ body { height: 100%; margin: 0px; padding: 0px }
 </body></html>
 ```
 
+
 ## Example 2
 
-The following example is using plug-in `URL`.
+This example inputs GPX from URL.
 
-This is an application that overlays waypoints and tracks as markers and polylines,
-by fetch GPX files from each URL embedded in a page.
+In this case, it is useful when giving GPX as a parameter to a general-purpose map
+on the page generated from a template in the CMS, Weblog and so on.
 
 ```
 <!DOCTYPE html>
-<html><head><title>GPX Casual Viewer v3</title>
+<html lang="ja"><head><title>GPX Casual Viewer v3</title>
+<style>
+div.map { width:640px; height:320px; }
+</style>
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script src="gpx-casual-viewer.js"></script>
-<script src="plugin-url.js"></script>
+<script src="../gpx-casual-viewer.js"></script>
 <script>
 google.maps.event.addDomListener(window, 'load', function() {
-
-  var ids = ['article_1', 'article_2'];
-
-  for ( var i = 0, l = ids.length; i < l; ++i ) { 
-    var app  = new GPXCasualViewer(ids[i]);
-    var url  = document.getElementById(ids[i]).getAttribute('data-url');
-    app.addGPX(url, GPXCasualViewer.plugin.URL.readGPXTextFromURL(url));
-    app.fitBounds(url);
-    app.showOverlayTrks(url);
+  var maps = document.getElementsByClassName('map');
+  var apps = [];
+  for ( var i = 0, l = maps.length; i < l; ++i ) { 
+    var item = maps.item(i);
+    var id = item.getAttribute('id');
+    apps[i] = new GPXCasualViewer(id);
+    apps[i].input(id, item.getAttribute('data-url')).then(function (key){
+      this.fitBounds(key);
+      this.showOverlayTrks(key);
+    }.bind(apps[i]));
   }
 });
 </script>
 </head><body>
-
-  <h1>Article 1</h1>
-  <div id="article_1" style="width:400px;height:400px"
-    data-url="/gpx/driving.gpx">
-  </div>
-
-  <h1>Article 2</h1>
-  <div id="article_2" style="width:400px;height:400px"
-    data-url="/gpx/walking.gpx">
-  </div>
-
+  <h1>Japan National Highway Route 1</h1>
+  <div class="map" id="R1" data-url="R1.gpx"></div>
+  <h1>Along the Biwako canal</h1>
+  <div class="map" id="sosui" data-url="Biwakososui.gpx"></div>
 </body></html>
-```
-
-
-## Example 3
-
-The following example is not using plug-in.
-
-That can also receive GPX by a primitive method without plug-in.
-In other words,
-these plug-ins are the interface of receiving GPX
-which are added as the function of the `GPXCasualViewer`.
 
 ```
-<!DOCTYPE html>
-<html><head><title>GPX Casual Viewer v3</title>
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script src="gpx-casual-viewer.js"></script>
-<script>
-google.maps.event.addDomListener(window, 'load', function() {
-  var app = new GPXCasualViewer('map_canvas');
-  google.maps.event.addDomListener(document.getElementById('overlay'), 'click',
-    (function(event) {
-      this.addGPX('gpx_data', document.getElementById('gpx_data').value);
-      this.fitBounds('gpx_data');
-      this.showOverlayWpts('gpx_data');
-    }).bind(app));
-});
-</script>
-</head><body>
-  <div id="map_canvas" style="width:400px;height:400px"></div>
-  <textarea id="gpx_data" rows="12" cols="80">
-<?xml version="1.0"?>
-<gpx version="1.1" creator="GPX Casual Viewer Sample" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
-<wpt lat="35.683955" lon="139.774462"></wpt>
-</gpx>
-  </textarea><br/>
-  <button id="overlay">Apply</button>
-</body></html>
-```
+
+
 
 ---
 
@@ -161,8 +145,8 @@ google.maps.event.addDomListener(window, 'load', function() {
 
 Because GPX Casual Viewer is under development, API will be changed without notice.
 
-The current version is `v2.1.x`.
-When there is a change in the API, the number of middle will go up.
+The current version is `v2.2.x`.
+At least, the number of middle will go up when there is a change in the API.
 
 
 ## GPXCasualViewer class
@@ -178,54 +162,78 @@ join_trkseg    | boolean | merge all trkseg in a trk, one polyline per one trk. 
 
 ### Class method
 
-class method                            | return value             | description
-----------------------------------------|--------------------------|------------
-parseXML(String:str)                    | XML document             | parse str as XML, and return document DOM
-GPXToJSON(XML document)                 | Hash:gpxType             | convert XML document as GPX to JSON
-boundsOf(Array:pts, Hash?:boundsType)   | Hash:boundsType          | return boundsType which contains all pts. when optional boundsType was set, it is based to extend
-createLatlngbounds(Hash:boundsType)     | LatLngBounds             | create instance of `google.maps.LatLngBounds` from boundsType
-createOverlayAsWpt(Hash:wptType, Hash:opt)  | GPXCasualViewer.Marker   | create overlay as wpt
-createOverlayAsWpt(Array:wptType, Hash:opt) | GPXCasualViewer.Polyline | create overlay as wpt
-createOverlayAsRte(Hash:wptType, Hash:opt)  | GPXCasualViewer.Marker   | create overlay as rte
-createOverlayAsRte(Array:wptType, Hash:opt) | GPXCasualViewer.Polyline | create overlay as rte
-createOverlayAsTrk(Hash:wptType, Hash:opt)  | GPXCasualViewer.Marker   | create overlay as trk
-createOverlayAsTrk(Array:wptType, Hash:opt) | GPXCasualViewer.Polyline | create overlay as trk
+These are general utilities.
 
-NOTE:
+The argument `Object:src` is a URL string or an instance of Blob for GPX.
 
-`createOverlayAs*` methods will return an overlay.
-If wptType is Hash then it returns Maker, or wptType is Array then it returns Polyline.
+class method                    | return value   | description
+--------------------------------|----------------|------------
+parseQueryString( String:str )  | Hash           | parse str as the query string, and generate pairs of key and value of Hash
+parseXML( String:str )          | document       | parse str as XML, and return document DOM
+createXMLHttpRequest( )         | XMLHttpRequest | create instance of `XMLHttpRequest`
+preloadAsBlob( Object:src )     | Promise        | create Promise which resolve src as Blob. It is used each `createPromise...` methods
+createPromiseReadingBlobAsArrayBuffer( Object:src )             | Promise | create Promise which resolve src as ArrayBuffer
+createPromiseReadingBlobAsObjectURL( Object:src )               | Promise | create Promise which resolve src as ObjectURL
+createPromiseReadingBlobAsDataURL( Object:src )                 | Promise | create Promise which resolve src as DataURL
+createPromiseReadingBlobAsText( Object:src, String?:encoding )  | Promise | create Promise which resolve src as Text. default encoding is "UTF-8"
+GPXToJSON( Object:document )              | gpxType       | convert XML document as GPX to JSON
+boundsOf( Array:pts, Hash?:boundsType )   | boundsType    | return boundsType which contains all pts. when optional boundsType was set, it is based to extend
+createLatlngbounds( Hash:boundsType )     | LatLngBounds  | create instance of `google.maps.LatLngBounds` from boundsType
+createOverlayAsWpt( Hash:wptType, Hash?:opt )  | GPXCasualViewer.Marker   | create overlay as wpt
+createOverlayAsWpt( Array:wptType, Hash?:opt ) | GPXCasualViewer.Polyline | create overlay as wpt
+createOverlayAsRte( Hash:wptType, Hash?:opt )  | GPXCasualViewer.Marker   | create overlay as rte
+createOverlayAsRte( Array:wptType, Hash?:opt ) | GPXCasualViewer.Polyline | create overlay as rte
+createOverlayAsTrk( Hash:wptType, Hash?:opt )  | GPXCasualViewer.Marker   | create overlay as trk
+createOverlayAsTrk( Array:wptType, Hash?:opt ) | GPXCasualViewer.Polyline | create overlay as trk
+detectPathOfPlugin( String:name ) | boolean | detect path of given plugin directory. It will set `path` as class property and return `true`. If it is already set, return false with no effects. This is useful for specify base path to resource within plugin
 
-Because a marker and the polyline have the same interface as the overlay which is a broader term,
-GPXCasualViewer is designed to create overlay without distinguish  about which is Marker or Polyline
+Note:
 
-To make that possible, when creating Marker or Polyline, you have to use these factory methods 
-and do not use constructor of `GPXCasualViewer.Marker`, `GPXCasualViewer.Polyline` and `google.maps.*` directly.
+Each `createOverlayAs...` methods will return an overlay.
+If wptType is Hash then it returns Maker,
+or wptType is Array then it returns Polyline.
+
+Because a marker and the polyline have the same interface as the overlay,
+`GPXCasualViewer` is designed to create overlay
+without distinction about which is Marker or Polyline.
+
+To make that possible, when creating Marker or Polyline for handling by `GPXCasualViewer`,
+you have to use these factory methods
+and do not use constructor of `google.maps.Marker` and `google.maps.Polyline`
 
 
 ### Constructor
 
-constructor                              | description
------------------------------------------|------------
-GPXCasualViewer(String:map_id, Hash?:opt) | arguments are same as constructor of `google.maps.Map`, please see its document for details.
+constructor                                 | description
+--------------------------------------------|------------
+GPXCasualViewer( String:map_id, Hash?:opt ) | arguments are same as constructor of `google.maps.Map`. please see its document for details
 
 
 ### Instance method
 
+The argument `Object:src` is a URL string or an instance of Blob for GPX.
+
 instance method              | return value | description
 -----------------------------|--------------|------------
-fitBounds(String?:key)       | this | sets the viewport to contain the given GPX as "key". it accepts multiple keys, or void means all
-showOverlayWpts(String?:key) | this | show overlays for waypoints in specified GPX with key
-hideOverlayWpts(String?:key) | this | hide overlays for waypoints in specified GPX with key
-showOverlayRtes(String?:key) | this | show overlays for routes in specified GPX with key
-hideOverlayRtes(String?:key) | this | hide overlays for routes in specified GPX with key
-showOverlayTrks(String?:key) | this | show overlays for tracks in specified GPX with key
-hideOverlayTrks(String?:key) | this | hide overlays for tracks in specified GPX with key
-addGPX(String:key, String:src)           | this | add GPX by src text as "key". if the instance alredy has key, it is overwrite
-removeGPX(String:key)                    | this | remove GPX by "key" that the instance has
-use(String:plugin)                       | this | use plug-in specified identifier
-register(String:hook, Function:callback) | this | register a callback function on specified "hook" point
-applyHook(String:hook, arguments)        | this | apply all functions registered specified "hook" point as method of the instance `this`. reqired arguments are different every hook point
+getMap( )         | google.maps.Map | return the instance of `google.maps.Map` application created
+getMapElement( )  | node | return dom node for viewport of the map
+getMapSettings( ) | Hash | return setting parameter Hash for initialize the map
+fitBounds( String?:key )       | this | fit the map so that all coordinates of GPX specified by key are contained in the viewport. If key is not given, it means that all GPX
+showOverlayWpts( String?:key ) | this | show overlays for waypoints in GPX specified by key
+hideOverlayWpts( String?:key ) | this | hide overlays for waypoints in GPX specified by key
+showOverlayRtes( String?:key ) | this | show overlays for routes in GPX specified by key
+hideOverlayRtes( String?:key ) | this | hide overlays for routes in GPX specified by key
+showOverlayTrks( String?:key ) | this | show overlays for tracks in GPX specified by key
+hideOverlayTrks( String?:key ) | this | hide overlays for tracks in GPX specified by key
+input( String:key, Object:src, String?:type ) | this | input src. its media-type of the data is judged inside and handled with an appropriate input handler if registered by `registerInputHandler`. when `input` GPX, it is handled by the default input handler
+getGPX( String:key )              | gpxType | return GPX specified key
+eachGPX( Function:callback )      | this    | apply callback to each GPX. given arguments to callback are GPX and its key
+getKeysOfGPX( )                   | Array   | return list of GPX keys
+addGPX( String:key, String:src )  | this    | add GPX by src text as key. if the instance alredy has key, overwrite it
+removeGPX( String:key )           | this    | remove GPX specified by key
+use( String:pluginName )                   | this | use plug-in specified identifier
+register( String:hook, Function:callback ) | this | register a callback function on specified hook point
+applyHook( String:hook, arguments )        | this | apply all functions registered specified hook point as method of the instance `this`. reqired arguments are different every hook point
 
 
 ### Hook
@@ -238,18 +246,47 @@ Registered callbacks are executed as instance method.
 It's possible to register more than one callbacks with one hooks.
 In that case, callback will be executed in order of registration.
 
-hook                | description
---------------------|--------------------------------
-onCreateLatlngbounds| apply hooks when `google.maps.LatLngBounds` is created. callback will accept created object.
-onCreateMarker      | apply hooks when `GPXCasualViewer.Marker` is created. callback will accept created object.
-onCreatePolyline    | apply hooks when `GPXCasualViewer.Polyline` is created. callback will accept created object.
-onAddGPX            | apply hooks when added GPX by `addGPX(key, src)`. callback will accept the 1st argument "key" that will able to identify added GPX
+hook                  | description
+----------------------|--------------------------------
+onCreateLatlngbounds  | apply hooks when `google.maps.LatLngBounds` is created. callback will accept created object
+onCreateMarker        | apply hooks when `GPXCasualViewer.Marker` is created. callback will accept created object
+onCreatePolyline      | apply hooks when `GPXCasualViewer.Polyline` is created. callback will accept created object
+onAddGPX              | apply hooks when added GPX by `addGPX(key, src)`. callback will accept the 1st argument "key" that will able to identify added GPX
+
+
+---
+
+## GPXCasualViewer.InputHandler class
+
+For defined input handler by each media types.
+
+When you want to handle data except for GPX, the input handler has to be implemented using this class.
+
+### Constructor
+
+constructor  | description
+-------------|-------------------------------------------------------------
+GPXCasualViewer.InputHandler( String:type, Function?:handler ) | create instance with function for media-type. to enable it giving `GPXCasualViewer#registerInputHandler`
+
+### Instance method
+
+instance method                | return value | description
+-------------------------------|----------|------------------------------------------------------------
+setType( String:type )         | this     | set media type
+getType( String:type )         | String   | get media type
+setHandler( Function:handler ) | this     | set handler
+getHandler( Function:handler ) | Function | get handler
+execute( Object:bind, String:key, Object:src ) | Promise | apply handler binding "bind" object with arguments key and src. return an instance of Promise, it will return key when resolve. The src is a URL string or an instance of Blob for GPX, you have to implement it so that it may be possible to handle both of src
+
 
 ---
 
 ## GPXCasualViewer.Marker class
 
 This class extends `google.maps.Marker`.
+
+But the expansion parts are effective only when
+an instance was created by `createOverlayAs...` of `GPXCasualViewer` class method. 
 
 ### Instance method
 
@@ -258,16 +295,20 @@ Explain about the added method here.
 
 instance method | return value | description
 ----------------|--------------|------------
-isWpt()         | boolean      | `true` if it is the marker as the waypoint
-isRte()         | boolean      | `true` if it is the marker as the route
-isTrk()         | boolean      | `true` if it is the marker as the track
-getSource()     | Hash         | get parameter when it was created
+overlayed( )    | boolean      | `true` if it is overlayed on the map
+isWpt( )        | boolean      | `true` if it is the marker as the waypoint
+isRte( )        | boolean      | `true` if it is the marker as the route
+isTrk( )        | boolean      | `true` if it is the marker as the track
+getSource( )    | Hash         | get parameter when it was created
 
 ---
 
 ## GPXCasualViewer.Polyline class
 
 This class extends `google.maps.Polyline`.
+
+But the expansion parts are effective only when
+an instance was created by `createOverlayAs...` of `GPXCasualViewer` class method. 
 
 ### Instance method
 
@@ -276,10 +317,11 @@ Explain about the added method here.
 
 instance method | return value | description
 ----------------|--------------|------------
-isWpt()         | boolean      | `true` if it is the polyline as the waypoint
-isRte()         | boolean      | `true` if it is the polyline as the route
-isTrk()         | boolean      | `true` if it is the polyline as the track
-getSource()     | Hash         | get parameter when it was created
+overlayed( )    | boolean      | `true` if it is overlayed on the map
+isWpt( )        | boolean      | `true` if it is the polyline as the waypoint
+isRte( )        | boolean      | `true` if it is the polyline as the route
+isTrk( )        | boolean      | `true` if it is the polyline as the track
+getSource( )    | Hash         | get parameter when it was created
 
 ---
 
@@ -288,13 +330,13 @@ getSource()     | Hash         | get parameter when it was created
 There is mechanism of a plug-in in class `GPXCasualViewer`.
 It is usually provided in a different JavaScript source.
 
-At first, load it:
+Therefore, load it to use:
 
 ```
-<script src="plugin-name.js"></script>
+<script src="plugins/PluginName/loader.js"></script>
 ```
 
-And you declare to use and apply it.
+And declare to apply it.
 
 ```
 app.use('pluginName');
@@ -306,9 +348,9 @@ Please refer to each plug-in for details.
 ## Core plug-in
 
 These plug-in are included inside the core library,
-and it isn't necessary to read by `script` tag.
+and it isn't necessary to load by `script` tag.
 
-Even if you do not `use`, these plug-ins used by default.
+Even if you do not `use`, these plug-ins used by default effect.
 
 ### GPXCasualViewer.plugin.SetTitleOnCreateMarker
 
