@@ -171,11 +171,11 @@ class method                    | return value   | description
 parseQueryString( String:str )  | Hash           | parse str as the query string, and generate pairs of key and value of Hash
 parseXML( String:str )          | document       | parse str as XML, and return document DOM
 createXMLHttpRequest( )         | XMLHttpRequest | create instance of `XMLHttpRequest`
-preloadAsBlob( Object:src )     | Promise        | create Promise which resolve src as Blob. It is used each `createPromise...` methods
-createPromiseReadingBlobAsArrayBuffer( Object:src )             | Promise | create Promise which resolve src as ArrayBuffer
-createPromiseReadingBlobAsObjectURL( Object:src )               | Promise | create Promise which resolve src as ObjectURL
-createPromiseReadingBlobAsDataURL( Object:src )                 | Promise | create Promise which resolve src as DataURL
-createPromiseReadingBlobAsText( Object:src, String?:encoding )  | Promise | create Promise which resolve src as Text. default encoding is "UTF-8"
+resolveAsBlob( Object:src )                   | Promise | create Promise which resolve src as Blob
+resolveAsArrayBuffer( Object:src )            | Promise | create Promise which resolve src as ArrayBuffer
+resolveAsObjectURL( Object:src )              | Promise | create Promise which resolve src as ObjectURL
+resolveAsDataURL( Object:src )                | Promise | create Promise which resolve src as DataURL
+resolveAsText( Object:src, String?:encoding ) | Promise | create Promise which resolve src as Text. default encoding is "UTF-8"
 GPXToJSON( Object:document )              | gpxType       | convert XML document as GPX to JSON
 boundsOf( Array:pts, Hash?:boundsType )   | boundsType    | return boundsType which contains all pts. when optional boundsType was set, it is based to extend
 createLatlngbounds( Hash:boundsType )     | LatLngBounds  | create instance of `google.maps.LatLngBounds` from boundsType

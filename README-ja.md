@@ -185,11 +185,11 @@ join_trkseg     | boolean | トラックに含まれるすべてのトラック�
 parseQueryString( String:str )|Hash| str をクエリ・ストリングとして解釈し、キー・値のペアをハッシュとして返します。
 parseXML( String:str )       | document | 入力のテキスト str を XML としてパースし、 XML ドキュメント (DOM) として返します。
 createXMLHttpRequest( ) | XMLHttpRequest | `XMLHttpRequest` のインスタンスを生成して返します。
-preloadAsBlob( Object:src ) | Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、 src の実体を `Blob` として取得する `Promise` インスタンスを生成して返します。 `createPromise...` で始まるほかのクラス・メソッドの内部で用いられているものです。
-createPromiseReadingBlobAsArrayBuffer( Object:src )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体を `ArrayBuffer` として取得する `Promise` インスタンスを生成して返します。
-createPromiseReadingBlobAsObjectURL( Object:src )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体を `ObjectURL` として取得する `Promise` インスタンスを生成して返します。
-createPromiseReadingBlobAsDataURL( Object:src )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体を `DataURL` として取得する `Promise` インスタンスを生成して返します。
-createPromiseReadingBlobAsText( Object:src, String?:encoding )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体をテキストとして取得する `Promise` インスタンスを生成して返します。テキストのエンコーディングを示す encoding のデフォルトは "UTF-8" です。
+resolveAsBlob( Object:src ) | Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、 src の実体を `Blob` として取得する `Promise` インスタンスを生成して返します。
+resolveAsArrayBuffer( Object:src )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体を `ArrayBuffer` として取得する `Promise` インスタンスを生成して返します。
+resolveAsObjectURL( Object:src )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体を `ObjectURL` として取得する `Promise` インスタンスを生成して返します。
+resolveAsDataURL( Object:src )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体を `DataURL` として取得する `Promise` インスタンスを生成して返します。
+resolveAsText( Object:src, String?:encoding )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体をテキストとして取得する `Promise` インスタンスを生成して返します。テキストのエンコーディングを示す encoding のデフォルトは "UTF-8" です。
 GPXToJSON( Object:document ) | gpxType | 入力の XML ドキュメントを GPX として解釈し、それを JSON に変換したハッシュを返します。
 boundsOf( Array:pts, Hash?:boundsType ) | boundsType | wptType のリスト pts を全て含む最小の境界の座標をハッシュで返します。オプションに boundsType を渡したとき、その境界を pts で拡張して返します。
 createLatlngbounds( Hash:boundsType ) | LatLngBounds | boundsType を元にした `google.maps.LatLngBounds` のインスタンスを生成して返します。
@@ -282,7 +282,7 @@ setType( String:type ) | this | メディア・タイプをセットします
 getType( String:type ) | String | セットされているメディア・タイプを取得します。
 setHandler( Function:handler ) | this | ハンドラをセットします
 getHandler( Function:handler ) | Function | セットされているハンドラを取得します。
-execute( Object:bind, String:key, Object:src ) | Promise | ハンドラに bind をバインドして、引数 key と src を与えて実行しますが、返却値は成功時に key を返す `Promise` のインスタンスです。 src は URL を表す文字列か、 `Blob` のインスタンスで、ハンドラ実装者はどちらでも処理可能なように作成する必要があります（ `GPXCasualViewer.createPromise...` の各クラス・メソッドを利用してください）。処理内容はハンドラ次第ですが、 GPX を処理するハンドラの場合はアプリケーションのインスタンスに GPX を追加します。
+execute( Object:bind, String:key, Object:src ) | Promise | ハンドラに bind をバインドして、引数 key と src を与えて実行しますが、返却値は成功時に key を返す `Promise` のインスタンスです。 src は URL を表す文字列か、 `Blob` のインスタンスで、ハンドラ実装者はどちらでも処理可能なように作成する必要があります（ `GPXCasualViewer.resolveAs...` の各クラス・メソッドを利用してください）。処理内容はハンドラ次第ですが、 GPX を処理するハンドラの場合はアプリケーションのインスタンスに GPX を追加します。
 
 
 ---

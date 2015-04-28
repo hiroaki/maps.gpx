@@ -49,9 +49,9 @@ GPXCasualViewer.plugin.EXIF = {
     };
 
     var input_handler = function(key, src) {
-      var p1 = GPXCasualViewer.createPromiseReadingBlobAsArrayBuffer(src);
-//    var p2 = GPXCasualViewer.createPromiseReadingBlobAsDataURL(src);
-      var p2 = GPXCasualViewer.createPromiseReadingBlobAsObjectURL(src);
+      var p1 = GPXCasualViewer.resolveAsArrayBuffer(src);
+//    var p2 = GPXCasualViewer.resolveAsDataURL(src);
+      var p2 = GPXCasualViewer.resolveAsObjectURL(src);
       return Promise.all([p1,p2,src]).then((function(values) {
         var exif   = GPXCasualViewer.plugin.EXIF.readFromArrayBuffer(values[0]),
             latlng = GPXCasualViewer.plugin.EXIF.createLatlngFromExif(exif),

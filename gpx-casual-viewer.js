@@ -91,7 +91,7 @@ GPXCasualViewer.createXMLHttpRequest = function() {
   }
   return null;
 }
-GPXCasualViewer.preloadAsBlob = function(src) {
+GPXCasualViewer.resolveAsBlob = function(src) {
   if ((src instanceof Blob) || (src instanceof File)) {
     return Promise.resolve(src);
   } else if (typeof src == 'string') {
@@ -110,8 +110,8 @@ GPXCasualViewer.preloadAsBlob = function(src) {
     });
   }
 }
-GPXCasualViewer.createPromiseReadingBlobAsArrayBuffer = function(src) {
-  return GPXCasualViewer.preloadAsBlob(src).then(function(blob) {
+GPXCasualViewer.resolveAsArrayBuffer = function(src) {
+  return GPXCasualViewer.resolveAsBlob(src).then(function(blob) {
     return new Promise(function(resolve, reject) {
       var reader = new FileReader();
       reader.onload = function(event) {
@@ -121,15 +121,15 @@ GPXCasualViewer.createPromiseReadingBlobAsArrayBuffer = function(src) {
     });
   });
 }
-GPXCasualViewer.createPromiseReadingBlobAsObjectURL = function(src) {
-  return GPXCasualViewer.preloadAsBlob(src).then(function(blob) {
+GPXCasualViewer.resolveAsObjectURL = function(src) {
+  return GPXCasualViewer.resolveAsBlob(src).then(function(blob) {
     return new Promise(function(resolve, reject) {
       resolve(URL.createObjectURL(blob));
     });
   });
 }
-GPXCasualViewer.createPromiseReadingBlobAsDataURL = function(src) {
-  return GPXCasualViewer.preloadAsBlob(src).then(function(blob) {
+GPXCasualViewer.resolveAsDataURL = function(src) {
+  return GPXCasualViewer.resolveAsBlob(src).then(function(blob) {
     return new Promise(function(resolve, reject) {
       var reader = new FileReader();
       reader.onload = function(event) {
@@ -139,8 +139,8 @@ GPXCasualViewer.createPromiseReadingBlobAsDataURL = function(src) {
     });
   });
 }
-GPXCasualViewer.createPromiseReadingBlobAsText = function(src, encoding) {
-  return GPXCasualViewer.preloadAsBlob(src).then(function(blob) {
+GPXCasualViewer.resolveAsText = function(src, encoding) {
+  return GPXCasualViewer.resolveAsBlob(src).then(function(blob) {
     return new Promise(function(resolve, reject) {
       var reader = new FileReader();
       reader.onload = function(event) {
@@ -472,8 +472,8 @@ GPXCasualViewer.InputHandler.prototype.execute = function (bind, key, src){
 
 // default input handler for application/gpx
 GPXCasualViewer.defaultInputHandlerApplicationGPX = function(key, src) {
-  return GPXCasualViewer.createPromiseReadingBlobAsText(src)
-    .then((function (gpx_text){ // createPromiseReadingBlobAsText makes gpx_text from src
+  return GPXCasualViewer.resolveAsText(src)
+    .then((function (gpx_text){ // resolveAsText makes gpx_text from src
       this.addGPX(key, gpx_text);
       return key;
     }).bind(this));
