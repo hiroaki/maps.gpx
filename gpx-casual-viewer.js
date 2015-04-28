@@ -537,13 +537,6 @@ GPXCasualViewer.prototype.getMapElement = function() {
 GPXCasualViewer.prototype.getMapSettings = function() {
   return this.map_settings;
 };
-GPXCasualViewer.prototype.eachGPX = function(callback) {
-  for ( i in this.data ) {
-    gpx = this.data[i];
-    callback(gpx, i);
-  }
-  return this;
-};
 GPXCasualViewer.prototype.fitBounds = function() {
   var keys = [];
   if ( 0 < arguments.length ) {
@@ -639,6 +632,19 @@ GPXCasualViewer.prototype.input = function(key, src, type) {
     console.log('There is no handler for type=['+ type +']');
     return new GPXCasualViewer.InputHandler().execute(this, key, src);
   }
+};
+GPXCasualViewer.prototype.getGPX = function(key) {
+  return this.data[key];
+};
+GPXCasualViewer.prototype.eachGPX = function(callback) {
+  for ( i in this.data ) {
+    gpx = this.data[i];
+    callback(gpx, i);
+  }
+  return this;
+};
+GPXCasualViewer.prototype.getKeysOfGPX = function() {
+  return Object.keys(this.data);
 };
 GPXCasualViewer.prototype.addGPX = function(key, gpx_text) {
   this.removeGPX(key);
