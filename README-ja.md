@@ -180,34 +180,37 @@ join_trkseg     | boolean | トラックに含まれるすべてのトラック�
 
 これらは汎用なユーティリティです。
 
+`Object:src` は、URL を表す文字列か、 `Blob` のインスタンスです。
+
 クラス・メソッド   | 戻り値   | 説明
 -----------------|--------|------------------------------------------------------------
-parseQueryString( String:str )|Hash| str をクエリ・ストリングとして解釈し、キー・値のペアをハッシュとして返します。
-parseXML( String:str )       | document | 入力のテキスト str を XML としてパースし、 XML ドキュメント (DOM) として返します。
+parseQueryString( String:str )| Hash | *str* をクエリ・ストリングとして解釈し、キー・値のペアをハッシュとして返します。
+parseXML( String:str )       | document | *str* を XML としてパースし、 XML ドキュメント (DOM) として返します。
 createXMLHttpRequest( ) | XMLHttpRequest | `XMLHttpRequest` のインスタンスを生成して返します。
-resolveAsBlob( Object:src ) | Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、 src の実体を `Blob` として取得する `Promise` インスタンスを生成して返します。
-resolveAsArrayBuffer( Object:src )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体を `ArrayBuffer` として取得する `Promise` インスタンスを生成して返します。
-resolveAsObjectURL( Object:src )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体を `ObjectURL` として取得する `Promise` インスタンスを生成して返します。
-resolveAsDataURL( Object:src )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体を `DataURL` として取得する `Promise` インスタンスを生成して返します。
-resolveAsText( Object:src, String?:encoding )| Promise | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体をテキストとして取得する `Promise` インスタンスを生成して返します。テキストのエンコーディングを示す encoding のデフォルトは "UTF-8" です。
-GPXToJSON( Object:document ) | gpxType | 入力の XML ドキュメントを GPX として解釈し、それを JSON に変換したハッシュを返します。
-boundsOf( Array:pts, Hash?:boundsType ) | boundsType | wptType のリスト pts を全て含む最小の境界の座標をハッシュで返します。オプションに boundsType を渡したとき、その境界を pts で拡張して返します。
-createLatlngbounds( Hash:boundsType ) | LatLngBounds | boundsType を元にした `google.maps.LatLngBounds` のインスタンスを生成して返します。
+resolveAsBlob( Object:src ) | Promise | *src* の実体を `Blob` として取得する `Promise` インスタンスを生成して返します。
+resolveAsArrayBuffer( Object:src )| Promise | *src* の実体を `ArrayBuffer` として取得する `Promise` インスタンスを生成して返します。
+resolveAsObjectURL( Object:src )| Promise | *src* の実体を `ObjectURL` として取得する `Promise` インスタンスを生成して返します。
+resolveAsDataURL( Object:src )| Promise | *src* の実体を `DataURL` として取得する `Promise` インスタンスを生成して返します。
+resolveAsText( Object:src, String?:encoding )| Promise | *src* の実体をテキストとして取得する `Promise` インスタンスを生成して返します。テキストのエンコーディングを示す encoding のデフォルトは "UTF-8" です。
+GPXToJSON( Object:document ) | gpxType | XML ドキュメントを GPX として解釈し、それを JSON に変換したハッシュを返します。
+boundsOf( Array:pts, Hash?:boundsType ) | boundsType | "wptType" のリスト *pts* を全て含む最小の境界の座標をハッシュで返します。オプションに *boundsType* を渡したとき、その境界を *pts* で拡張して返します。
+createLatlngbounds( Hash:boundsType ) | LatLngBounds | *boundsType* を元にした `google.maps.LatLngBounds` のインスタンスを生成して返します。
 createOverlayAsWpt( Hash:wptType, Hash?:opt ) | GPXCasualViewer.Marker | ウェイポイントとしてオーバーレイを生成し、返します。
 createOverlayAsWpt( Array:wptType, Hash?:opt ) | GPXCasualViewer.Polyline | 対称性のためのメソッドで、ウィエポイントをオーバーレイとして生成できない旨の例外を出します。
 createOverlayAsRte( Hash:wptType, Hash?:opt ) | GPXCasualViewer.Marker | ルートとしてオーバーレイを生成し、返します。
 createOverlayAsRte( Array:wptType, Hash?:opt ) | GPXCasualViewer.Polyline | ルートとしてオーバーレイを生成し、返します。
 createOverlayAsTrk( Hash:wptType, Hash?:opt ) | GPXCasualViewer.Marker | トラックとしてオーバーレイを生成し、返します。
 createOverlayAsTrk( Array:wptType, Hash?:opt ) | GPXCasualViewer.Polyline | トラックとしてオーバーレイを生成し、返します。
-detectPathOfPlugin( String:name ) | boolean | 指定した name のプラグインについて、そのプラグインのクラス・プロパティ `path` に、プラグインのパスをセットし `true` を返します。すでに値がセットされている場合は何もせず `false` を返します。具体的にはプラグインの `loader.js` と同じディレクトリ・パスがセットされるので、これを用いて、プラグイン内部に記述されるリソースのベース・ディレクトリとすることができます。
 
 ノート：
 
 `createOverlayAs...` メソッドは、 wptType を渡すとマーカーを、 wptType のリストを渡すとポリラインを生成して返します。
 マーカーとポリラインは、上位概念であるオーバーレイとして同じインタフェースを持っているため、
 `GPXCasualViewer` ではマーカーやポリラインを区別して生成することのないように設計しています。
+
 しかしながら生成されたオーバーレイが、どの GPX 要素のものなのかを区別するためには、
 オーバーレイ自身にその属性を持たせなければなりません。
+
 そのため `GPXCasualViewer` で操作するマーカーやポリラインを生成するときは、
 `google.maps` のコンストラクタを使わずに、これらのファクトリ・メソッドを使う必要があります。
 
@@ -216,7 +219,7 @@ detectPathOfPlugin( String:name ) | boolean | 指定した name のプラグイ�
 
 コンストラクタ  | 説明
 -----------------|-------------------------------------------------------------
-GPXCasualViewer( String:map_id, Hash?:opt ) | インスタンス化します。 map_id および opt は、内部で `google.maps.Map` のコンストラクタに渡され、地図が初期化されます。 `google.maps.Map` のドキュメントを参照してください。
+GPXCasualViewer( String:map_id, Hash?:opt ) | インスタンス化します。 *map_id* および *opt* は、内部で `google.maps.Map` のコンストラクタに渡され、地図が初期化されます。 `google.maps.Map` のドキュメントを参照してください。
 
 
 ### インスタンス・メソッド
@@ -226,22 +229,22 @@ GPXCasualViewer( String:map_id, Hash?:opt ) | インスタンス化します。 
 getMap( )         | google.maps.Map | `google.maps.Map` インスタンスを返します。
 getMapElement( )  | node | 地図の描画領域の DOM 要素を返します。
 getMapSettings( ) | Hash | 地図を初期化した際の設定を返します。（この内容を変更しても、地図には反映されません）
-fitBounds( String?:key ) | this | 指定した key の GPX が画面に収まるように地図をフィットさせます。 複数の key を指定でき（配列ではなく、引数として足してください）、インスタンスに登録されているそれら GPX がすべて収まるようにします。 key を省略すると、すべての GPX を指定したことになります。（以下同様）
-showOverlayWpts( String?:key ) | this | 指定した key の GPX のうち、ウェイポイントのオーバーレイについて表示させます。
-hideOverlayWpts( String?:key ) | this | 指定した key の GPX のうち、ウェイポイントのオーバーレイについて非表示にします。
-showOverlayRtes( String?:key ) | this | 指定した key の GPX のうち、ルートのオーバーレイについて表示させます。
-hideOverlayRtes( String?:key ) | this | 指定した key の GPX のうち、ルートのオーバーレイについて非表示にします。
-showOverlayTrks( String?:key ) | this | 指定した key の GPX のうち、トラックのオーバーレイについて表示させます。
-hideOverlayTrks( String?:key ) | this | 指定した key の GPX のうち、トラックのオーバーレイについて非表示にします。
-input( String:key, Object:src, String?:type ) | this | URL を表す文字列か、 `Blob` のインスタンスを src とし、その実体のデータをアプリケーションに入力します。 type を省略した場合、データのメディア・タイプが内部で暗黙のうちに判定され、適切な入力ハンドラにより処理されます。 GPX を `input` する場合はデフォルトの入力ハンドラが処理しますが、ほかのメディア・タイプのデータを入力する場合はあらかじめ専用の入力ハンドラが `registerInputHandler` によって登録されていなければなりません。
-getGPX( String:key ) | gpxType | インスタンスに追加されている GPX の中から、指定した key を識別子とする GPX を返します。
-eachGPX( Function:callback ) | this | インスタンスに追加した複数の GPX に対して callback の処理を実行します。コールバックは内部形式の GPX 一つずつに対して実行され、引数にはそのデータと、識別のためのキー（文字列）が渡されます。
+fitBounds( String?:key ) | this | 指定した *key* の GPX が画面に収まるように地図をフィットさせます。 複数の *key* を指定でき（配列ではなく、引数として足してください）、インスタンスに登録されているそれら GPX がすべて収まるようにします。 *key* を省略すると、すべての GPX を指定したことになります。（以下同様）
+showOverlayWpts( String?:key ) | this | 指定した *key* の GPX のうち、ウェイポイントのオーバーレイについて表示させます。
+hideOverlayWpts( String?:key ) | this | 指定した *key* の GPX のうち、ウェイポイントのオーバーレイについて非表示にします。
+showOverlayRtes( String?:key ) | this | 指定した *key* の GPX のうち、ルートのオーバーレイについて表示させます。
+hideOverlayRtes( String?:key ) | this | 指定した *key* の GPX のうち、ルートのオーバーレイについて非表示にします。
+showOverlayTrks( String?:key ) | this | 指定した *key* の GPX のうち、トラックのオーバーレイについて表示させます。
+hideOverlayTrks( String?:key ) | this | 指定した *key* の GPX のうち、トラックのオーバーレイについて非表示にします。
+input( String:key, Object:src, String?:type ) | this | *src* の実体のデータをアプリケーションに入力します。 *type* を省略した場合、データのメディア・タイプが内部で暗黙のうちに判定され、適切な入力ハンドラにより処理されます。 GPX を `input` する場合はデフォルトの入力ハンドラが処理しますが、ほかのメディア・タイプのデータを入力する場合はあらかじめ専用の入力ハンドラが `registerInputHandler` によって登録されていなければなりません。
+getGPX( String:key ) | gpxType | インスタンスに追加されている GPX の中から、指定した *key* を識別子とする GPX を返します。
+eachGPX( Function:callback ) | this | インスタンスに追加した複数の GPX に対して *callback* の処理を実行します。コールバックは内部形式の GPX 一つずつに対して実行され、引数にはそのデータと、識別のためのキー（文字列）が渡されます。
 getKeysOfGPX( ) | Array | インスタンスに追加されているすべての GPX の識別子のリストを返します。
-addGPX( String:key, String:gpx ) | this | gpx に指定した、文字列の GPX を、キー key として登録します。すでに key のデータがある場合は上書きされます。
-removeGPX( String:key ) | this | キー key として登録されている GPX を削除します。
-use( String:pluginName ) | this | プラグイン pluginName を利用します。作用はプラグインによります。
-register( String:hook, Function:callback ) | this | フックポイント hook に、 callback を登録します。
-applyHook( String:hook, arguments ) | this | フックポイント hook に登録されている callback を `this` のメソッドとして実行します。 arguments はフックポイントごとに異なります。
+addGPX( String:key, String:gpx ) | this | *gpx* に指定した、文字列の GPX を、キー *key* として登録します。すでに *key* のデータがある場合は上書きされます。
+removeGPX( String:key ) | this | キー *key* として登録されている GPX を削除します。
+use( String:PluginName ) | this | プラグイン *PluginName* を利用します。作用はプラグインによります。
+register( String:hook, Function:callback ) | this | フックポイント *hook* に、 *callback* を登録します。
+applyHook( String:hook, arguments ) | this | フックポイント *hook* に登録されている *callback* を `this` のメソッドとして実行します。 *arguments* はフックポイントごとに異なります。
 registerInputHandler( GPXCasualViewer.InputHandler:handler ) | this | アプリケーションに入力ハンドラを登録します。デフォルトでは GPX を入力するためのハンドラが登録されています。ほかのメディア・タイプを処理するハンドラを登録する場合に利用します。もしそのメディア・タイプのハンドラがすでに登録されている場合は上書きされます。
 
 ### フック
@@ -255,7 +258,7 @@ registerInputHandler( GPXCasualViewer.InputHandler:handler ) | this | アプリ�
 onCreateLatlngbounds| `google.maps.LatLngBounds` が生成された時。生成されたオブジェクトがコールバックの引数になります。
 onCreateMarker      | `GPXCasualViewer.Marker` が生成された時。生成されたオブジェクトがコールバックの引数になります。
 onCreatePolyline    | `GPXCasualViewer.Polyline` が生成された時。生成されたオブジェクトがコールバックの引数になります。
-onAddGPX            | インスタンス・メソッド `addGPX` により GPX が入力されたとき。 `addGPX` の第一引数である GPX の識別子 "key" がコールバックの引数になります。
+onAddGPX            | インスタンス・メソッド `addGPX(key, src)` により GPX が入力されたとき。 `addGPX` の第一引数である GPX の識別子 *key* がコールバックの引数になります。
 
 これら以外にも、プラグインによって作成されるフック・ポイントがあります。
 
@@ -272,7 +275,7 @@ GPX 以外のデータを扱いたい時、このクラスを用いて入力ハ�
 
 コンストラクタ  | 説明
 -----------------|-------------------------------------------------------------
-GPXCasualViewer.InputHandler( String:type, Function?:handler ) | メディア・タイプ type のための入力ハンドラ handler を定義したオブジェクトを作成します。これを `GPXCasualViewer` のインスタンス・メソッド `registerInputHandler` に渡すことで利用できるようになります。 handler は省略可能ですが、その結果は、入力に対して何もしないことになります。
+GPXCasualViewer.InputHandler( String:type, Function?:handler ) | メディア・タイプ *type* のための入力ハンドラ *handler* を定義したオブジェクトを作成します。これを `GPXCasualViewer` のインスタンス・メソッド `registerInputHandler` に渡すことで利用できるようになります。 *handler* は省略可能ですが、その結果は、入力に対して何もしないことになります。
 
 ### インスタンス・メソッド
 
@@ -282,7 +285,7 @@ setType( String:type ) | this | メディア・タイプをセットします
 getType( String:type ) | String | セットされているメディア・タイプを取得します。
 setHandler( Function:handler ) | this | ハンドラをセットします
 getHandler( Function:handler ) | Function | セットされているハンドラを取得します。
-execute( Object:bind, String:key, Object:src ) | Promise | ハンドラに bind をバインドして、引数 key と src を与えて実行しますが、返却値は成功時に key を返す `Promise` のインスタンスです。 src は URL を表す文字列か、 `Blob` のインスタンスで、ハンドラ実装者はどちらでも処理可能なように作成する必要があります（ `GPXCasualViewer.resolveAs...` の各クラス・メソッドを利用してください）。処理内容はハンドラ次第ですが、 GPX を処理するハンドラの場合はアプリケーションのインスタンスに GPX を追加します。
+execute( Object:bind, String:key, Object:src ) | Promise | ハンドラに *bind* オブジェクトをバインドして、引数 *key* と *src* を与えて実行しますが、返却値は成功時に *key* を返す `Promise` のインスタンスです。 *src* は URL を表す文字列か、 `Blob` のインスタンスで、ハンドラ実装者はどちらでも処理可能なように作成する必要があります（ `GPXCasualViewer.resolveAs...` の各クラス・メソッドを利用してください）。処理内容はハンドラ次第ですが、 GPX を処理するハンドラの場合はアプリケーションのインスタンスに GPX を追加します。
 
 
 ---
@@ -328,8 +331,8 @@ isWpt( ) | boolean | ウェイポイントとしてのポリラインであれ�
 isRte( ) | boolean | ルートとしてのポリラインであれば `true` です。
 isTrk( ) | boolean | トラックとしてのポリラインであれば `true` です。
 getSource( ) | Hash | インスタンスを生成する際に与えらたパラメータを返します。
-computeDistanceLinear( Integer:origin, Integer:destination )|Float|インデックス番号 origin と destination の地点間の、直線距離 [meters] を計算して返します。
-computeDistanceTrack( Integer:origin, Integer:destination )|Float|インデックス番号 origin と destination の地点間の、道なりの距離 [meters] を計算して返します。
+computeDistanceLinear( Integer:origin, Integer:destination )|Float|インデックス番号 *origin* と *destination* の地点間の、直線距離 [meters] を計算して返します。
+computeDistanceTrack( Integer:origin, Integer:destination )|Float|インデックス番号 *origin* と *destination* の地点間の、道なりの距離 [meters] を計算して返します。
 
 
 ---
@@ -348,26 +351,64 @@ computeDistanceTrack( Integer:origin, Integer:destination )|Float|インデッ�
 そしてインスタンス・メソッド `use` によって、利用します。
 
 ```
-app.use('pluginName');
+app.use('PluginName');
 ```
 
 機能はプラグインごとに様々です。それぞれのプラグインを参照してください。
 
-
-## コア・プラグイン
+### コア・プラグイン
 
 これらのプラグインはコア・ライブラリのソース内部に含まれており、 `script` タグで別途読み込む必要はありません。
 また、インスタンス・メソッド `use` で利用を明示するまでもなくデフォルトで利用されるプラグインです。
 
-### GPXCasualViewer.plugin.SetTitleOnCreateMarker
+#### GPXCasualViewer.plugin.SetTitleOnCreateMarker
 
 このプラグインにより、マーカーにマウス・ポインタが乗ると、
 その GPX 要素（通常はウェイポイント）の `name` の値をツール・チップスで表示します。
 
-### GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline
+#### GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline
 
 このプラグインにより、ルート、およびトラックのポリラインのオプションを定義しています。
 具体的には、ポリラインの色、幅、不透明度についてです。
+
+
+## オブジェクト仕様 GPXCasualViewer.plugin
+
+プラグインを作成するは、この規約に則ってください。
+また `GPXCasualViewer.plugin.*PluginName*` も参照してください。
+
+すべてのプラグインは同じディレクトリに配置してください。
+
+また、プラグイン名は大文字で始まるキャメル・ケースの名前にし、
+そのサブディレクトリに `loader.js` というファイル名で作成します。
+
+`GPXCasualViewer` は、 `GPXCasualViewer.plugin` の名前空間に
+プラグインの名前のプロパティを登録します。
+
+小文字のプロパティは予約されています。
+
+
+### スタティック・メソッド
+
+`GPXCasualViewer.plugin` はまた、ユーティリティ・メソッドを提供します。
+
+メソッド  | 戻り値  | 説明
+-------------------|--------|------------------------------------------------------------
+detectPathOfPlugin( String:PluginName ) | boolean | 指定した *PluginName* のプラグインについて、そのプラグインのクラス・プロパティ `path` に、プラグインのパスをセットし `true` を返します。すでに値がセットされている場合は何もせず `false` を返します。具体的にはプラグインの `loader.js` と同じディレクトリ・パスがセットされるので、これを用いて、プラグイン内部に記述されるリソースのベース・ディレクトリとすることができます。
+
+
+## オブジェクト仕様 GPXCasualViewer.plugin.*PluginName*
+
+*PluginName* として登録されたプラグインは、その名前空間のうちに、予約されるプロパティがあります。
+これらのプロパティになんらかの値をセットしたとき、そのプラグインの外部から影響を受ける場合があります。
+
+これは実質的に、プラグインを作成するためのインタフェースです。
+
+プロパティ   | タイプ  | 説明
+------------|--------|------------------------------------------------------------
+path        | string | プラグインのベースパスを設定するためのプロパティとして使用します。これは、スタティック・メソッド `detectPathOfPlugin` を用いて自律的に解決し、セットさせることができます。
+callback | Function | `GPXCasualViewer` のインスタンスにこのプラグインを登録する際、プロパティ *hook* にセットされているフック・ポイントのタイミングで *callback* が実行されます。 *hook* が `false` となる値であれば、 `use` された時に実行されます。 *callback* は `GPXCasualViewer` のインスタンス・メソッドとして実行されます。また渡される引数はフック・ポイントによって異なります。
+hook  | String:HookPoint | *callback* が実行されるフック・ポイントを指定します。指定がない時は `use` されたときになります。
 
 
 # 参照
