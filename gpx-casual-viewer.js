@@ -754,7 +754,7 @@ GPXCasualViewer.prototype.applyHook = function() {
 GPXCasualViewer.plugin = {};
 
 // provide utility
-GPXCasualViewer.detectPathOfPlugin = function(plugin_name) {
+GPXCasualViewer.plugin.detectPathOfPlugin = function(plugin_name) {
   if ( GPXCasualViewer.plugin[plugin_name].path ) {
     return false;
   }

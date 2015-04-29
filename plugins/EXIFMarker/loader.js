@@ -2,7 +2,7 @@ GPXCasualViewer.plugin.EXIFMarker = {
   path: null,
   pts: [],
   callback: function() {
-    GPXCasualViewer.detectPathOfPlugin('EXIFMarker');
+    GPXCasualViewer.plugin.detectPathOfPlugin('EXIFMarker');
 
     this.register('onReadEXIF', (function (key, values){
 
