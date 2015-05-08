@@ -236,7 +236,7 @@ showOverlayRtes( String?:key ) | this | 指定した *key* の GPX のうち、�
 hideOverlayRtes( String?:key ) | this | 指定した *key* の GPX のうち、ルートのオーバーレイについて非表示にします。
 showOverlayTrks( String?:key ) | this | 指定した *key* の GPX のうち、トラックのオーバーレイについて表示させます。
 hideOverlayTrks( String?:key ) | this | 指定した *key* の GPX のうち、トラックのオーバーレイについて非表示にします。
-input( String:key, Object:src, String?:type ) | this | *src* の実体のデータをアプリケーションに入力します。 *type* を省略した場合、データのメディア・タイプが内部で暗黙のうちに判定され、適切な入力ハンドラにより処理されます。 GPX を `input` する場合はデフォルトの入力ハンドラが処理しますが、ほかのメディア・タイプのデータを入力する場合はあらかじめ専用の入力ハンドラが `registerInputHandler` によって登録されていなければなりません。
+input( String:key, Object:src, String?:type ) | Promise | *src* の実体のデータをアプリケーションに入力します。 *type* を省略した場合、データのメディア・タイプが内部で暗黙のうちに判定され、適切な入力ハンドラにより処理されます。 GPX を `input` する場合はデフォルトの入力ハンドラが処理しますが、ほかのメディア・タイプのデータを入力する場合はあらかじめ専用の入力ハンドラが `registerInputHandler` によって登録されていなければなりません。
 getGPX( String:key ) | gpxType | インスタンスに追加されている GPX の中から、指定した *key* を識別子とする GPX を返します。
 eachGPX( Function:callback ) | this | インスタンスに追加した複数の GPX に対して *callback* の処理を実行します。コールバックは内部形式の GPX 一つずつに対して実行され、引数にはそのデータと、識別のためのキー（文字列）が渡されます。
 getKeysOfGPX( ) | Array | インスタンスに追加されているすべての GPX の識別子のリストを返します。

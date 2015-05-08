@@ -229,7 +229,7 @@ showOverlayRtes( String?:key ) | this | Show overlays for routes in GPX specifie
 hideOverlayRtes( String?:key ) | this | Hide overlays for routes in GPX specified by *key*
 showOverlayTrks( String?:key ) | this | Show overlays for tracks in GPX specified by *key*
 hideOverlayTrks( String?:key ) | this | Hide overlays for tracks in GPX specified by *key*
-input( String:key, Object:src, String?:type ) | this | Input *src*. Its media-type of the data is judged inside and handled with an appropriate input handler if registered by `registerInputHandler`. When `input` GPX, it is handled by the default input handler
+input( String:key, Object:src, String?:type ) | Promise | Input *src*. Its media-type of the data is judged inside and handled with an appropriate input handler if registered by `registerInputHandler`. When `input` GPX, it is handled by the default input handler
 getGPX( String:key )              | gpxType | Return GPX specified *key*
 eachGPX( Function:callback )      | this    | Apply callback to each GPX. Given arguments to *callback* are GPX and its key
 getKeysOfGPX( )                   | Array   | Return list of GPX keys
