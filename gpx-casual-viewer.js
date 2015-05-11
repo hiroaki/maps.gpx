@@ -774,14 +774,14 @@ GPXCasualViewer.plugin.detectPathOfPlugin = function(plugin_name) {
 
 // define default plugins
 GPXCasualViewer.plugin.SetTitleOnCreateMarker = {
-  callback: function(marker) {
+  callback: function() {
     this.register('onCreateMarker', (function(marker) {
       marker.setTitle(marker.getSource().name);
     }).bind(this));
   }
 };
 GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline = {
-  callback: function(polyline) {
+  callback: function() {
     this.register('onCreatePolyline', (function(polyline) {
       if ( polyline.isRte() ) {
         polyline.setOptions({
