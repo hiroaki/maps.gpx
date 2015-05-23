@@ -157,7 +157,7 @@ google.maps.event.addDomListener(window, 'load', function() {
 
 GPX Casual Viewer は現在も開発中のため、 API は予告なく変更されることがあります。
 
-現在のバージョンは v2.2.x です。少なくとも API の変更があるとき、真ん中の数字が上がります。
+現在のバージョンは v2.2.x です。非互換の変更があるときは、少なくとも真ん中の数字が上がります。
 
 
 ## クラス GPXCasualViewer
@@ -194,7 +194,7 @@ resolveAsDataURL( Object:src )| Promise | *src* の実体を `DataURL` として
 resolveAsText( Object:src, String?:encoding )| Promise | *src* の実体をテキストとして取得する `Promise` インスタンスを生成して返します。テキストのエンコーディングを示す encoding のデフォルトは "UTF-8" です。
 GPXToJSON( Object:document ) | gpxType | XML ドキュメントを GPX として解釈し、それを JSON に変換したハッシュを返します。
 boundsOf( Array:pts, Hash?:boundsType ) | boundsType | "wptType" のリスト *pts* を全て含む最小の境界の座標をハッシュで返します。オプションに *boundsType* を渡したとき、その境界を *pts* で拡張して返します。
-createLatlngbounds( Hash:boundsType ) | LatLngBounds | *boundsType* を元にした `google.maps.LatLngBounds` のインスタンスを生成して返します。
+createLatlngbounds( Hash:boundsType ) | GPXCasualViewer.LatLngBounds | *boundsType* を元にした `GPXCasualViewer.LatLngBounds` のインスタンスを生成して返します。
 createOverlayAsWpt( Hash:wptType, Hash?:opt ) | GPXCasualViewer.Marker | ウェイポイントとしてオーバーレイを生成し、返します。
 createOverlayAsWpt( Array:wptType, Hash?:opt ) | GPXCasualViewer.Polyline | 対称性のためのメソッドで、ウィエポイントをオーバーレイとして生成できない旨の例外を出します。
 createOverlayAsRte( Hash:wptType, Hash?:opt ) | GPXCasualViewer.Marker | ルートとしてオーバーレイを生成し、返します。
@@ -255,7 +255,7 @@ registerInputHandler( GPXCasualViewer.InputHandler:handler ) | this | アプリ�
 
 フック               | 説明
 --------------------|--------------------------------
-onCreateLatlngbounds| `google.maps.LatLngBounds` が生成された時。生成されたオブジェクトがコールバックの引数になります。
+onCreateLatlngbounds| `GPXCasualViewer.LatLngBounds` が生成された時。生成されたオブジェクトがコールバックの引数になります。
 onCreateMarker      | `GPXCasualViewer.Marker` が生成された時。生成されたオブジェクトがコールバックの引数になります。
 onCreatePolyline    | `GPXCasualViewer.Polyline` が生成された時。生成されたオブジェクトがコールバックの引数になります。
 onAddGPX            | インスタンス・メソッド `addGPX(key, src)` により GPX が入力されたとき。 `addGPX` の第一引数である GPX の識別子 *key* がコールバックの引数になります。
@@ -290,9 +290,24 @@ execute( Object:bind, String:key, Object:src ) | Promise | ハンドラに *bind
 
 ---
 
+## クラス GPXCasualViewer.LatLngBounds
+
+機能を拡張するために `google.maps.LatLngBounds` を継承したクラスです。
+
+### Instance Methods
+
+すべての `google.maps.LatLngBounds` クラスのインスタンス・メソッドが利用できます。
+ここでは、追加されたメソッドについて説明します。
+
+インスタンス・メソッド  | 戻り値   | 説明
+----------------|--------------|------------
+clone( ) | GPXCasualViewer.LatLngBounds | 自身と同じ内容を持った、新しいインスタンスを生成して返します。
+
+---
+
 ## クラス GPXCasualViewer.Marker
 
-`google.maps.Marker` クラスを拡張します。
+機能を拡張するために `google.maps.Marker` を継承したクラスです。
 
 ただし拡張部分については `GPXCasualViewer` のクラスメ・ソッド
 `createOverlayAs...` メソッドによってインスタンスが作成された場合のみ有効です。
@@ -314,7 +329,7 @@ getSource( ) | Hash | インスタンスを生成する際に与えらたパラ�
 
 ## クラス GPXCasualViewer.Polyline
 
-`google.maps.Polyline` クラスを拡張します。
+機能を拡張するために `google.maps.Polyline` を継承したクラスです。
 
 ただし拡張部分については `GPXCasualViewer` のクラスメ・ソッド
 `createOverlayAs...` メソッドによってインスタンスが作成された場合のみ有効です。

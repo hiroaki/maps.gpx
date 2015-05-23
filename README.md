@@ -146,8 +146,7 @@ google.maps.event.addDomListener(window, 'load', function() {
 Because GPX Casual Viewer is under development, API will be changed without notice.
 
 The current version is `v2.2.x`.
-At least, the number of middle will go up when there is a change in the API.
-
+When there is incompatible change, a middle number of version bumps up at least.
 
 ## GPXCasualViewer class
 
@@ -183,7 +182,7 @@ resolveAsDataURL( Object:src )                | Promise | Create Promise which r
 resolveAsText( Object:src, String?:encoding ) | Promise | Create Promise which resolve *src* as Text. Default encoding is "UTF-8"
 GPXToJSON( Object:document )              | gpxType       | Convert XML document as GPX to JSON
 boundsOf( Array:pts, Hash?:boundsType )   | boundsType    | Return boundsType which contains all *pts*. when optional *boundsType* was set, it is based to extend
-createLatlngbounds( Hash:boundsType )     | LatLngBounds  | Create instance of `google.maps.LatLngBounds` from *boundsType*
+createLatlngbounds( Hash:boundsType )     | GPXCasualViewer.LatLngBounds  | Create instance of `GPXCasualViewer.LatLngBounds` from *boundsType*
 createOverlayAsWpt( Hash:wptType, Hash?:opt )  | GPXCasualViewer.Marker   | Create overlay as "wpt"
 createOverlayAsWpt( Array:wptType, Hash?:opt ) | GPXCasualViewer.Polyline | Create overlay as "wpt"
 createOverlayAsRte( Hash:wptType, Hash?:opt )  | GPXCasualViewer.Marker   | Create overlay as "rte"
@@ -252,7 +251,7 @@ In that case, callback will be executed in order of registration.
 
 hook name             | description
 ----------------------|--------------------------------
-onCreateLatlngbounds  | Apply hooks when `google.maps.LatLngBounds` is created. The callback will accept created object
+onCreateLatlngbounds  | Apply hooks when `GPXCasualViewer.LatLngBounds` is created. The callback will accept created object
 onCreateMarker        | Apply hooks when `GPXCasualViewer.Marker` is created. The callback will accept created object
 onCreatePolyline      | Apply hooks when `GPXCasualViewer.Polyline` is created. The callback will accept created object
 onAddGPX              | Apply hooks when added GPX by `addGPX(key, src)`. The callback will accept the 1st argument *key* that will able to identify added GPX
@@ -286,16 +285,31 @@ execute( Object:bind, String:key, Object:src ) | Promise | Apply handler binding
 
 ---
 
+## GPXCasualViewer.LatLngBounds class
+
+This class inherits `google.maps.LatLngBounds`.
+
+### Instance Methods
+
+All methods of `google.maps.LatLngBounds` are available.
+Explain about the added method here.
+
+instance method | return value | description
+----------------|--------------|------------
+clone( ) | GPXCasualViewer.LatLngBounds | create new GPXCasualViewer.LatLngBounds instance which has properties same as this
+
+---
+
 ## GPXCasualViewer.Marker class
 
-This class extends `google.maps.Marker`.
+This class inherits `google.maps.Marker`.
 
 But the expansion parts are effective only when
 an instance was created by `createOverlayAs...` of `GPXCasualViewer` class method. 
 
 ### Instance Methods
 
-All methods of `google.maps.Marker` can use.
+All methods of `google.maps.Marker` are available.
 Explain about the added method here.
 
 instance method | return value | description
@@ -310,14 +324,14 @@ getSource( )    | Hash         | Get parameter when it was created
 
 ## GPXCasualViewer.Polyline class
 
-This class extends `google.maps.Polyline`.
+This class inherits `google.maps.Polyline`.
 
 But the expansion parts are effective only when
 an instance was created by `createOverlayAs...` of `GPXCasualViewer` class method. 
 
 ### Instance Methods
 
-All methods of `google.maps.Polyline` can use.
+All methods of `google.maps.Polyline` are available.
 Explain about the added method here.
 
 instance method | return value | description

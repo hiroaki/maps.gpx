@@ -310,6 +310,18 @@ GPXCasualViewer.boundsOf = function (pts, bounds){
   return bounds;
 }
 
+// extend google.maps.LatLngBounds
+GPXCasualViewer.LatLngBounds = function(sw, ne) {
+  this.super      = google.maps.LatLngBounds.prototype;
+  google.maps.LatLngBounds.apply(this, arguments);
+}
+  GPXCasualViewer.LatLngBounds.prototype = Object.create(google.maps.LatLngBounds.prototype, {
+    constructor: { value: GPXCasualViewer.LatLngBounds }
+  });
+  GPXCasualViewer.LatLngBounds.prototype.clone = function (){
+    return new GPXCasualViewer.LatLngBounds(this.getSouthWest(), this.getNorthEast());
+  }
+
 // extend google.maps.Marker
 GPXCasualViewer.Marker = function (element_name, src, opts) {
   this.super      = google.maps.Marker.prototype;
@@ -414,7 +426,7 @@ GPXCasualViewer.Polyline = function (element_name, src, opts) {
 
 // factories to create extended maps objects
 GPXCasualViewer.createLatlngbounds = function (bounds) {
-  return new google.maps.LatLngBounds(
+  return new GPXCasualViewer.LatLngBounds(
     new google.maps.LatLng(bounds.minlat, bounds.minlon),
     new google.maps.LatLng(bounds.maxlat, bounds.maxlon)
     );
@@ -542,14 +554,14 @@ GPXCasualViewer.prototype.fitBounds = function() {
   if ( 0 < arguments.length ) {
     keys = Array.prototype.slice.call(arguments);
   } else {
-    for (var key in this.data){ keys.push(key) }
+    keys = this.getKeysOfGPX();
   }
   if ( 0 < keys.length ) {
-    var bnd = this.data[keys[0]].metadata.latlngbounds;
+    var bnd = this.getGPX(keys[0]).metadata.latlngbounds.clone();
     for ( var i = 1, l = keys.length; i < l; ++i ) {
-      bnd.union( this.data[keys[i]].metadata.latlngbounds );
+      bnd.union( this.getGPX(keys[i]).metadata.latlngbounds );
     }
-    this.map.fitBounds(bnd);
+    this.getMap().fitBounds(bnd);
   }
   return this;
 };
