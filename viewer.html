@@ -33,19 +33,21 @@ img.info-window { max-width: 200px; max-height: 200px; }
 <script src="https://www.google.com/jsapi?autoload={modules:[{name:'visualization',version:'1',packages:['corechart']}]}">
 </script>
 <script type="text/javascript" src="plugins/DescImage/loader.js"></script>
+<script type="text/javascript" src="plugins/EXIF2GPX/loader.js"></script>
 
 <script type="text/javascript">
 (function (){
   GPXCasualViewer.strict = false;
   google.maps.event.addDomListener(window, 'load', function() {
 
-    var app = new GPXCasualViewer('map_canvas');
+    window.app = new GPXCasualViewer('map_canvas');
 
     app.use('VertexInfo');
     app.use('VertexInfoWindow');
     app.use('Droppable');
     app.use('EXIF');
     app.use('EXIFMarker');
+    // app.use('EXIF2GPX');
     app.use('QueryURL');
     app.use('InputFileControl');
     app.use('SearchControl');
@@ -53,7 +55,7 @@ img.info-window { max-width: 200px; max-height: 200px; }
     app.use('GeoLocationControl');
     app.use('Milestone');
     app.use('ElevationChart');
-    // app.use('DescImage');
+    app.use('DescImage');
 
     app.register('onAddGPX', function(key) {
       this.fitBounds(key);
