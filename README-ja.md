@@ -14,11 +14,12 @@ Google Maps の地図上に位置情報データ（ GPX ）を簡単にオーバ
 
 ## 使い方
 
-Google Maps API と `gpx-casual-viewer.js` をロードします。
+まず最初に Google Maps API をロードします。その際、 `geometry` ライブラリを使うように指定します。
+それから `gpx-casual-viewer.js` をロードします。
 これにより、クラス `GPXCasualViewer` が定義されます。
 
 ```
-<script src="http://maps.google.com/maps/api/js?sensor=false">
+<script src="http://maps.google.com/maps/api/js?sensor=false&libraries=geometry">
 </script>
 <script src="gpx-casual-viewer.js">
 </script>

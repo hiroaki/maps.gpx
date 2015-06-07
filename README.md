@@ -14,11 +14,11 @@ Below is the description of the main JavaScript library `gpx-casual-viewer.js`.
 
 ## Usage
 
-At first, load Google Maps API and `gpx-casual-viewer.js`.
+At first, load Google Maps API with the geometory library, and `gpx-casual-viewer.js`.
 Class `GPXCasualViewer` is defined by this.
 
 ```
-<script src="http://maps.google.com/maps/api/js?sensor=false">
+<script src="http://maps.google.com/maps/api/js?sensor=false&libraries=geometry">
 </script>
 <script src="gpx-casual-viewer.js">
 </script>
