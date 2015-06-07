@@ -24,6 +24,10 @@ img.info-window { max-width: 200px; max-height: 200px; }
 <link type="text/css" rel="stylesheet" href="plugins/GeoLocationControl/loader.css" />
 <script type="text/javascript" src="plugins/InputFileControl/loader.js"></script>
 <link type="text/css" rel="stylesheet" href="plugins/InputFileControl/loader.css" />
+<script type="text/javascript" src="plugins/Milestone/DivSign.js"></script>
+<script type="text/javascript" src="plugins/Milestone/extlib/ExtDraggableObject.js"></script>
+<script type="text/javascript" src="plugins/Milestone/NodeOverlay.js"></script>
+<script type="text/javascript" src="plugins/Milestone/loader.js"></script>
 <script type="text/javascript">
 (function (){
   GPXCasualViewer.strict = false;
@@ -41,6 +45,7 @@ img.info-window { max-width: 200px; max-height: 200px; }
     app.use('SearchControl');
     app.use('GeoLocation');
     app.use('GeoLocationControl');
+    app.use('Milestone');
 
     app.register('onAddGPX', function(key) {
       this.fitBounds(key);
