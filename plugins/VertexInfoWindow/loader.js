@@ -42,6 +42,10 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
       tm = [[this.pad(dt.getFullYear(),4), this.pad(dt.getMonth()+1,2), this.pad(dt.getDate(),2)].join('-'),
             [this.pad(dt.getHours(),   2), this.pad(dt.getMinutes(),2), this.pad(dt.getSeconds(),2)].join(':')].join(' ');
     }
+    var el = '';
+    if ( wpt.ele ) {
+      el = parseInt(wpt.ele);
+    }
     return [
       '<div class="info-window"><div id="', id, '" class="vertex">',
       '  <div class="headline">',
@@ -49,6 +53,7 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
       '  </div>',
       '  <div class="complex-type wpt-type">',
       '    <div class="attribute"><span class="latlon lat">', wpt.lat, '</span>, <span class="latlon lon">', wpt.lon, '</span></div>',
+      '    <div class="children"><span class="elevation">', el, 'm</span></div>',
       '    <div class="children"><span class="timestamp">', tm, '</span></div>',
       '  </div>',
       '  <div class="measure">',

@@ -28,6 +28,11 @@ img.info-window { max-width: 200px; max-height: 200px; }
 <script type="text/javascript" src="plugins/Milestone/extlib/ExtDraggableObject.js"></script>
 <script type="text/javascript" src="plugins/Milestone/NodeOverlay.js"></script>
 <script type="text/javascript" src="plugins/Milestone/loader.js"></script>
+<script type="text/javascript" src="plugins/ElevationChart/loader.js"></script>
+<link type="text/css" rel="stylesheet" href="plugins/ElevationChart/loader.css" />
+<script src="https://www.google.com/jsapi?autoload={modules:[{name:'visualization',version:'1',packages:['corechart']}]}">
+</script>
+
 <script type="text/javascript">
 (function (){
   GPXCasualViewer.strict = false;
@@ -46,6 +51,7 @@ img.info-window { max-width: 200px; max-height: 200px; }
     app.use('GeoLocation');
     app.use('GeoLocationControl');
     app.use('Milestone');
+    app.use('ElevationChart');
 
     app.register('onAddGPX', function(key) {
       this.fitBounds(key);
