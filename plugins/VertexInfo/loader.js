@@ -111,6 +111,9 @@ GPXCasualViewer.plugin.VertexInfo = {
     if ( 0 <= index && polyline.isTrk() ) {
       var wpt = polyline.getSource()[index],
           content = '#'+ index +'<br/>lat='+ wpt.lat +'<br/>lon='+ wpt.lon;
+      if ( wpt.ele ) {
+        content = content + '<br/>ele='+ wpt.ele;
+      }
       if ( wpt.time ) {
         content = content + '<br/>time='+ wpt.time;
       }
