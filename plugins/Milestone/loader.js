@@ -8,10 +8,10 @@ GPXCasualViewer.plugin.Milestone = {
           path = polyline.getPath(),
           next_checkpoint = interval,
           sum = 0.0, i, l, s;
-      for ( i = 0, l = path.getLength() - 1; i < l; ++i ) {
+      for ( i = 1, l = path.getLength(); i < l; ++i ) {
         sum += google.maps.geometry.spherical.computeDistanceBetween(
-          new google.maps.LatLng(path.getAt(i).lat(), path.getAt(i).lng()),
-          new google.maps.LatLng(path.getAt(i + 1).lat(), path.getAt(i + 1).lng())
+          new google.maps.LatLng(path.getAt(i - 1).lat(), path.getAt(i - 1).lng()),
+          new google.maps.LatLng(path.getAt(i    ).lat(), path.getAt(i    ).lng())
           );
         if ( next_checkpoint <= sum ) {
           if ( milestones[next_checkpoint] == 'undefined' || milestones[next_checkpoint] == null ) {
