@@ -68,8 +68,6 @@ GPXCasualViewer.plugin.ElevationChart = {
         this.resize_listener = google.maps.event.addDomListener(window, 'resize', (function(ev) {
           this.close();
         }).bind(this));
-
-        google.maps.event.trigger(window, 'resize');
       },
       getMapHeightPx: function (){
         return DivDivider.getDimensions(this.$map).height;
@@ -93,7 +91,7 @@ GPXCasualViewer.plugin.ElevationChart = {
           try {
             this.events['open'].call(this);
           } catch (ex) {
-            console.log(ex);
+            console.error(ex);
           }
         }
         return this;
@@ -105,7 +103,7 @@ GPXCasualViewer.plugin.ElevationChart = {
           try {
             this.events['close'].call(this);
           } catch (ex) {
-            console.log(ex);
+            console.error(ex);
           }
         }
         return this;
