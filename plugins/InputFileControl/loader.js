@@ -3,6 +3,9 @@ GPXCasualViewer.plugin.InputFileControl = {
   className: 'inputfilecontrol-controls',
   callback: function() {
     GPXCasualViewer.plugin.detectPathOfPlugin('InputFileControl');
+    this.require_css('InputFileControl').then(function (src){
+      console.log("css loaded "+ src);
+    });
 
     var input = document.createElement('input');
     input.setAttribute('id', GPXCasualViewer.plugin.InputFileControl.id);

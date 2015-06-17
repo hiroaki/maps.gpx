@@ -10,6 +10,9 @@ GPXCasualViewer.plugin.GeoLocationControl = {
   },
   callback: function() {
     GPXCasualViewer.plugin.detectPathOfPlugin('GeoLocationControl');
+    this.require_css('GeoLocationControl').then(function (src){
+      console.log("css loaded "+ src);
+    });
 
     function ControlState(){
       this.initialize.apply(this, arguments);

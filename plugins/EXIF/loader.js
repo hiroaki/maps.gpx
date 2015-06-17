@@ -20,8 +20,10 @@ GPXCasualViewer.plugin.EXIF = {
     }
   },
   callback: function() {
+    GPXCasualViewer.plugin.detectPathOfPlugin('EXIF');
+
     // add hook points
-    console.log('add hook points: "onReadEXIF"');
+    console.log('Add a hook point: "onReadEXIF"');
     this.hook['onReadEXIF'] = this.hook['onReadEXIF'] || [];
 
     // add an instance method to GPXCasualViewer.Polyline
@@ -124,8 +126,10 @@ GPXCasualViewer.plugin.EXIF = {
       }).bind(this));
     }
 
-    // register it as the input handler for 'image/jpeg'
-    this.registerInputHandler(new GPXCasualViewer.InputHandler('image/jpeg', input_handler));
+    GPXCasualViewer.load_script([GPXCasualViewer.plugin.EXIF.path, 'exif.js'].join('/')).then((function (){
+      // register it as the input handler for 'image/jpeg'
+      this.registerInputHandler(new GPXCasualViewer.InputHandler('image/jpeg', input_handler));
+    }).bind(this));
   },
   _handlerHookOnReadExifDefault: function(key, values) {
     var pinpoint = null;

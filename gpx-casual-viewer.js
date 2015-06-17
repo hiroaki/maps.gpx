@@ -9,7 +9,7 @@ function GPXCasualViewer() {
 }
 
 // constants, do not change these value
-GPXCasualViewer.VERSION   = '2.2.0';
+GPXCasualViewer.VERSION   = '2.3.0';
 GPXCasualViewer.ELEMENTS  = {
   AGEOFDGPSDATA: 'ageofdgpsdata',
   AUTHOR: 'author',
@@ -50,8 +50,11 @@ GPXCasualViewer.ELEMENTS  = {
 }
 
 // global properties, you can change
-GPXCasualViewer.strict      = true;
-GPXCasualViewer.join_trkseg = true;
+GPXCasualViewer.strict        = true;
+GPXCasualViewer.join_trkseg   = true;
+GPXCasualViewer.plugin_dir    = './plugins';
+GPXCasualViewer.scrip_loader  = 'loader.js';
+GPXCasualViewer.style_loader  = 'loader.css';
 
 // common util
 GPXCasualViewer.parseQueryString = function(/* usually 'location.search' */qstring) {
@@ -728,7 +731,7 @@ GPXCasualViewer.prototype.use = function(plugin) {
     this._registerHook(hook, callback);
   } catch(ex) {
     console.log('Catch an exception on use('+ plugin + ') with hook "'+ hook +'"');
-    throw ex;
+    throw(ex);
   }
   return this;
 };
@@ -737,7 +740,7 @@ GPXCasualViewer.prototype.register = function(hook, callback) {
     this._registerHook(hook, callback);
   } catch(ex) {
     console.log('Catch an exception on register('+ hook +')');
-    throw ex;
+    throw(ex);
   }
   return this;
 };
@@ -756,7 +759,7 @@ GPXCasualViewer.prototype.applyHook = function() {
       this.hook[name][i].apply(this, args);
     } catch(ex) {
       console.log('Catch an exception on applyHook "'+ name +'" with args ['+ args +']');
-      throw ex;
+      throw(ex);
     }
   }
   return this;
@@ -772,7 +775,7 @@ GPXCasualViewer.plugin.detectPathOfPlugin = function(plugin_name) {
   }
   GPXCasualViewer.plugin[plugin_name].path = '';
   var scripts = document.getElementsByTagName('script'),
-      re = new RegExp('/'+ plugin_name +'/loader.js$'),
+      re = new RegExp('/'+ plugin_name +'/loader\.js??.*'),
       i, l, src;
   for ( i = 0, l = scripts.length; i < l; ++i ) {
     src = scripts.item(i).getAttribute('src');
@@ -811,3 +814,51 @@ GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline = {
     }).bind(this));
   }
 };
+
+GPXCasualViewer.load_script = function (src){
+  return new Promise(function(resolve, reject) {
+    var script = document.createElement('script');
+    script.onload = function (){
+      resolve(src);
+    };
+    script.src = src;
+    document.head.appendChild(script);
+  });
+}
+
+GPXCasualViewer.prototype.require_plugin = function (plugin_name){
+  var t = new Date().getTime(),
+      src = [GPXCasualViewer.plugin_dir, plugin_name, GPXCasualViewer.scrip_loader +'?t='+ t].join('/');
+  return GPXCasualViewer.load_script(src).then((function (src){
+    this.use(plugin_name);
+    return src;
+  }).bind(this));
+}
+
+GPXCasualViewer.prototype.require_plugins = function (){
+  var i, l;
+  for ( i = 0, l = arguments.length; i < l; ++i ) {
+    this.require_plugin(arguments[i]);
+  }
+}
+
+GPXCasualViewer.load_css = function (src){
+  return new Promise(function(resolve, reject) {
+    var link = document.createElement('link');
+    link.setAttribute('type', 'text/css');
+    link.setAttribute('rel', 'stylesheet');
+    link.setAttribute('href', src);
+    link.onload = function (){
+      resolve(src);
+    };
+    document.head.appendChild(link);
+  });
+}
+
+GPXCasualViewer.prototype.require_css = function (plugin_name){
+  var t = new Date().getTime(),
+      src = [GPXCasualViewer.plugin_dir, plugin_name, GPXCasualViewer.style_loader +'?t='+ t].join('/');
+  return GPXCasualViewer.load_css(src).then((function (src){
+    return src;
+  }).bind(this));
+}

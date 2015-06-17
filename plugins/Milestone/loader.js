@@ -3,6 +3,16 @@ GPXCasualViewer.plugin.Milestone = {
   callback: function() {
     GPXCasualViewer.plugin.detectPathOfPlugin('Milestone');
 
+    GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'extlib', 'ExtDraggableObject.js'].join('/')).then((function (src){
+      console.log('js loaded '+ src);
+    }).bind(this));
+    GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'NodeOverlay.js'].join('/')).then((function (src){
+      console.log('js loaded '+ src);
+    }).bind(this));
+    GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'DivSign.js'].join('/')).then((function (src){
+      console.log('js loaded '+ src);
+    }).bind(this));
+
     var makeMilestones = function(polyline, interval) {
       var milestones = {},
           path = polyline.getPath(),
