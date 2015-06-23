@@ -1,51 +1,43 @@
 GPXCasualViewer.plugin.ElevationChart = {
-  path: null,
-  className: 'controlbutton-contorl',
   chartCanvasId: 'chart_canvas',
   callback: function() {
-    GPXCasualViewer.plugin.detectPathOfPlugin('ElevationChart');
-    this.require_css('ElevationChart').then(function (src){
-      console.log("css loaded "+ src);
-    });
-    var p1 = GPXCasualViewer.load_script([GPXCasualViewer.plugin.ElevationChart.path, 'DivDivider.js'].join('/'));
-    var p2 = GPXCasualViewer.load_script("https://www.google.com/jsapi");
-    Promise.all([p1, p2]).then((function (srcs){
-      console.log('js loaded '+ srcs);
+
+    var mapcontrol = new GPXCasualViewer.MapControl({
+          initial: [GPXCasualViewer.plugin.ElevationChart.path, 'ic_trending_up_black_48dp.png'].join('/')
+        },{
+          map: this.getMap()
+        }),
+        p1 = GPXCasualViewer.load_script([GPXCasualViewer.plugin.ElevationChart.path, 'DivDivider.js'].join('/')),
+        p2 = GPXCasualViewer.load_script("https://www.google.com/jsapi");
+    Promise.all([this, mapcontrol, p1, p2]).then((function (values){
       google.load('visualization', '1', {'packages': ['corechart'], 'callback': (function (){
-
-        // MapControl
-        var ic = document.createElement('img');
-        ic.setAttribute('src', GPXCasualViewer.plugin.ElevationChart.path + 'ic_trending_up_black_48dp.png');
-        ic.setAttribute('width', 32);
-        ic.setAttribute('height', 32);
-        var div = document.createElement('div');
-        div.setAttribute('class', GPXCasualViewer.plugin.ElevationChart.className);
-        div.appendChild(ic);
-        this.getMap().controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);
-
-
-        var dd_options = {};
-        var dd = new DivDivider(
-                      this.getMapElement().getAttribute('id'),
+        var app     = this[0],
+            control = this[1],
+            script  = this[2],
+            jsapi   = this[3],
+            dd_options = {},
+            dd = new DivDivider(
+                      app.getMapElement().getAttribute('id'),
                       GPXCasualViewer.plugin.ElevationChart.chartCanvasId,
                       dd_options);
         dd.chart = new google.visualization.LineChart(dd.$chart);
         dd.marker = new google.maps.Marker();  
-        dd.current_polyline = null;  
-        google.maps.event.addDomListener(div, 'click', (function(ev) {
+        dd.current_polyline = null;
+        google.maps.event.addDomListener(control.getElement(), 'click', (function(ev) {
           this.toggle();
         }).bind(dd));
-      
+
         //
         google.visualization.events.addListener(dd.chart, 'select', (function (){
+          var selection, item;
           if ( ! this.on_select_chart ) {
             return;
           }
-          var selection = this.chart.getSelection();
+          selection = this.chart.getSelection();
           if ( ! selection ) {
             return;
           }
-          var item = selection[0];
+          item = selection[0];
           if ( ! item ) {
             return;
           }
@@ -53,27 +45,30 @@ GPXCasualViewer.plugin.ElevationChart = {
         }).bind(dd));
 
         // 
-        this.register('onCreatePolyline', (function(polyline) {
+        app.register('onCreatePolyline', (function(polyline) {
 
           google.maps.event.addListener(polyline, 'click', (function(ev) {
+            var src, i, l, data, options,
+                table = [],
+                distance = 0;
             if ( this.view.isOpened() ) {
 
               if ( this.view.current_polyline !== this.polyline ) {
-                var src = this.polyline.getSource();
-                var table = [];
-                var distance = 0;
+                src = this.polyline.getSource();
+                table = [];
+                distance = 0;
                 table.push(['distance', 'ele']);
                 table.push([0, parseInt(src[0].ele)]);
-                for ( var i = 1, l = src.length; i < l; ++i ) {
+                for ( i = 1, l = src.length; i < l; ++i ) {
                   distance += parseInt(google.maps.geometry.spherical.computeDistanceBetween(
                         new google.maps.LatLng(src[i - 1].lat, src[i - 1].lon),
                         new google.maps.LatLng(src[i    ].lat, src[i    ].lon)
                         ));
                   table.push([distance, parseInt(src[i].ele)]);
                 }
-                var data = google.visualization.arrayToDataTable(table);
+                data = google.visualization.arrayToDataTable(table);
 
-                var options = {
+                options = {
                   title: src['name'] || 'Elevation chart of the trk',
                   legend: { position: 'none' },
                   vAxis: { format: 'decimal' },
@@ -107,7 +102,7 @@ GPXCasualViewer.plugin.ElevationChart = {
         }).bind(dd));
 
 
-      }).bind(this)});
+      }).bind(values)});
 
 
     }).bind(this));

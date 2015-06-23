@@ -20,7 +20,6 @@ GPXCasualViewer.plugin.EXIF = {
     }
   },
   callback: function() {
-    GPXCasualViewer.plugin.detectPathOfPlugin('EXIF');
 
     // add hook points
     console.log('Add a hook point: "onReadEXIF"');

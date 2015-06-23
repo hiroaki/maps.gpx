@@ -830,6 +830,7 @@ GPXCasualViewer.prototype.require_plugin = function (plugin_name){
   var t = new Date().getTime(),
       src = [GPXCasualViewer.plugin_dir, plugin_name, GPXCasualViewer.scrip_loader +'?t='+ t].join('/');
   return GPXCasualViewer.load_script(src).then((function (src){
+    GPXCasualViewer.plugin[plugin_name].path = [GPXCasualViewer.plugin_dir, plugin_name].join('/');
     this.use(plugin_name);
     return src;
   }).bind(this));
@@ -862,3 +863,78 @@ GPXCasualViewer.prototype.require_css = function (plugin_name){
     return src;
   }).bind(this));
 }
+
+GPXCasualViewer.MapControl = function (){
+  this.initialize.apply(this, arguments);
+}
+GPXCasualViewer.MapControl.prototype = {
+  initialize: function (icons, options){
+    this.icons    = icons; // {key1: src1, key2: src2, ...}
+    this.options  = options || {};
+
+    this.map          = this.options['map'] || null;
+    this.current_key  = this.options['initial'] || Object.keys(this.icons)[0];
+    this.$element     = this._createElement();
+    if ( this.map ) {
+      this.setMap(this.map);
+    }
+  },
+  getCurrent: function() {
+    return this.current_key;
+  },
+  getElement: function() {
+    return this.$element;
+  },
+  _getIconByKey: function(key) {
+    return this.icons[key];
+  },
+  _getCurrentIcon: function (){
+    return this._getIconByKey(this.current_key);
+  },
+  _getIconElement: function (){
+    return this.$element.getElementsByTagName('img').item(0);
+  },
+  _createElement: function (){
+    var ic, div, vendor, anchor;
+
+    ic = document.createElement('img');
+    ic.setAttribute('src', this._getCurrentIcon());
+    ic.setAttribute('width', this.options['width'] || 28);
+    ic.setAttribute('height', this.options['height'] || 28);
+
+    div = document.createElement('div');
+    div.setAttribute('class', this.options['className'] || 'map_control_button');
+    div.style.background = '#fff';
+    div.style.margin = '16px';
+    div.style.border = '1px solid transparent';
+    div.style.borderRadius = '2px';
+    div.style.outline = 'none';
+    div.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.3)';
+    vendor = ['webkitB', 'mozB', 'oB', 'msB', 'b'];
+    for ( var prefix in vendor ) {
+      div.style[vendor[prefix] +'oxSizing'] = 'border-box';
+    }
+
+    // for effect instead of hover:cursor
+    anchor = document.createElement('a');
+    anchor.setAttribute('href', 'javascript:void(0)');
+    anchor.style.display = 'block';
+
+    div.appendChild(ic);
+    anchor.appendChild(div);
+    return anchor;
+  },
+  getMap: function() {
+    return this.map;
+  },
+  setMap: function(map) {
+    var pos = this.options['position'] || 'RIGHT_BOTTOM';
+    this.map = map;
+    this.getMap().controls[google.maps.ControlPosition[pos]].push(this.$element);
+  },
+  changeIcon: function(key) {
+    this._getIconElement().src = this._getIconByKey(key);
+    this.current_key = key;
+    return this;
+  }
+};

@@ -1,19 +1,13 @@
 GPXCasualViewer.plugin.Milestone = {
-  path: null,
   callback: function() {
-    GPXCasualViewer.plugin.detectPathOfPlugin('Milestone');
-
-    GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'extlib', 'ExtDraggableObject.js'].join('/')).then((function (src){
-      console.log('js loaded '+ src);
-    }).bind(this));
-    GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'NodeOverlay.js'].join('/')).then((function (src){
-      console.log('js loaded '+ src);
-    }).bind(this));
-    GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'DivSign.js'].join('/')).then((function (src){
-      console.log('js loaded '+ src);
-    }).bind(this));
-
-    var makeMilestones = function(polyline, interval) {
+    var p = [];
+    p.push(GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'extlib', 'ExtDraggableObject.js'].join('/')));
+    p.push(GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'NodeOverlay.js'].join('/')));
+    p.push(GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'DivSign.js'].join('/')));
+Promise.all(p).then((function(values){
+    var makeMilestones, signCache, intervalDefinition, trkLengthCache;
+    
+    makeMilestones = function(polyline, interval) {
       var milestones = {},
           path = polyline.getPath(),
           next_checkpoint = interval,
@@ -33,7 +27,7 @@ GPXCasualViewer.plugin.Milestone = {
       return milestones;
     };
 
-    var signCache = {
+    signCache = {
       shelf: {},
       genKey: function(key, trkidx, vertexidx) {
         return [key, trkidx, vertexidx].join('\t');
@@ -53,7 +47,7 @@ GPXCasualViewer.plugin.Milestone = {
       }
     };
 
-    var intervalDefinition = {
+    intervalDefinition = {
       mapping: {
         5: 400000,
         6: 300000,
@@ -90,11 +84,10 @@ GPXCasualViewer.plugin.Milestone = {
       }
     };
 
-    var trkLengthCache = {};
+    trkLengthCache = {};
 
     google.maps.event.addListener(this.getMap(), 'zoom_changed', (function() {
       var zoom  = this.getMap().getZoom();
-      // console.log('***** zoom_changed: '+ zoom);
 
       signCache.hideAll();
 
@@ -102,47 +95,39 @@ GPXCasualViewer.plugin.Milestone = {
         return;
       }
       this.eachGPX((function(gpx, key) {
-        for ( var trk_idx = 0, l = gpx.trk.length; trk_idx < l; ++trk_idx ) {
-          var trk = gpx.trk[trk_idx];
+        var trk_idx, l = gpx.trk.length, trk, trk_path, stone, ms, no, kilo;
+        for ( trk_idx = 0; trk_idx < l; ++trk_idx ) {
+          trk = gpx.trk[trk_idx];
           if ( ! trk.overlay ) {
             continue;
           }
-          var path = trk.overlay.getPath();
+          trk_path = trk.overlay.getPath();
           if ( trkLengthCache[trk_idx] == null || trkLengthCache[trk_idx] == 'undefined' ) {
-            trkLengthCache[trk_idx] = trk.overlay.computeDistanceTrack(0, path.getLength() -1 );
+            trkLengthCache[trk_idx] = trk.overlay.computeDistanceTrack(0, trk_path.getLength() -1 );
           }
-          var milestones = makeMilestones(trk.overlay, intervalDefinition.getInterval(trkLengthCache[trk_idx], zoom));
-          // console.log(['trk[', trk_idx, '] trkpt=', path.getLength(),
-          //   ' length=', trkLengthCache[trk_idx], 
-          //   ' milestones=', Object.keys(milestones).length].join(''));
+          ms = makeMilestones(trk.overlay, intervalDefinition.getInterval(trkLengthCache[trk_idx], zoom));
 
-          for ( var stone in milestones ) {
-            var no = signCache.get(key, trk_idx, milestones[stone].index),
-                kilo = null;
+          for ( stone in ms ) {
+            no = signCache.get(key, trk_idx, ms[stone].index);
             if ( no ) {
               no.element.style.visibility = 'visible';
             } else {
-              kilo = parseInt(milestones[stone].distance / 1000);
+              kilo = parseInt(ms[stone].distance / 1000);
               no = new NodeOverlay(
                 DivSign.create( kilo +' km', { contentStyle: {fontSize:'x-small', whiteSpace:'nowrap'} }),
-                { position: path.getAt(milestones[stone].index)
+                { position: trk_path.getAt(ms[stone].index)
                 });
               no.element.style.visibility = 'visible';
               no.setMap(this.getMap());
-              signCache.add(no, key, trk_idx, milestones[stone].index);
+              signCache.add(no, key, trk_idx, ms[stone].index);
             }
-            // console.log([
-            //   'set milestones: order=', milestones[stone].order,
-            //   ' index=', milestones[stone].index,
-            //   ' distance=', milestones[stone].distance,
-            //   ' coordinate=', path.getAt(milestones[stone].index).toString(),
-            //   ' ', (kilo ? 'created' : '')
-            //   ].join(''));
           }
         }
       }).bind(this));
     }).bind(this));
 
     google.maps.event.trigger(this.getMap(), 'zoom_changed');
+
+}).bind(this));
   }
 };
