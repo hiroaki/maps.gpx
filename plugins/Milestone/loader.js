@@ -1,10 +1,10 @@
 GPXCasualViewer.plugin.Milestone = {
+  extra_scripts: [
+    'ExtDraggableObject.js',
+    'NodeOverlay.js',
+    'DivSign.js'
+  ],
   callback: function() {
-    var p = [];
-    p.push(GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'extlib', 'ExtDraggableObject.js'].join('/')));
-    p.push(GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'NodeOverlay.js'].join('/')));
-    p.push(GPXCasualViewer.load_script([GPXCasualViewer.plugin.Milestone.path, 'DivSign.js'].join('/')));
-Promise.all(p).then((function(values){
     var makeMilestones, signCache, intervalDefinition, trkLengthCache;
     
     makeMilestones = function(polyline, interval) {
@@ -127,7 +127,5 @@ Promise.all(p).then((function(values){
     }).bind(this));
 
     google.maps.event.trigger(this.getMap(), 'zoom_changed');
-
-}).bind(this));
   }
 };

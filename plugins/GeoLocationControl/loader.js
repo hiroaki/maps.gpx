@@ -87,7 +87,7 @@ GPXCasualViewer.plugin.GeoLocationControl = {
       if ( ! overlay.isOverlayed() ) {
         overlay.setMap(this.getMap());
       }
-      if ( mc.getCurrent() == 'fixed' ) {
+      if ( mc.isCurrentIcon('fixed') ) {
         this.getMap().panTo(latlng);
       }
     }).bind(this));
@@ -98,7 +98,7 @@ GPXCasualViewer.plugin.GeoLocationControl = {
     }).bind(this));
 
     google.maps.event.addDomListener(mc.getElement(), 'click', (function(ev) {
-      if ( this.isWatchingGeoLocation() && mc.getCurrent() == 'fixed' ) {
+      if ( this.isWatchingGeoLocation() && mc.isCurrentIcon('fixed') ) {
         mc.changeIcon('located');
       } else {
         if ( this.isWatchingGeoLocation() ) {
@@ -110,7 +110,7 @@ GPXCasualViewer.plugin.GeoLocationControl = {
     }).bind(this));
 
     google.maps.event.addDomListener(this.getMap(), 'dragstart', (function(ev) {
-      if ( this.isWatchingGeoLocation() && mc.getCurrent() == 'fixed' ) {
+      if ( this.isWatchingGeoLocation() && mc.isCurrentIcon('fixed') ) {
         mc.changeIcon('located');
       }
     }).bind(this));

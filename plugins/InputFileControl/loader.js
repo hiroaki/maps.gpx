@@ -4,6 +4,8 @@ GPXCasualViewer.plugin.InputFileControl = {
 
     control = new GPXCasualViewer.MapControl({
         initial: [GPXCasualViewer.plugin.InputFileControl.path, 'ic_folder_open_black_24dp.png'].join('/')
+      },{
+        position: 'TOP_LEFT'
       });
     control.setMap(this.map);
 

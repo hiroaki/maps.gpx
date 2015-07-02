@@ -1,4 +1,7 @@
 GPXCasualViewer.plugin.EXIF = {
+  extra_scripts: [
+    'exif.js'
+  ],
   readFromArrayBuffer: function(arraybuffer) {
     return EXIF.readFromBinaryFile(arraybuffer);
   },
@@ -26,13 +29,14 @@ GPXCasualViewer.plugin.EXIF = {
     this.hook['onReadEXIF'] = this.hook['onReadEXIF'] || [];
 
     // add an instance method to GPXCasualViewer.Polyline
-    console.log('extends GPXCasualViewer.Polyline.prototype.findNearestVertexByDate');
+    console.log('Extends GPXCasualViewer.Polyline.prototype.findNearestVertexByDate');
     GPXCasualViewer.Polyline.prototype.findNearestVertexByDate = function(date) {
       var src   = this.getSource(),
           ptime = null,
           just  = false,
-          ids   = -1;
-      for ( var i = 0, l = src.length; i < l; ++i ) {
+          ids   = -1,
+          i, l;
+      for ( i = 0, l = src.length; i < l; ++i ) {
         ptime = new Date(src[i].time)
         if ( date <= ptime ) {
           if ( date == ptime ) {
@@ -51,7 +55,6 @@ GPXCasualViewer.plugin.EXIF = {
 
     var input_handler = function(key, src) {
       var p1 = GPXCasualViewer.resolveAsArrayBuffer(src);
-//    var p2 = GPXCasualViewer.resolveAsDataURL(src);
       var p2 = GPXCasualViewer.resolveAsObjectURL(src);
       return Promise.all([p1,p2,src]).then((function(values) {
         var exif   = GPXCasualViewer.plugin.EXIF.readFromArrayBuffer(values[0]),
@@ -125,10 +128,8 @@ GPXCasualViewer.plugin.EXIF = {
       }).bind(this));
     }
 
-    GPXCasualViewer.load_script([GPXCasualViewer.plugin.EXIF.path, 'exif.js'].join('/')).then((function (){
-      // register it as the input handler for 'image/jpeg'
-      this.registerInputHandler(new GPXCasualViewer.InputHandler('image/jpeg', input_handler));
-    }).bind(this));
+    console.log('Register an input handler for "image/jpeg"');
+    this.registerInputHandler(new GPXCasualViewer.InputHandler('image/jpeg', input_handler));
   },
   _handlerHookOnReadExifDefault: function(key, values) {
     var pinpoint = null;
