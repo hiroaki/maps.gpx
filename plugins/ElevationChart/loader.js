@@ -44,6 +44,14 @@ GPXCasualViewer.plugin.ElevationChart = {
         this.on_select_chart.call(this, item.row, item.column);
       }).bind(dd));
 
+      //
+      this.register('onVertexInfo', (function (polyline, idx, mouseevent){
+        if ( this.isOpened() && this.current_polyline === polyline ) {
+          this.chart.setSelection([{row: idx, column: 1}]);
+        }
+      }).bind(dd));
+
+      //
       click_handler = function(ev) {
         var src, i, l, data, options,
             table = [],
