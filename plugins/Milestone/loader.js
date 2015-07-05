@@ -1,5 +1,5 @@
 GPXCasualViewer.plugin.Milestone = {
-  extra_scripts: [
+  bundles: [
     'ExtDraggableObject.js',
     'NodeOverlay.js',
     'DivSign.js'

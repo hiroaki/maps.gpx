@@ -1,5 +1,5 @@
 GPXCasualViewer.plugin.ElevationChart = {
-  extra_scripts: [
+  bundles: [
     'DivDivider.js',
     'https://www.google.com/jsapi'
   ],

@@ -1,7 +1,9 @@
 GPXCasualViewer.plugin.SearchControl = {
+  bundles: [
+    'loader.css'
+  ],
   className: 'map_control_input',
   callback: function() {
-    this.require_css('SearchControl');
 
     var input = document.createElement('input');
     input.setAttribute('class', GPXCasualViewer.plugin.SearchControl.className);

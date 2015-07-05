@@ -1,5 +1,5 @@
 GPXCasualViewer.plugin.EXIF = {
-  extra_scripts: [
+  bundles: [
     'exif.js'
   ],
   readFromArrayBuffer: function(arraybuffer) {
