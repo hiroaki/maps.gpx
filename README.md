@@ -396,14 +396,6 @@ And create plugin script as `loader.js` in sub direcroty is named *PluginName*.
 
 The name of property which starts with lowercase has been reserved.
 
-### Static Methods
-
-`GPXCasualViewer.plugin` also provides some utility methods.
-
-method | return value | description
--------|--------------|------------
-detectPathOfPlugin( String:PluginName ) | boolean | Set `path` property of *PluginName* to the directory which *PluginName* is placed, and return `true`. If `path` is already set, it returns `false` with no effects. This is useful for some resources to resolve its own base directory
-
 
 ## GPXCasualViewer.plugin.*PluginName* object specification
 
@@ -416,7 +408,7 @@ Essentially, this is the interface to make a plug-in.
 
 property   | type     | description
 -----------|----------|------------
-path       | string   | Used to resolve the base path of this plug-in. It is can be set by using static method `detectPathOfPlugin`
+path       | string   | Used to resolve the base path of this plug-in. It is can be set by the instance method `require_plugin` of `GPXCasualViewer`
 callback   | Function | When registering this plug-in with an instance of `GPXCasualViewer`, callback will be called at timing of the hook point set by property *hook*. If *hook* is false value, it will be called at just `use`. *callback* is called as the instance method of the `GPXCasualViewer`, and its arguments are different depending on hooks.
 hook       | String:hook | specify the *hook* point to register the callback
 

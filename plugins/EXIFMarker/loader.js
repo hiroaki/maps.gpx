@@ -1,8 +1,6 @@
 GPXCasualViewer.plugin.EXIFMarker = {
-  path: null,
   pts: [],
   callback: function() {
-    GPXCasualViewer.plugin.detectPathOfPlugin('EXIFMarker');
 
     this.register('onReadEXIF', (function (key, values){
 
@@ -33,7 +31,7 @@ GPXCasualViewer.plugin.EXIFMarker = {
         var marker = new google.maps.Marker({
           position: values.latlng,
           draggable: true,
-          icon: new google.maps.MarkerImage(GPXCasualViewer.plugin.EXIFMarker.path + 'photo.png', new google.maps.Size(32,37))
+          icon: new google.maps.MarkerImage([GPXCasualViewer.plugin.EXIFMarker.path, 'photo.png'].join('/'), new google.maps.Size(32,37))
         });
         marker.addListener('click', function(mouseevent) {
           new google.maps.InfoWindow({

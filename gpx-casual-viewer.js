@@ -9,8 +9,24 @@ function GPXCasualViewer() {
 }
 
 // constants, do not change these value
-GPXCasualViewer.VERSION   = '2.2.0';
-GPXCasualViewer.ELEMENTS  = {
+GPXCasualViewer.VERSION = '2.3.0';
+GPXCasualViewer.EXTENSIONS = [
+  'DescImage',
+  'Droppable',
+  'EXIF',
+  'EXIF2GPX',
+  'EXIFMarker',
+  'ElevationChart',
+  'GeoLocation',
+  'GeoLocationControl',
+  'InputFileControl',
+  'Milestone',
+  'QueryURL',
+  'SearchControl',
+  'VertexInfo',
+  'VertexInfoWindow'
+];
+GPXCasualViewer.ELEMENTS = {
   AGEOFDGPSDATA: 'ageofdgpsdata',
   AUTHOR: 'author',
   BOUNDS: 'bounds',
@@ -50,8 +66,25 @@ GPXCasualViewer.ELEMENTS  = {
 }
 
 // global properties, you can change
-GPXCasualViewer.strict      = true;
-GPXCasualViewer.join_trkseg = true;
+GPXCasualViewer.strict        = true;
+GPXCasualViewer.join_trkseg   = true;
+
+// layout
+GPXCasualViewer.basedir = (function (){
+  var scripts = document.getElementsByTagName('script'),
+      re = new RegExp('/gpx-casual-viewer\.js.*'),
+      i, l, src;
+  for ( i = 0, l = scripts.length; i < l; ++i ) {
+    src = scripts.item(i).getAttribute('src');
+    if ( re.test(src) ) {
+      return src.replace(re, '');
+    }
+  }
+  return '.';
+})();
+GPXCasualViewer.plugin_dir = [GPXCasualViewer.basedir, 'plugins'].join('/');
+GPXCasualViewer.scrip_loader  = 'loader.js';
+GPXCasualViewer.style_loader  = 'loader.css';
 
 // common util
 GPXCasualViewer.parseQueryString = function(/* usually 'location.search' */qstring) {
@@ -476,7 +509,7 @@ GPXCasualViewer.InputHandler.prototype.getHandler = function() {
   return this.handler;
 };
 GPXCasualViewer.InputHandler.defaultHandler = function(key, src) {
-  return Promise.then(function (obj){ return key });
+  return Promise.resolve(function (obj){ return key });
 };
 GPXCasualViewer.InputHandler.prototype.execute = function (bind, key, src){
   return (this.getHandler() || GPXCasualViewer.InputHandler.defaultHandler).call(bind, key, src);
@@ -721,14 +754,14 @@ GPXCasualViewer.prototype._build = function(gpx_text) {
 
   return gpx;
 };
-GPXCasualViewer.prototype.use = function(plugin) {
-  var hook      = GPXCasualViewer.plugin[plugin].hook;
-  var callback  = GPXCasualViewer.plugin[plugin].callback;
+GPXCasualViewer.prototype.use = function(plugin_name) {
+  var hook      = GPXCasualViewer.plugin[plugin_name].hook;
+  var callback  = GPXCasualViewer.plugin[plugin_name].callback;
   try {
     this._registerHook(hook, callback);
   } catch(ex) {
-    console.log('Catch an exception on use('+ plugin + ') with hook "'+ hook +'"');
-    throw ex;
+    console.log('Catch an exception on use('+ plugin_name + ') with hook "'+ hook +'"');
+    throw(ex);
   }
   return this;
 };
@@ -737,7 +770,7 @@ GPXCasualViewer.prototype.register = function(hook, callback) {
     this._registerHook(hook, callback);
   } catch(ex) {
     console.log('Catch an exception on register('+ hook +')');
-    throw ex;
+    throw(ex);
   }
   return this;
 };
@@ -756,7 +789,7 @@ GPXCasualViewer.prototype.applyHook = function() {
       this.hook[name][i].apply(this, args);
     } catch(ex) {
       console.log('Catch an exception on applyHook "'+ name +'" with args ['+ args +']');
-      throw ex;
+      throw(ex);
     }
   }
   return this;
@@ -764,25 +797,6 @@ GPXCasualViewer.prototype.applyHook = function() {
 
 // plugin mechanism
 GPXCasualViewer.plugin = {};
-
-// provide utility
-GPXCasualViewer.plugin.detectPathOfPlugin = function(plugin_name) {
-  if ( GPXCasualViewer.plugin[plugin_name].path ) {
-    return false;
-  }
-  GPXCasualViewer.plugin[plugin_name].path = '';
-  var scripts = document.getElementsByTagName('script'),
-      re = new RegExp('/'+ plugin_name +'/loader.js$'),
-      i, l, src;
-  for ( i = 0, l = scripts.length; i < l; ++i ) {
-    src = scripts.item(i).getAttribute('src');
-    if ( re.test(src) ) {
-      GPXCasualViewer.plugin[plugin_name].path = src.replace(re, '/'+ plugin_name +'/');
-      break;
-    }
-  }
-  return true;
-}
 
 // define default plugins
 GPXCasualViewer.plugin.SetTitleOnCreateMarker = {
@@ -811,3 +825,250 @@ GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline = {
     }).bind(this));
   }
 };
+
+GPXCasualViewer.load_script = function (src){
+  // TODO: check whether it's read already.
+  return new Promise(function(resolve, reject) {
+    var $script = document.createElement('script');
+    $script.onload = function (){
+      resolve();
+    };
+    $script.src = src;
+    document.head.appendChild($script);
+  });
+}
+
+GPXCasualViewer.prototype.require_plugin = function (plugin_name){
+  var t = new Date().getTime(),
+      base = [GPXCasualViewer.plugin_dir, plugin_name].join('/'),
+      src = [base, GPXCasualViewer.scrip_loader +'?t='+ t].join('/'),
+      stash = {app: this, plugin_name: plugin_name, base: base, t: t};
+  return GPXCasualViewer.load_script(src).then((function (){
+    var load_scripts = [], scripts, script, i, l;
+    GPXCasualViewer.plugin[this.plugin_name].path = this.base;
+    scripts = GPXCasualViewer.plugin[this.plugin_name].extra_scripts || [];
+    for ( i = 0, l = scripts.length; i < l; ++i ) {
+      if ( scripts[i].match(/\//) ) {
+        script = scripts[i];
+      } else {
+        script = [this.base, scripts[i] +'?t='+ this.t].join('/');
+      }
+      load_scripts.push(GPXCasualViewer.load_script(script));
+    }
+    return Promise.all(load_scripts).then((function (values){
+      this.app.use(this.plugin_name);
+    }).bind(this));
+  }).bind(stash));
+};
+GPXCasualViewer.require_plugin = function (plugin_name){
+  var t = new Date().getTime(),
+      base = [GPXCasualViewer.plugin_dir, plugin_name].join('/'),
+      src = [base, GPXCasualViewer.scrip_loader +'?t='+ t].join('/'),
+      stash = {plugin_name: plugin_name, base: base, t: t};
+  return GPXCasualViewer.load_script(src).then((function (){
+    var load_scripts = [], scripts, script, i, l;
+    GPXCasualViewer.plugin[this.plugin_name].path = this.base;
+    scripts = GPXCasualViewer.plugin[this.plugin_name].extra_scripts || [];
+    for ( i = 0, l = scripts.length; i < l; ++i ) {
+      if ( scripts[i].match(/\//) ) {
+        script = scripts[i];
+      } else {
+        script = [this.base, scripts[i] +'?t='+ this.t].join('/');
+      }
+      load_scripts.push(GPXCasualViewer.load_script(script));
+    }
+    return Promise.all(load_scripts);
+  }).bind(stash));
+};
+
+GPXCasualViewer.prototype.require_plugins = function (){
+  // load each plugins serially
+  var plugin_names = Array.prototype.map.call(arguments, function(cur) { return cur }),
+      p = Promise.resolve(null), i, l;
+  for ( i = 0, l = plugin_names.length; i < l; ++i ) {
+      p = p.then((function(){
+            return this.app.require_plugin(this.plugin_name);
+          }).bind({app:this, plugin_name: plugin_names[i]}));
+  }
+  return p;
+};
+GPXCasualViewer.require_plugins = function (){
+  // load each plugins serially
+  var plugin_names = Array.prototype.map.call(arguments, function(cur) { return cur }),
+      p = Promise.resolve(null), i, l;
+  for ( i = 0, l = plugin_names.length; i < l; ++i ) {
+      p = p.then((function(){
+            return GPXCasualViewer.require_plugin(this.plugin_name);
+          }).bind({plugin_name: plugin_names[i]}));
+  }
+  return p;
+};
+
+GPXCasualViewer.load_css = function (src){
+  return new Promise(function(resolve, reject) {
+    var link = document.createElement('link');
+    link.setAttribute('type', 'text/css');
+    link.setAttribute('rel', 'stylesheet');
+    link.setAttribute('href', src);
+    link.onload = function (){
+      resolve(src);
+    };
+    document.head.appendChild(link);
+  });
+}
+
+GPXCasualViewer.prototype.require_css = function (plugin_name){
+  var t = new Date().getTime(),
+      src = [GPXCasualViewer.plugin_dir, plugin_name, GPXCasualViewer.style_loader +'?t='+ t].join('/');
+  return GPXCasualViewer.load_css(src).then((function (src){
+    return src;
+  }).bind(this));
+}
+
+// map control generateor
+GPXCasualViewer.MapControl = function (){
+  this.initialize.apply(this, arguments);
+}
+GPXCasualViewer.MapControl.prototype = {
+  initialize: function (icons, options){
+    this.icons = icons; // {key1: src1, key2: src2, ...}
+    this.settings = {};
+    var defaults = {
+      map: null,
+      initial: Object.keys(icons)[0],
+      iconWidth: '28',
+      iconHeight: '28',
+      className: 'map_control_button',
+      position: 'RIGHT_BOTTOM'
+      }, attr;
+    for ( attr in defaults ) { this.settings[attr] = defaults[attr] }
+    for ( attr in options || {} ) { this.settings[attr] = options[attr] }
+
+    this.map          = this.settings['map'];
+    this.current_key  = this.settings['initial'];
+    this.$element     = this._createElement();
+    if ( this.map ) {
+      this.setMap(this.map);
+    }
+  },
+  getElement: function() {
+    return this.$element;
+  },
+  isCurrentIcon: function(key) {
+    return this.current_key == key;
+  },
+  _getIconByKey: function(key) {
+    return this.icons[key];
+  },
+  _getCurrentIcon: function (){
+    return this._getIconByKey(this.current_key);
+  },
+  _getIconElement: function (){
+    return this.$element.getElementsByTagName('img').item(0);
+  },
+  _createElement: function (){
+    var ic, div, vendor, anchor;
+
+    ic = document.createElement('img');
+    ic.setAttribute('src', this._getCurrentIcon());
+    ic.setAttribute('width', this.settings['iconWidth']);
+    ic.setAttribute('height', this.settings['iconHeight']);
+
+    div = document.createElement('div');
+    div.setAttribute('class', this.settings['className']);
+    div.style.background = '#fff';
+    if ( this.settings['position'] == 'TOP_LEFT') {
+      div.style.marginTop = '16px';
+      div.style.marginLeft = '4px';
+    } else if (this.settings['position'] == 'RIGHT_BOTTOM') {
+      div.style.marginBottom = '8px';
+      div.style.marginRight = '8px';
+    } else {
+      div.style.margin = '8px';
+    }
+    div.style.border = '1px solid transparent';
+    div.style.borderRadius = '2px';
+    div.style.outline = 'none';
+    div.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.3)';
+    vendor = ['webkitB', 'mozB', 'oB', 'msB', 'b'];
+    for ( var prefix in vendor ) {
+      div.style[vendor[prefix] +'oxSizing'] = 'border-box';
+    }
+
+    // for effect instead of hover:cursor
+    anchor = document.createElement('a');
+    anchor.setAttribute('href', 'javascript:void(0)');
+    anchor.style.display = 'block';
+
+    div.appendChild(ic);
+    anchor.appendChild(div);
+    return anchor;
+  },
+  getMap: function() {
+    return this.map;
+  },
+  setMap: function(map) {
+    this.map = map;
+    this.getMap()
+    .controls[google.maps.ControlPosition[this.settings['position']]]
+    .push(this.$element);
+  },
+  changeIcon: function(key) {
+    this._getIconElement().src = this._getIconByKey(key);
+    this.current_key = key;
+    return this;
+  }
+};
+
+// 
+GPXCasualViewer.ready = false;
+GPXCasualViewer.readyies = [];
+
+GPXCasualViewer.onReady = function (callback){
+  GPXCasualViewer.readyies.push(callback);
+  if ( GPXCasualViewer.ready ) {
+    GPXCasualViewer.emit();
+  }
+};
+
+GPXCasualViewer.emit = function (){
+  var cb;
+  while ( true ) {
+    cb = GPXCasualViewer.readyies.shift();
+    if ( ! cb ) {
+      break;
+    }
+    cb.call(this);
+  }
+  return this;
+};
+
+(function() {
+  google.maps.event.addDomListener(window, 'load', function() {
+    var scripts = document.getElementsByTagName('script'),
+        re = new RegExp('gpx-casual-viewer\.js(.*)$'),
+        i, l, src, match, params, extensions;
+    for ( i = 0, l = scripts.length; i < l; ++i ){
+      src = scripts.item(i).getAttribute('src');
+      if ( re.test(src) ) {
+        match = RegExp.$1;
+        if ( match.indexOf('?') < 0 ) {
+          extensions = [];
+        } else {
+          params = GPXCasualViewer.parseQueryString(match);
+          extensions = params['plugins'].split(',');
+        }
+        if ( extensions.length <= 0 ) {
+          extensions = GPXCasualViewer.EXTENSIONS;
+        }
+        GPXCasualViewer.require_plugins
+        .apply(GPXCasualViewer, extensions)
+        .then(function(values) {
+          GPXCasualViewer.ready = true;
+          GPXCasualViewer.emit();
+        });
+        break;
+      }
+    }
+  });
+})();

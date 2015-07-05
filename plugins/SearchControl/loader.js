@@ -1,11 +1,12 @@
 GPXCasualViewer.plugin.SearchControl = {
-  id: 'searchcontrol-general-input-field',
+  className: 'map_control_input',
   callback: function() {
+    this.require_css('SearchControl');
+
     var input = document.createElement('input');
-    input.setAttribute('id', GPXCasualViewer.plugin.SearchControl.id);
+    input.setAttribute('class', GPXCasualViewer.plugin.SearchControl.className);
     input.setAttribute('type', 'text');
     input.setAttribute('placeholder', 'Enter a URL');
-    input.setAttribute('class', 'searchcontrol-controls');
 
     this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 

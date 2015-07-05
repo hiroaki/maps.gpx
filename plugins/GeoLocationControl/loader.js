@@ -1,48 +1,5 @@
 GPXCasualViewer.plugin.GeoLocationControl = {
-  path: null,
-  className: 'locationcontrol-controls',
-  createIconNode: function (type){
-    var ic = document.createElement('img');
-    ic.setAttribute('src', GPXCasualViewer.plugin.GeoLocationControl.path + type);
-    ic.setAttribute('width', 32);
-    ic.setAttribute('height', 32);
-    return ic;
-  },
   callback: function() {
-    GPXCasualViewer.plugin.detectPathOfPlugin('GeoLocationControl');
-
-    function ControlState(){
-      this.initialize.apply(this, arguments);
-    }
-    ControlState.prototype = {
-      initialize: function (){
-        this.element = document.createElement('div');
-        this.element.setAttribute('class', GPXCasualViewer.plugin.GeoLocationControl.className);
-        this.ic_enabled  = GPXCasualViewer.plugin.GeoLocationControl.createIconNode('ic_location_searching_black_24dp.png');
-        this.ic_fixed    = GPXCasualViewer.plugin.GeoLocationControl.createIconNode('ic_gps_fixed_red_24dp.png');
-        this.ic_located  = GPXCasualViewer.plugin.GeoLocationControl.createIconNode('ic_gps_fixed_blue_24dp.png');
-        this.ic_failed   = GPXCasualViewer.plugin.GeoLocationControl.createIconNode('ic_gps_off_black_24dp.png');
-        this.ic_disabled = GPXCasualViewer.plugin.GeoLocationControl.createIconNode('ic_location_disabled_black_24dp.png');
-        this.current = 'enabled';
-        this.element.appendChild(this['ic_'+ this.current]);
-      },
-      getElement: function (){
-        return this.element;
-      },
-      isFixed: function (){
-        return this.current == 'fixed';
-      },
-      isLocated: function (){
-        return this.current == 'located';
-      },
-      changeTo: function (state){
-        if ( this.current != state ) {
-          this.element.removeChild(this['ic_'+ this.current]);
-          this.element.appendChild(this['ic_'+ state]);
-          this.current = state;
-        }
-      }
-    };
 
     function CurrentPositionOverlay(){
       this.initialize.apply(this, arguments);
@@ -98,21 +55,30 @@ GPXCasualViewer.plugin.GeoLocationControl = {
       }
     };
 
-    var cs = new ControlState();
-    this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(cs.getElement());
+    var overlay = new CurrentPositionOverlay();
+
+    var mc = new GPXCasualViewer.MapControl({
+       enabled: [GPXCasualViewer.plugin.GeoLocationControl.path, 'ic_location_searching_black_24dp.png'].join('/'),
+         fixed: [GPXCasualViewer.plugin.GeoLocationControl.path, 'ic_gps_fixed_red_24dp.png'].join('/'),
+       located: [GPXCasualViewer.plugin.GeoLocationControl.path, 'ic_gps_fixed_blue_24dp.png'].join('/'),
+        failed: [GPXCasualViewer.plugin.GeoLocationControl.path, 'ic_gps_off_black_24dp.png'].join('/'),
+      disabled: [GPXCasualViewer.plugin.GeoLocationControl.path, 'ic_location_disabled_black_24dp.png'].join('/')
+      }, {
+        initial: 'enabled'
+      });
+    mc.setMap(this.map);
+
     if ( ! this.isSupportedGeoLocation() ) {
-      cs.changeTo('disabled');
+      mc.changeIcon('disabled');
       return;
     }
 
-    var overlay = new CurrentPositionOverlay();
-
     this.register('onBeginWatchGeoLocation', (function(applied) {
-      cs.changeTo('fixed');
+      mc.changeIcon('fixed');
     }).bind(this));
 
     this.register('onEndWatchGeoLocation', (function(applied) {
-      cs.changeTo('enabled');
+      mc.changeIcon('enabled');
       overlay.setMap(null);
     }).bind(this));
 
@@ -121,19 +87,19 @@ GPXCasualViewer.plugin.GeoLocationControl = {
       if ( ! overlay.isOverlayed() ) {
         overlay.setMap(this.getMap());
       }
-      if ( cs.isFixed() ) {
+      if ( mc.isCurrentIcon('fixed') ) {
         this.getMap().panTo(latlng);
       }
     }).bind(this));
 
     this.register('onGetGeoLocationError', (function(error) {
-      cs.changeTo('failed');
+      mc.changeIcon('failed');
       overlay.setMap(null);
     }).bind(this));
 
-    google.maps.event.addDomListener(cs.getElement(), 'click', (function(ev) {
-      if ( this.isWatchingGeoLocation() && cs.isFixed() ) {
-        cs.changeTo('located');
+    google.maps.event.addDomListener(mc.getElement(), 'click', (function(ev) {
+      if ( this.isWatchingGeoLocation() && mc.isCurrentIcon('fixed') ) {
+        mc.changeIcon('located');
       } else {
         if ( this.isWatchingGeoLocation() ) {
           this.endWatchGeoLocation();
@@ -144,8 +110,8 @@ GPXCasualViewer.plugin.GeoLocationControl = {
     }).bind(this));
 
     google.maps.event.addDomListener(this.getMap(), 'dragstart', (function(ev) {
-      if ( this.isWatchingGeoLocation() && cs.isFixed() ) {
-        cs.changeTo('located');
+      if ( this.isWatchingGeoLocation() && mc.isCurrentIcon('fixed') ) {
+        mc.changeIcon('located');
       }
     }).bind(this));
 
