@@ -1,12 +1,15 @@
 GPXCasualViewer.plugin.EXIF2GPX = {
-  pts: [],
   callback: function() {
 
     this.register('onReadEXIF', (function (key, values){
 
-      GPXCasualViewer.plugin.EXIF2GPX.pts.push({lat: values.latlng.lat(), lon: values.latlng.lng()});
-      if ( 1 < GPXCasualViewer.plugin.EXIF2GPX.pts.length ) {
-        var bounds = GPXCasualViewer.boundsOf(GPXCasualViewer.plugin.EXIF2GPX.pts);
+      this.context['EXIF2GPX'] = {
+        pts: []
+      };
+
+      this.context['EXIF2GPX']['pts'].push({lat: values.latlng.lat(), lon: values.latlng.lng()});
+      if ( 1 < this.context['EXIF2GPX']['pts'].length ) {
+        var bounds = GPXCasualViewer.boundsOf(this.context['EXIF2GPX']['pts']);
         this.map.fitBounds(GPXCasualViewer.createLatlngbounds(bounds));
       } else {
         this.map.panTo(values.latlng);

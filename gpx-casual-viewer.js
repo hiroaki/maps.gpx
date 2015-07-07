@@ -638,7 +638,10 @@ GPXCasualViewer.prototype.initialize = function(map_id, map_options, options) {
   for (attr in this.map_options ) { this.map_settings[attr] = this.map_options[attr]  }
 
   // stash for gpx objects
-  this.data = {}
+  this.data = {};
+
+  // stash for each extensions
+  this.context = {};
 
   // stash for hooks
   this.hook = {

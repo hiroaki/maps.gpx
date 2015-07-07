@@ -5,23 +5,25 @@ GPXCasualViewer.plugin.ElevationChart = {
   ],
   chartCanvasId: 'chart_canvas',
   callback: function() {
+    var control = new GPXCasualViewer.MapControl({
+      initial: [GPXCasualViewer.plugin.ElevationChart.path, 'ic_trending_up_black_48dp.png'].join('/')
+    },{
+      map: this.getMap()
+    });
 
     google.load('visualization', '1', {'packages': ['corechart'], 'callback': (function (){
-      var click_handler, control, dd_options, dd;
-
-      control = new GPXCasualViewer.MapControl({
-          initial: [GPXCasualViewer.plugin.ElevationChart.path, 'ic_trending_up_black_48dp.png'].join('/')
-        },{
-          map: this.getMap()
-        });
-      dd_options = {};
-      dd = new DivDivider(
-            this.getMapElement().getAttribute('id'),
+      var click_handler,
+          app = this.app,
+          control = this.control,
+          dd_options = {},
+          dd = new DivDivider(
+            app.getMapElement().getAttribute('id'),
             GPXCasualViewer.plugin.ElevationChart.chartCanvasId,
             dd_options);
-
       dd.chart  = new google.visualization.LineChart(dd.$chart);
-      dd.marker = new google.maps.Marker();  
+      dd.marker = new google.maps.Marker({
+        icon: new google.maps.MarkerImage([GPXCasualViewer.plugin.ElevationChart.path, 'you-are-here-2.png'].join('/'), new google.maps.Size(32,37))
+      });
       dd.current_polyline = null;
       google.maps.event.addDomListener(control.getElement(), 'click', (function(ev) {
         this.toggle();
@@ -45,7 +47,7 @@ GPXCasualViewer.plugin.ElevationChart = {
       }).bind(dd));
 
       //
-      this.register('onVertexInfo', (function (polyline, idx, mouseevent){
+      app.register('onVertexInfo', (function (polyline, idx, mouseevent){
         if ( this.isOpened() && this.current_polyline === polyline ) {
           this.chart.setSelection([{row: idx, column: 1}]);
         }
@@ -87,6 +89,7 @@ GPXCasualViewer.plugin.ElevationChart = {
             this.view.on_select_chart = (function (row, col){
               var val = data.getValue(row, col);
               this.view.marker.setPosition( this.polyline.getPath().getAt(row) );
+              this.view.marker.setTitle('#'+ row +' - ele = '+ val +'m');
               if ( ! this.view.marker.getMap() ) {
                 this.view.marker.setMap( this.polyline.getMap() );
               }
@@ -101,11 +104,11 @@ GPXCasualViewer.plugin.ElevationChart = {
       };
 
       // attach an event to polylines which will be created
-      this.register('onCreatePolyline', (function(polyline) {
+      app.register('onCreatePolyline', (function(polyline) {
         google.maps.event.addListener(polyline, 'click', click_handler.bind({view: this, polyline: polyline}));
       }).bind(dd));
       // attach an event to polylines which were alredy created
-      this.eachGPX((function(gpx, key) {
+      app.eachGPX((function(gpx, key) {
         var i, l = gpx.trk.length, trk, m, n, trkseg;
         for ( i = 0; i < l; ++i ) {
           trk = gpx.trk[i];
@@ -122,7 +125,7 @@ GPXCasualViewer.plugin.ElevationChart = {
         }
       }).bind(dd));
 
-    }).bind(this)});
+    }).bind({app:this, control: control})});
 
   }
 };

@@ -1,12 +1,15 @@
 GPXCasualViewer.plugin.EXIFMarker = {
-  pts: [],
   callback: function() {
 
     this.register('onReadEXIF', (function (key, values){
 
-      GPXCasualViewer.plugin.EXIFMarker.pts.push({lat: values.latlng.lat(), lon: values.latlng.lng()});
-      if ( 1 < GPXCasualViewer.plugin.EXIFMarker.pts.length ) {
-        var bounds = GPXCasualViewer.boundsOf(GPXCasualViewer.plugin.EXIFMarker.pts);
+      this.context['EXIFMarker'] = {
+        pts: []
+      };
+
+      this.context['EXIFMarker']['pts'].push({lat: values.latlng.lat(), lon: values.latlng.lng()});
+      if ( 1 < this.context['EXIFMarker']['pts'].length ) {
+        var bounds = GPXCasualViewer.boundsOf(this.context['EXIFMarker']['pts']);
         this.map.fitBounds(GPXCasualViewer.createLatlngbounds(bounds));
       } else {
         this.map.panTo(values.latlng);

@@ -91,7 +91,7 @@ GPXCasualViewer.plugin.VertexInfo = {
   },
   callback: function() {
     // add hook points
-    console.log('add hook points: "onVertexInfo"');
+    console.log('Add hook points: "onVertexInfo"');
     this.hook['onVertexInfo'] = this.hook['onVertexInfo'] || [];
     // 
     this.register('onCreatePolyline', (function(polyline) {
@@ -108,9 +108,10 @@ GPXCasualViewer.plugin.VertexInfo = {
 
   },
   _handlerHookOnClickPolylineDefault: function(polyline, index, mouseevent) {
+    var wpt, content;
     if ( 0 <= index && polyline.isTrk() ) {
-      var wpt = polyline.getSource()[index],
-          content = '#'+ index +'<br/>lat='+ wpt.lat +'<br/>lon='+ wpt.lon;
+      wpt = polyline.getSource()[index];
+      content = '#'+ index +'<br/>lat='+ wpt.lat +'<br/>lon='+ wpt.lon;
       if ( wpt.ele ) {
         content = content + '<br/>ele='+ wpt.ele;
       }

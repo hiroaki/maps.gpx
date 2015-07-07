@@ -1,23 +1,6 @@
 GPXCasualViewer.plugin.VertexInfoWindow = {
   namespace: 'VertexInfoWindow',
   templateOfId: 'vertex-info-window-',
-  _active: null,
-  getActiveInfoWindow: function() {
-    return this._active;
-  },
-  setActiveInfoWindow: function(info, focus) {
-    this._active = info;
-    if ( focus ) {
-      info.setZIndex(this.getHigherZIndex());
-    }
-  },
-  isActiveInfoWindow: function(info) {
-    return this._active === info;
-  },
-  _maxZindex: 0,
-  getHigherZIndex: function() {
-    return ++this._maxZindex;
-  },
   _sequence: 0,
   generateId: function() {
     return this.templateOfId +''+ ++this._sequence;
@@ -36,13 +19,12 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
     return str.toString().replace(/([0-9\.,]+)/g, GPXCasualViewer.plugin.VertexInfoWindow._commify);
   },
   generateContent: function(id, wpt, idx) {
-    var tm = '', dt;
+    var tm = '', dt, el = '';
     if ( wpt.time ) {
       dt = new Date(wpt.time);
       tm = [[this.pad(dt.getFullYear(),4), this.pad(dt.getMonth()+1,2), this.pad(dt.getDate(),2)].join('-'),
             [this.pad(dt.getHours(),   2), this.pad(dt.getMinutes(),2), this.pad(dt.getSeconds(),2)].join(':')].join(' ');
     }
-    var el = '';
     if ( wpt.ele ) {
       el = parseInt(wpt.ele);
     }
@@ -62,15 +44,36 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
       '</div></div>'].join('');
   },
   callback: function() {
-    var PLUGIN = GPXCasualViewer.plugin.VertexInfoWindow;
 
-    google.maps.event.addDomListener(document, 'keydown', function(ev) {
-      var info = PLUGIN.getActiveInfoWindow();
+    this.context['VertexInfoWindow'] = {
+      _active: null,
+      getActiveInfoWindow: function() {
+        return this._active;
+      },
+      setActiveInfoWindow: function(info, focus) {
+        this._active = info;
+        if ( focus ) {
+          info.setZIndex(this.getHigherZIndex());
+        }
+      },
+      isActiveInfoWindow: function(info) {
+        return this._active === info;
+      },
+      _maxZindex: 0,
+      getHigherZIndex: function() {
+        return ++this._maxZindex;
+      }
+    };
+
+    google.maps.event.addDomListener(document, 'keydown', (function(ev) {
+      var context = this.context['VertexInfoWindow'],
+          info = context.getActiveInfoWindow(),
+          data, latlng;
       if ( info == null ) {
         return;
       }
 
-      var data = info.get(PLUGIN.namespace);
+      data = info.get('VertexInfoWindow');
       if ( ev.keyCode == 39 && data.index < data.polyline.getPath().getLength() -1 ) {
         data.index += 1;
       } else if ( ev.keyCode == 37 && 0 < data.index ) {
@@ -78,43 +81,45 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
       } else {
         return;
       }
-      info.set(PLUGIN.namespace, data); // update index
+      info.set('VertexInfoWindow', data); // update index
 
-      var latlng = data.polyline.getPath().getAt(data.index);
+      latlng = data.polyline.getPath().getAt(data.index);
       if ( ev.shiftKey ) {
         data.polyline.getMap().panTo(latlng);
       }
       info.setPosition(latlng);
       info.setContent(
-        PLUGIN.generateContent(
+        GPXCasualViewer.plugin.VertexInfoWindow.generateContent(
           data.id,
           data.polyline.getSource()[data.index],
           data.index
         )
       );
-    });
+    }).bind(this));
 
     this.register('onVertexInfo', function(polyline, index, mouseevent) {
+      var context = this.context['VertexInfoWindow'], id, info;
       if ( 0 <= index && polyline.isTrk() ) {
-        var id    = PLUGIN.generateId(),
-            info  = new google.maps.InfoWindow({
-                      content: PLUGIN.generateContent(id, polyline.getSource()[index], index),
-                      position: polyline.getPath().getAt(index)
-                      });
-        info.set(PLUGIN.namespace, {id: id, index: index, polyline: polyline});
+        id    = GPXCasualViewer.plugin.VertexInfoWindow.generateId();
+        info  = new google.maps.InfoWindow({
+                  content: GPXCasualViewer.plugin.VertexInfoWindow.generateContent(id, polyline.getSource()[index], index),
+                  position: polyline.getPath().getAt(index)
+                  });
+        info.set('VertexInfoWindow', {context: context, id: id, index: index, polyline: polyline});
 
         google.maps.event.addListener(info, 'domready', function(ev) {
-          PLUGIN.setActiveInfoWindow(this, true);
-          var div = document.getElementById(this.get(PLUGIN.namespace).id);
+          var div = document.getElementById(this.get('VertexInfoWindow').id),
+              context = this.get('VertexInfoWindow').context,
+              index_origin = null, vertex_infos, radio, i, l,
+              index_current, distance_track, min, avg, src, sec;
+          context.setActiveInfoWindow(this, true);
           google.maps.event.addDomListener(div, 'click', (function(ev) {
-            PLUGIN.setActiveInfoWindow(this, true);
+            this.get('VertexInfoWindow').context.setActiveInfoWindow(this, true);
           }).bind(this));
           // search origin
-          var index_origin = null,
-              vertex_infos = document.getElementsByClassName('vertex'),
-              i, l;
+          vertex_infos = document.getElementsByClassName('vertex');
           for ( i = 0, l = vertex_infos.length; i < l; ++i ) {
-            var radio = vertex_infos.item(i).getElementsByTagName('input').item(0);
+            radio = vertex_infos.item(i).getElementsByTagName('input').item(0);
             if ( radio.type == 'radio' && radio.checked ) {
               index_origin = radio.value;
               break;
@@ -122,14 +127,12 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
           }
           // measure
           if ( index_origin && div !== vertex_infos.item(i) ) {
-            var index_current   = div.getElementsByTagName('input').item(0).value;
-            var distance_track  = polyline.computeDistanceTrack(index_origin, index_current);
-            // var distance_linear = polyline.computeDistanceLinear(index_origin, index_current);
-            // console.log(''+ index_origin +' to '+ index_current +' = linear: '+ distance_linear +' track: '+ distance_track );
-            var min = '',
-                avg = '',
-                src = this.get(PLUGIN.namespace).polyline.getSource(),
-                sec = '';
+            index_current   = div.getElementsByTagName('input').item(0).value;
+            distance_track  = polyline.computeDistanceTrack(index_origin, index_current);
+            min = '';
+            avg = '';
+            src = this.get('VertexInfoWindow').polyline.getSource();
+            sec = '';
             if ( src[index_origin].time && src[index_current].time ) {
               sec = (new Date(src[index_current].time) - new Date(src[index_origin].time)) / 1000;
               min = Math.round(sec / 60);
@@ -140,16 +143,19 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
               }
             }
             div.getElementsByClassName('measure').item(0)
-            .innerHTML = [PLUGIN.commify(Math.round(distance_track)) +' meters', min +' mins', avg].join(', ');
+            .innerHTML = [
+              GPXCasualViewer.plugin.VertexInfoWindow.commify(Math.round(distance_track)),
+              ' meters', min, ' mins', avg
+            ].join(', ');
           }
         });
 
         google.maps.event.addListener(info, 'closeclick', function() {
-          this.set(PLUGIN.namespace, null);
-          google.maps.event.clearInstanceListeners(this);
-          if ( PLUGIN.isActiveInfoWindow(this) ) {
-            PLUGIN.setActiveInfoWindow(null);
+          if ( this.get('VertexInfoWindow').context.isActiveInfoWindow(this) ) {
+            this.get('VertexInfoWindow').context.setActiveInfoWindow(null);
           }
+          this.set('VertexInfoWindow', null);
+          google.maps.event.clearInstanceListeners(this);
         });
 
         info.open(polyline.getMap());
