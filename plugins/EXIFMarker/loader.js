@@ -1,11 +1,11 @@
 GPXCasualViewer.plugin.EXIFMarker = {
   callback: function() {
 
-    this.register('onReadEXIF', (function (key, values){
+    this.context['EXIFMarker'] = {
+      pts: []
+    };
 
-      this.context['EXIFMarker'] = {
-        pts: []
-      };
+    this.register('onReadEXIF', (function (key, values){
 
       this.context['EXIFMarker']['pts'].push({lat: values.latlng.lat(), lon: values.latlng.lng()});
       if ( 1 < this.context['EXIFMarker']['pts'].length ) {

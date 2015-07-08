@@ -1,11 +1,11 @@
 GPXCasualViewer.plugin.EXIF2GPX = {
   callback: function() {
 
-    this.register('onReadEXIF', (function (key, values){
+    this.context['EXIF2GPX'] = {
+      pts: []
+    };
 
-      this.context['EXIF2GPX'] = {
-        pts: []
-      };
+    this.register('onReadEXIF', (function (key, values){
 
       this.context['EXIF2GPX']['pts'].push({lat: values.latlng.lat(), lon: values.latlng.lng()});
       if ( 1 < this.context['EXIF2GPX']['pts'].length ) {
