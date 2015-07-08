@@ -37,15 +37,20 @@ GPXCasualViewer.plugin.GeoLocationControl = {
 
           this.marker = new google.maps.Marker({
             clickable: false,
-            position: latlng
+            position: latlng,
+            icon: new google.maps.MarkerImage(
+              [GPXCasualViewer.plugin.GeoLocationControl.path, 'gpsloc.png'].join('/'),
+              new google.maps.Size(16,16),
+              new google.maps.Point(0,0),
+              new google.maps.Point(8,8))
           });
 
           this.circle = new google.maps.Circle({
             center: latlng,
             clickable: false,
-            fillColor: '#9999FF',
+            fillColor: '#CCCCFF',
             fillOpacity: 0.2,
-            strokeColor: '#000099',
+            strokeColor: '#6666CC',
             strokeOpacity: 0.6,
             strokeWeight: 2,
             radius: (position.coords.accuracy || 1.0)
