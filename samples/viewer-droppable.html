@@ -12,6 +12,7 @@ GPXCasualViewer.onReady(function (){
   .use('Droppable')
   .register('onAddGPX', function(key) {
     this.fitBounds(key);
+    this.showOverlayWpts(key);
     this.showOverlayTrks(key);
   });
 });

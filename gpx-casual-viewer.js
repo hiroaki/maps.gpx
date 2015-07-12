@@ -987,20 +987,20 @@ GPXCasualViewer.require_plugins = function (){
 };
 
 // 
-GPXCasualViewer.ready = false;
-GPXCasualViewer.on_readies = [];
+GPXCasualViewer._ready = false;
+GPXCasualViewer._on_readies = [];
 
 GPXCasualViewer.onReady = function (callback){
-  GPXCasualViewer.on_readies.push(callback);
-  if ( GPXCasualViewer.ready ) {
-    GPXCasualViewer.emit();
+  GPXCasualViewer._on_readies.push(callback);
+  if ( GPXCasualViewer._ready ) {
+    GPXCasualViewer._emit();
   }
 };
 
-GPXCasualViewer.emit = function (){
+GPXCasualViewer._emit = function (){
   var cb;
   while ( true ) {
-    cb = GPXCasualViewer.on_readies.shift();
+    cb = GPXCasualViewer._on_readies.shift();
     if ( ! cb ) {
       break;
     }
@@ -1030,8 +1030,8 @@ GPXCasualViewer.emit = function (){
         GPXCasualViewer.require_plugins
         .apply(GPXCasualViewer, extensions)
         .then(function(values) {
-          GPXCasualViewer.ready = true;
-          GPXCasualViewer.emit();
+          GPXCasualViewer._ready = true;
+          GPXCasualViewer._emit();
         });
         break;
       }
