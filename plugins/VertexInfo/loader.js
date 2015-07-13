@@ -1,4 +1,4 @@
-GPXCasualViewer.plugin.VertexInfo = {
+MapsGPX.plugin.VertexInfo = {
   latlngFromOriginByPixel: function(/*LatLng*/origin, /*pixel*/delta_x, /*pixel*/delta_y, zoom) {
     // Original code by Google
     // https://developers.google.com/maps/documentation/javascript/examples/map-coordinates
@@ -63,8 +63,8 @@ GPXCasualViewer.plugin.VertexInfo = {
       b = new google.maps.LatLngBounds();
       b.extend(path.getAt(i));
       b.extend(path.getAt(i+1));
-      b.extend(GPXCasualViewer.plugin.VertexInfo.latlngFromOriginByPixel(b.getNorthEast(),  margin, -margin, zoom));
-      b.extend(GPXCasualViewer.plugin.VertexInfo.latlngFromOriginByPixel(b.getSouthWest(), -margin,  margin, zoom));
+      b.extend(MapsGPX.plugin.VertexInfo.latlngFromOriginByPixel(b.getNorthEast(),  margin, -margin, zoom));
+      b.extend(MapsGPX.plugin.VertexInfo.latlngFromOriginByPixel(b.getSouthWest(), -margin,  margin, zoom));
       if ( b.contains(latlng) ) {
         p0   = path.getAt(i),
         p1   = latlng,
@@ -96,12 +96,12 @@ GPXCasualViewer.plugin.VertexInfo = {
     // 
     this.register('onCreatePolyline', (function(polyline) {
       polyline.addListener('click', (function(mouseevent) {
-        var idx = GPXCasualViewer.plugin.VertexInfo.indexOfVertexNearestLatlng(
+        var idx = MapsGPX.plugin.VertexInfo.indexOfVertexNearestLatlng(
                     this.polyline.getPath(), mouseevent.latLng, this.polyline.getMap().getZoom());
         if ( this.app.hook['onVertexInfo'].length != 0 ) {
           this.app.applyHook('onVertexInfo', polyline, idx, mouseevent);
         } else {
-          GPXCasualViewer.plugin.VertexInfo._handlerHookOnClickPolylineDefault.call(this.app, polyline, idx, mouseevent);
+          MapsGPX.plugin.VertexInfo._handlerHookOnClickPolylineDefault.call(this.app, polyline, idx, mouseevent);
         }
       }).bind({app: this, polyline: polyline}));
     }).bind(this));

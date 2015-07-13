@@ -1,4 +1,4 @@
-GPXCasualViewer.plugin.VertexInfoWindow = {
+MapsGPX.plugin.VertexInfoWindow = {
   namespace: 'VertexInfoWindow',
   templateOfId: 'vertex-info-window-',
   _sequence: 0,
@@ -16,7 +16,7 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
     return cap;
   },
   commify: function(str) {
-    return str.toString().replace(/([0-9\.,]+)/g, GPXCasualViewer.plugin.VertexInfoWindow._commify);
+    return str.toString().replace(/([0-9\.,]+)/g, MapsGPX.plugin.VertexInfoWindow._commify);
   },
   generateContent: function(id, wpt, idx) {
     var tm = '', dt, el = '';
@@ -89,7 +89,7 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
       }
       info.setPosition(latlng);
       info.setContent(
-        GPXCasualViewer.plugin.VertexInfoWindow.generateContent(
+        MapsGPX.plugin.VertexInfoWindow.generateContent(
           data.id,
           data.polyline.getSource()[data.index],
           data.index
@@ -100,9 +100,9 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
     this.register('onVertexInfo', function(polyline, index, mouseevent) {
       var context = this.context['VertexInfoWindow'], id, info;
       if ( 0 <= index && polyline.isTrk() ) {
-        id    = GPXCasualViewer.plugin.VertexInfoWindow.generateId();
+        id    = MapsGPX.plugin.VertexInfoWindow.generateId();
         info  = new google.maps.InfoWindow({
-                  content: GPXCasualViewer.plugin.VertexInfoWindow.generateContent(id, polyline.getSource()[index], index),
+                  content: MapsGPX.plugin.VertexInfoWindow.generateContent(id, polyline.getSource()[index], index),
                   position: polyline.getPath().getAt(index)
                   });
         info.set('VertexInfoWindow', {context: context, id: id, index: index, polyline: polyline});
@@ -144,7 +144,7 @@ GPXCasualViewer.plugin.VertexInfoWindow = {
             }
             div.getElementsByClassName('measure').item(0)
             .innerHTML = [
-              GPXCasualViewer.plugin.VertexInfoWindow.commify(Math.round(distance_track)),
+              MapsGPX.plugin.VertexInfoWindow.commify(Math.round(distance_track)),
               ' meters', min, ' mins', avg
             ].join(', ');
           }

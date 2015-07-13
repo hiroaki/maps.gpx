@@ -1,4 +1,4 @@
-GPXCasualViewer.plugin.EXIF = {
+MapsGPX.plugin.EXIF = {
   bundles: [
     'exif.js'
   ],
@@ -28,9 +28,9 @@ GPXCasualViewer.plugin.EXIF = {
     console.log('Add a hook point: "onReadEXIF"');
     this.hook['onReadEXIF'] = this.hook['onReadEXIF'] || [];
 
-    // add an instance method to GPXCasualViewer.Polyline
-    console.log('Extends GPXCasualViewer.Polyline.prototype.findNearestVertexByDate');
-    GPXCasualViewer.Polyline.prototype.findNearestVertexByDate = function(date) {
+    // add an instance method to MapsGPX.Polyline
+    console.log('Extends MapsGPX.Polyline.prototype.findNearestVertexByDate');
+    MapsGPX.Polyline.prototype.findNearestVertexByDate = function(date) {
       var src   = this.getSource(),
           ptime = null,
           just  = false,
@@ -54,11 +54,11 @@ GPXCasualViewer.plugin.EXIF = {
     };
 
     var input_handler = function(key, src) {
-      var p1 = GPXCasualViewer.resolveAsArrayBuffer(src);
-      var p2 = GPXCasualViewer.resolveAsObjectURL(src);
+      var p1 = MapsGPX.resolveAsArrayBuffer(src);
+      var p2 = MapsGPX.resolveAsObjectURL(src);
       return Promise.all([p1,p2,src]).then((function(values) {
-        var exif   = GPXCasualViewer.plugin.EXIF.readFromArrayBuffer(values[0]),
-            latlng = GPXCasualViewer.plugin.EXIF.createLatlngFromExif(exif),
+        var exif   = MapsGPX.plugin.EXIF.readFromArrayBuffer(values[0]),
+            latlng = MapsGPX.plugin.EXIF.createLatlngFromExif(exif),
             founds = [],
             alternatives = [];
         if ( latlng == null && exif['DateTimeOriginal'] ) {
@@ -121,7 +121,7 @@ GPXCasualViewer.plugin.EXIF = {
           if ( this.hook['onReadEXIF'].length != 0 ) {
             this.applyHook('onReadEXIF', key, stash);
           } else {
-            GPXCasualViewer.plugin.EXIF._handlerHookOnReadExifDefault.call(this, key, stash);
+            MapsGPX.plugin.EXIF._handlerHookOnReadExifDefault.call(this, key, stash);
           }
         }
         return key;
@@ -129,7 +129,7 @@ GPXCasualViewer.plugin.EXIF = {
     }
 
     console.log('Register an input handler for "image/jpeg"');
-    this.registerInputHandler(new GPXCasualViewer.InputHandler('image/jpeg', input_handler));
+    this.registerInputHandler(new MapsGPX.InputHandler('image/jpeg', input_handler));
   },
   _handlerHookOnReadExifDefault: function(key, values) {
     var pinpoint = null;

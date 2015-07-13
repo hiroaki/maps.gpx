@@ -1,4 +1,4 @@
-GPXCasualViewer.plugin.GeoLocationControl = {
+MapsGPX.plugin.GeoLocationControl = {
   callback: function() {
 
     function CurrentPositionOverlay(){
@@ -39,7 +39,7 @@ GPXCasualViewer.plugin.GeoLocationControl = {
             clickable: false,
             position: latlng,
             icon: new google.maps.MarkerImage(
-              [GPXCasualViewer.plugin.GeoLocationControl.path, 'gpsloc.png'].join('/'),
+              [MapsGPX.plugin.GeoLocationControl.path, 'gpsloc.png'].join('/'),
               new google.maps.Size(16,16),
               new google.maps.Point(0,0),
               new google.maps.Point(8,8))
@@ -62,12 +62,12 @@ GPXCasualViewer.plugin.GeoLocationControl = {
 
     var overlay = new CurrentPositionOverlay();
 
-    var mc = new GPXCasualViewer.MapControl({
-       enabled: [GPXCasualViewer.plugin.GeoLocationControl.path, 'ic_location_searching_black_24dp.png'].join('/'),
-         fixed: [GPXCasualViewer.plugin.GeoLocationControl.path, 'ic_gps_fixed_red_24dp.png'].join('/'),
-       located: [GPXCasualViewer.plugin.GeoLocationControl.path, 'ic_gps_fixed_blue_24dp.png'].join('/'),
-        failed: [GPXCasualViewer.plugin.GeoLocationControl.path, 'ic_gps_off_black_24dp.png'].join('/'),
-      disabled: [GPXCasualViewer.plugin.GeoLocationControl.path, 'ic_location_disabled_black_24dp.png'].join('/')
+    var mc = new MapsGPX.MapControl({
+       enabled: [MapsGPX.plugin.GeoLocationControl.path, 'ic_location_searching_black_24dp.png'].join('/'),
+         fixed: [MapsGPX.plugin.GeoLocationControl.path, 'ic_gps_fixed_red_24dp.png'].join('/'),
+       located: [MapsGPX.plugin.GeoLocationControl.path, 'ic_gps_fixed_blue_24dp.png'].join('/'),
+        failed: [MapsGPX.plugin.GeoLocationControl.path, 'ic_gps_off_black_24dp.png'].join('/'),
+      disabled: [MapsGPX.plugin.GeoLocationControl.path, 'ic_location_disabled_black_24dp.png'].join('/')
       }, {
         initial: 'enabled'
       });

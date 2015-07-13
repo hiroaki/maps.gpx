@@ -1,9 +1,9 @@
-GPXCasualViewer.plugin.InputFileControl = {
+MapsGPX.plugin.InputFileControl = {
   callback: function() {
     var control, input;
 
-    control = new GPXCasualViewer.MapControl({
-        initial: [GPXCasualViewer.plugin.InputFileControl.path, 'ic_folder_open_black_24dp.png'].join('/')
+    control = new MapsGPX.MapControl({
+        initial: [MapsGPX.plugin.InputFileControl.path, 'ic_folder_open_black_24dp.png'].join('/')
       },{
         position: 'TOP_LEFT'
       });
@@ -11,7 +11,7 @@ GPXCasualViewer.plugin.InputFileControl = {
 
     // hidden interface to upload
     input = document.createElement('input');
-    input.setAttribute('id', GPXCasualViewer.plugin.InputFileControl.id);
+    input.setAttribute('id', MapsGPX.plugin.InputFileControl.id);
     input.setAttribute('type', 'file');
     input.setAttribute('style', 'display:none');
     input.setAttribute('multiple', true);

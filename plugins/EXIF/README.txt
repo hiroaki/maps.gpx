@@ -1,4 +1,4 @@
-The GPXCasualViewer uses external libraries.
+The maps.gpx uses external libraries.
 I really appreciate these great works.
 
 

@@ -1,29 +1,28 @@
-> このプロジェクトはこのバージョンでいったん終了し、続きは新しいプロジェクト `maps.gpx` で再開します。 [https://github.com/hiroaki/maps.gpx](https://github.com/hiroaki/maps.gpx)
+# maps.gpx
 
-# GPX Casual Viewer v3
+maps.gpx は Google Maps の地図上に位置情報データ（ GPX 形式）を簡単にオーバーレイ（視覚化）するための HTML5 アプリケーションです。
 
-GPX Casual Viewer は、
-Google Maps の地図上に位置情報データ（ GPX 形式）を簡単にオーバーレイ（視覚化）するための HTML5 アプリケーションです。
-
-機能を提供する汎用の JavaScript ライブラリ `gpx-casual-viewer.js` が、このプロジェクトの主要部分になります。
+機能を提供する汎用の JavaScript ライブラリ `maps-gpx.js` が、このプロジェクトの主要部分になります。
 
 そして用途に応じて、その機能を組み合わせた HTML ファイルが、アプリケーションとなります。
 同梱される `viewer.html` はアプリケーションの例のひとつです。
 ほかの例は `samples` ディレクトリにあります。
 
-以下はその主要 JavaScript ライブラリ `gpx-casual-viewer.js` の説明です。
+以下はその主要 JavaScript ライブラリ `maps-gpx.js` の説明です。
 
 
 ## 使い方
 
 まず最初に Google Maps API をロードします。その際、 `geometry` ライブラリを使うように指定します。
-それから `gpx-casual-viewer.js` をロードします。
-これにより、クラス `GPXCasualViewer` が定義されます。
+
+GPS センサーが必要な機能を用いる場合は `sensor` に `true` を指定します。
+
+それから `maps-gpx.js` をロードします。これにより、クラス `MapsGPX` が定義されます。
 
 ```
 <script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry">
 </script>
-<script src="gpx-casual-viewer.js">
+<script src="maps-gpx.js">
 </script>
 ```
 
@@ -36,7 +35,7 @@ Google Maps の地図上に位置情報データ（ GPX 形式）を簡単にオ
 言い換えると、 document の `load` がトリガーされても、機能の幾つかはまだ準備できていない可能性があります。
 
 ```
-GPXCasualViewer.onReady(function (){
+MapsGPX.onReady(function (){
   // ここにアプリケーションのロジックを書きます。
 });
 ```
@@ -47,14 +46,14 @@ GPXCasualViewer.onReady(function (){
 必須の最初の引数は、地図の描画領域である要素（ `div` タグ）の ID です。
 
 省略可能な第二の引数はハッシュ形式で、そのまま `google.maps.Map` をインスタンス化する際の[オプション](https://developers.google.com/maps/documentation/javascript/reference?hl=ja#MapOptions)になります。
-省略された場合は `GPXCasualViewer` が定義しているデフォルト値が使われます。
+省略された場合は `MapsGPX` が定義しているデフォルト値が使われます。
 
 ```
 <div id="map_canvas">
 </div>
 <script>
-GPXCasualViewer.onReady(function (){
-  var app = new GPXCasualViewer('map_canvas');
+MapsGPX.onReady(function (){
+  var app = new MapsGPX('map_canvas');
   // ...
 });
 </script>
@@ -90,7 +89,7 @@ JavaScript コードを書く代わりに、別ファイルで用意されてい
 プラグイン `QueryURL` は、クエリストリングのパラメータ 'url' の値である URL を
 メソッド `input` に渡すものです。
 
-プラグインを利用可能にするには、 `GPXCasualViewer` のインスタンス・メソッド `use` にその名前を与えます。
+プラグインを利用可能にするには、 `MapsGPX` のインスタンス・メソッド `use` にその名前を与えます。
 
 ```
 app.use('Droppable');
@@ -101,7 +100,7 @@ app.use('QueryURL');
 また併せて `samples` ディレクトリにある各 HTML ファイルも参考にしてください。
 
 そして様々な機能を提供する各種プラグインや、
-`GPXCasualViewer` のインスタンスが提供するメソッドなどを用いて、
+`MapsGPX` のインスタンスが提供するメソッドなどを用いて、
 アプリケーションを完成させてください。
 
 
@@ -124,15 +123,15 @@ app.use('QueryURL');
 ```
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"/>
-<title>GPX Casual Viewer v3</title>
+<title>maps.gpx
 <style>
 html, body, #map_canvas { height: 100%; margin: 0px; padding: 0px; }
 </style>
 <script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry"></script>
-<script src="../gpx-casual-viewer.js"></script>
+<script src="../maps-gpx.js"></script>
 <script>
-GPXCasualViewer.onReady(function (){
-  new GPXCasualViewer('map_canvas')
+MapsGPX.onReady(function (){
+  new MapsGPX('map_canvas')
   .use('Droppable')
   .register('onAddGPX', function(key) {
     this.fitBounds(key);
@@ -165,20 +164,20 @@ GPX をパラメータとして与えたい場合に有用です。
 ```
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"/>
-<title>GPX Casual Viewer v3</title>
+<title>maps.gpx
 <style>
 div.map { width:640px; height:320px; }
 img.info-window { max-width: 200px; max-height: 200px; }
 </style>
 <script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry"></script>
-<script src="../gpx-casual-viewer.js"></script>
+<script src="../maps-gpx.js"></script>
 <script>
-GPXCasualViewer.onReady(function (){
+MapsGPX.onReady(function (){
   var $maps = document.getElementsByClassName('map'),
       apps = [], i, l, url;
   for ( i = 0, l = $maps.length; i < l; ++i ) {
     url = $maps.item(i).getAttribute('data-url');
-    apps[i] = new GPXCasualViewer($maps.item(i).getAttribute('id'));
+    apps[i] = new MapsGPX($maps.item(i).getAttribute('id'));
     apps[i].input(url, url).then((function(key) {
       this.fitBounds(key);
       this.showOverlayWpts(key);
@@ -203,16 +202,12 @@ GPXCasualViewer.onReady(function (){
 
 ---
 
-# API リファレンス （非推奨 DEPRECATED）
+# API リファレンス
 
-GPX Casual Viewer は現在も開発中のため、 API は予告なく変更されることがあります。
-
-現在のバージョンは v2.3.x です。が、このプロジェクトはこのバージョンでいったん終了し、続きは新しいプロジェクト `maps.gpx` で再開します。
-
-`maps.gpx` での最初のバージョンは名前空間が `MapsGPX` に変わるだけで、機能は変わりありません。
+maps.gpx は現在も開発中のため、 API は予告なく変更される場合があります。
 
 
-## クラス GPXCasualViewer
+## クラス MapsGPX
 
 ライブラリのコア。
 
@@ -249,29 +244,29 @@ resolveAsDataURL( src:Object )| Promise | *src* の実体を `DataURL` として
 resolveAsText( src:Object, encoding?:String )| Promise | *src* の実体をテキストとして取得する `Promise` インスタンスを生成して返します。テキストのエンコーディングを示す encoding のデフォルトは "UTF-8" です。
 GPXToJSON( document:Object ) | gpxType | XML ドキュメントを GPX として解釈し、それを JSON に変換したハッシュを返します。
 boundsOf( pts:Array, boundsType?:Hash ) | boundsType | "wptType" のリスト *pts* を全て含む最小の境界の座標をハッシュで返します。オプションに *boundsType* を渡したとき、その境界を *pts* で拡張して返します。
-createLatlngbounds( boundsType?:Hash ) | GPXCasualViewer.LatLngBounds | *boundsType* を元にした `GPXCasualViewer.LatLngBounds` のインスタンスを生成して返します。
-createOverlayAsWpt( wptType:Hash, opt?:Hash ) | GPXCasualViewer.Marker | ウェイポイントとしてオーバーレイを生成し、返します。
-createOverlayAsWpt( wptType:Array, opt?:Hash ) | GPXCasualViewer.Polyline | 対称性のためのメソッドで、ウィエポイントをオーバーレイとして生成できない旨の例外を出します。
-createOverlayAsRte( wptType:Hash, opt?:Hash ) | GPXCasualViewer.Marker | ルートとしてオーバーレイを生成し、返します。
-createOverlayAsRte( wptType:Array, opt?:Hash ) | GPXCasualViewer.Polyline | ルートとしてオーバーレイを生成し、返します。
-createOverlayAsTrk( wptType:Hash, opt?:Hash ) | GPXCasualViewer.Marker | トラックとしてオーバーレイを生成し、返します。
-createOverlayAsTrk( wptType:Array, opt?:Hash ) | GPXCasualViewer.Polyline | トラックとしてオーバーレイを生成し、返します。
+createLatlngbounds( boundsType?:Hash ) | MapsGPX.LatLngBounds | *boundsType* を元にした `MapsGPX.LatLngBounds` のインスタンスを生成して返します。
+createOverlayAsWpt( wptType:Hash, opt?:Hash ) | MapsGPX.Marker | ウェイポイントとしてオーバーレイを生成し、返します。
+createOverlayAsWpt( wptType:Array, opt?:Hash ) | MapsGPX.Polyline | 対称性のためのメソッドで、ウィエポイントをオーバーレイとして生成できない旨の例外を出します。
+createOverlayAsRte( wptType:Hash, opt?:Hash ) | MapsGPX.Marker | ルートとしてオーバーレイを生成し、返します。
+createOverlayAsRte( wptType:Array, opt?:Hash ) | MapsGPX.Polyline | ルートとしてオーバーレイを生成し、返します。
+createOverlayAsTrk( wptType:Hash, opt?:Hash ) | MapsGPX.Marker | トラックとしてオーバーレイを生成し、返します。
+createOverlayAsTrk( wptType:Array, opt?:Hash ) | MapsGPX.Polyline | トラックとしてオーバーレイを生成し、返します。
 load_script( src:String ) | Promise | 外部の JavaScript ソースファイルをロードし、ロードが完了したときに resolve する Promise を返します。
 load_css( src:String ) | Promise | 外部の CSS ファイルをロードし、ロードが完了したときに resolve する Promise を返します。
 require_plugin( PluginName:String ) | Promise | プラグイン *PluginName* をロードし、ロードが完了したときに resolve する Promise を返します。
 require_plugins( PluginName:String [, PluginName:String, ...] ) | Promise | 引数にリストされる複数のプラグイン *PluginName* をロードし、すべてのプラグインのロードが完了したときに resolve する Promise を返します。引数の順番にプラグインのロードが行われ、ひとつのロードが完了してから次のプラグインのロードが始まります。
-onReady( callback:Function ) | undefined | `GPXCasualViewer` が利用可能になった時に実行する *callback* を登録します。 *callback* はすべてのプラグインのソースのロードが完了した後に呼び出されます。
+onReady( callback:Function ) | undefined | `MapsGPX` が利用可能になった時に実行する *callback* を登録します。 *callback* はすべてのプラグインのソースのロードが完了した後に呼び出されます。
 
 ノート：
 
 `createOverlayAs...` メソッドは、 wptType を渡すとマーカーを、 wptType のリストを渡すとポリラインを生成して返します。
 マーカーとポリラインは、上位概念であるオーバーレイとして同じインタフェースを持っているため、
-`GPXCasualViewer` ではマーカーやポリラインを区別して生成することのないように設計しています。
+`MapsGPX` ではマーカーやポリラインを区別して生成することのないように設計しています。
 
 しかしながら生成されたオーバーレイが、どの GPX 要素のものなのかを区別するためには、
 オーバーレイ自身にその属性を持たせなければなりません。
 
-そのため `GPXCasualViewer` で操作するマーカーやポリラインを生成するときは、
+そのため `MapsGPX` で操作するマーカーやポリラインを生成するときは、
 `google.maps` のコンストラクタを使わずに、これらのファクトリ・メソッドを使う必要があります。
 
 
@@ -279,7 +274,7 @@ onReady( callback:Function ) | undefined | `GPXCasualViewer` が利用可能に�
 
 コンストラクタ  | 説明
 -----------------|-------------------------------------------------------------
-GPXCasualViewer( map_id:String, map_option?:Hash, app_option?:Hash ) | インスタンス化します。 *map_id* および *map_option* は、内部で `google.maps.Map` のコンストラクタに渡され、地図が初期化されます。 `google.maps.Map` のドキュメントを参照してください。 *app_option* は、その他のインスタンスの設定情報を渡します（が、現在のバージョンでは何も効果がありません）。
+MapsGPX( map_id:String, map_option?:Hash, app_option?:Hash ) | インスタンス化します。 *map_id* および *map_option* は、内部で `google.maps.Map` のコンストラクタに渡され、地図が初期化されます。 `google.maps.Map` のドキュメントを参照してください。 *app_option* は、その他のインスタンスの設定情報を渡します（が、現在のバージョンでは何も効果がありません）。
 
 
 ### インスタンス・メソッド
@@ -296,7 +291,7 @@ showOverlayRtes( key?:String ) | this | *key* で指定される GPX のうち�
 hideOverlayRtes( key?:String ) | this | *key* で指定される GPX のうち、ルートのオーバーレイについて非表示にします。
 showOverlayTrks( key?:String ) | this | *key* で指定される GPX のうち、トラックのオーバーレイについて表示させます。
 hideOverlayTrks( key?:String ) | this | *key* で指定される GPX のうち、トラックのオーバーレイについて非表示にします。
-registerInputHandler( handler:GPXCasualViewer.InputHandler ) | this | アプリケーションに入力ハンドラを登録します。デフォルトでは GPX を入力するためのハンドラが登録されています。ほかのメディア・タイプを処理するハンドラを登録する場合に利用します。もしそのメディア・タイプのハンドラがすでに登録されている場合は上書きされます。
+registerInputHandler( handler:MapsGPX.InputHandler ) | this | アプリケーションに入力ハンドラを登録します。デフォルトでは GPX を入力するためのハンドラが登録されています。ほかのメディア・タイプを処理するハンドラを登録する場合に利用します。もしそのメディア・タイプのハンドラがすでに登録されている場合は上書きされます。
 input( key:String, src:Object, type?:String ) | Promise | *src* の実体のデータをアプリケーションに入力します。 *type* を省略した場合、データのメディア・タイプが自動的に判定され、適切な入力ハンドラにより処理されます。 GPX を `input` する場合はデフォルトの入力ハンドラが処理しますが、ほかのメディア・タイプのデータを入力する場合はあらかじめ専用の入力ハンドラが `registerInputHandler` によって登録されていなければなりません。
 getGPX( key:String ) | gpxType | インスタンスに追加されている GPX の中から、指定した *key* を識別子とする GPX を返します。
 eachGPX( callback:Function ) | this | インスタンスに追加した複数の GPX に対して *callback* の処理を実行します。コールバックは内部形式の GPX 一つずつに対して実行され、引数にはそのデータと、識別のためのキー（文字列）が渡されます。
@@ -315,9 +310,9 @@ applyHook( hook:String, arguments ) | this | フックポイント *hook* に登
 
 フック               | 説明
 --------------------|--------------------------------
-onCreateLatlngbounds| `GPXCasualViewer.LatLngBounds` が生成された時。生成されたオブジェクトがコールバックの引数になります。
-onCreateMarker      | `GPXCasualViewer.Marker` が生成された時。生成されたオブジェクトがコールバックの引数になります。
-onCreatePolyline    | `GPXCasualViewer.Polyline` が生成された時。生成されたオブジェクトがコールバックの引数になります。
+onCreateLatlngbounds| `MapsGPX.LatLngBounds` が生成された時。生成されたオブジェクトがコールバックの引数になります。
+onCreateMarker      | `MapsGPX.Marker` が生成された時。生成されたオブジェクトがコールバックの引数になります。
+onCreatePolyline    | `MapsGPX.Polyline` が生成された時。生成されたオブジェクトがコールバックの引数になります。
 onAddGPX            | インスタンス・メソッド `addGPX(key, src)` により GPX が入力されたとき。 `addGPX` の第一引数である GPX の識別子 *key* がコールバックの引数になります。
 
 これら以外にも、プラグインによって作成されるフック・ポイントがあります。
@@ -325,7 +320,7 @@ onAddGPX            | インスタンス・メソッド `addGPX(key, src)` に�
 
 ---
 
-## クラス GPXCasualViewer.InputHandler
+## クラス MapsGPX.InputHandler
 
 メディア・タイプに応じた入力処理を定義するクラスです。
 
@@ -335,7 +330,7 @@ GPX 以外のデータを扱いたい時に、このクラスのインスタン�
 
 コンストラクタ  | 説明
 -----------------|-------------------------------------------------------------
-GPXCasualViewer.InputHandler( type:String, handler?:Function ) | メディア・タイプ *type* のための入力ハンドラ *handler* を定義したオブジェクトを作成します。これを `GPXCasualViewer` のインスタンス・メソッド `registerInputHandler` に渡すことで利用できるようになります。 *handler* は省略可能ですが、その結果は、入力に対して何もしないことになります。
+MapsGPX.InputHandler( type:String, handler?:Function ) | メディア・タイプ *type* のための入力ハンドラ *handler* を定義したオブジェクトを作成します。これを `MapsGPX` のインスタンス・メソッド `registerInputHandler` に渡すことで利用できるようになります。 *handler* は省略可能ですが、その結果は、入力に対して何もしないことになります。
 
 ### インスタンス・メソッド
 
@@ -345,18 +340,18 @@ setType( type:String ) | this | メディア・タイプをセットします
 getType( type:String ) | String | セットされているメディア・タイプを取得します。
 setHandler( handler:Function ) | this | ハンドラをセットします
 getHandler( handler:Function ) | Function | セットされているハンドラを取得します。
-execute( bind:Object, key:String, src:Object ) | Promise | ハンドラに *bind* オブジェクトをバインドして、引数 *key* と *src* を与えて実行しますが、返却値は成功時に *key* を返す `Promise` のインスタンスです。 *src* は URL を表す文字列か、 `Blob` のインスタンスで、ハンドラ実装者はどちらでも処理可能なように作成する必要があります（ `GPXCasualViewer.resolveAs...` の各クラス・メソッドを利用してください）。処理内容はハンドラ次第ですが、 GPX を処理するハンドラの場合はアプリケーションのインスタンスに GPX を追加します。
+execute( bind:Object, key:String, src:Object ) | Promise | ハンドラに *bind* オブジェクトをバインドして、引数 *key* と *src* を与えて実行しますが、返却値は成功時に *key* を返す `Promise` のインスタンスです。 *src* は URL を表す文字列か、 `Blob` のインスタンスで、ハンドラ実装者はどちらでも処理可能なように作成する必要があります（ `MapsGPX.resolveAs...` の各クラス・メソッドを利用してください）。処理内容はハンドラ次第ですが、 GPX を処理するハンドラの場合はアプリケーションのインスタンスに GPX を追加します。
 
 
 ---
 
-## クラス GPXCasualViewer.MapControl
+## クラス MapsGPX.MapControl
 
 コントロールを作成するためのクラスです。
 
 コンストラクタ  | 説明
 -----------------|-------------------------------------------------------------
-GPXCasualViewer.MapControl( icons:Hash, opts?:Hash ) | ボタン型のコントロールを作成します。 *icons* にはアイコン画像の識別子とその URL のペアを持つハッシュを受け取ります。これは、たとえばクリックすることによって変化するアイコンを実装しようとする場合に対するものです。 `changeIcon` メソッドを参照してください。
+MapsGPX.MapControl( icons:Hash, opts?:Hash ) | ボタン型のコントロールを作成します。 *icons* にはアイコン画像の識別子とその URL のペアを持つハッシュを受け取ります。これは、たとえばクリックすることによって変化するアイコンを実装しようとする場合に対するものです。 `changeIcon` メソッドを参照してください。
 
 ### インスタンス・メソッド
 
@@ -365,12 +360,12 @@ GPXCasualViewer.MapControl( icons:Hash, opts?:Hash ) | ボタン型のコント�
 getElement( ) | node | コントロールの要素を返します。
 isCurrentIcon( key:String ) | boolean | コントロールの状態が、アイコン識別子 *key* であるとき `true` を返します。
 getMap( ) | google.maps.Map | コントロールが置かれている `google.maps.Map` インスタンスを返します。
-setMap( map:Map ) | 指定された *map* にコントロールを配置します。 `null` を指定することで、地図からコントロールを取り除きます。
-changeIcon( key:String ) | コントロールの状態を、指定したアイコン識別子 *key* とします。同時にアイコンをそのものに変更します。
+setMap( map:Map ) | None | 指定された *map* にコントロールを配置します。 `null` を指定することで、地図からコントロールを取り除きます。
+changeIcon( key:String ) | this | コントロールの状態を、指定したアイコン識別子 *key* とします。同時にアイコンをそのものに変更します。
 
 ---
 
-## クラス GPXCasualViewer.LatLngBounds
+## クラス MapsGPX.LatLngBounds
 
 機能を拡張するために `google.maps.LatLngBounds` を継承したクラスです。
 
@@ -381,15 +376,15 @@ changeIcon( key:String ) | コントロールの状態を、指定したアイ�
 
 インスタンス・メソッド  | 戻り値   | 説明
 ----------------|--------------|------------
-clone( ) | GPXCasualViewer.LatLngBounds | 自身と同じ内容を持った、新しいインスタンスを生成して返します。
+clone( ) | MapsGPX.LatLngBounds | 自身と同じ内容を持った、新しいインスタンスを生成して返します。
 
 ---
 
-## クラス GPXCasualViewer.Marker
+## クラス MapsGPX.Marker
 
 機能を拡張するために `google.maps.Marker` を継承したクラスです。
 
-ただし拡張部分については `GPXCasualViewer` のクラスメ・ソッド
+ただし拡張部分については `MapsGPX` のクラスメ・ソッド
 `createOverlayAs...` メソッドによってインスタンスが作成された場合のみ有効です。
 
 ### インスタンス・メソッド
@@ -407,11 +402,11 @@ getSource( ) | Hash | インスタンスを生成する際に与えらたパラ�
 
 ---
 
-## クラス GPXCasualViewer.Polyline
+## クラス MapsGPX.Polyline
 
 機能を拡張するために `google.maps.Polyline` を継承したクラスです。
 
-ただし拡張部分については `GPXCasualViewer` のクラスメ・ソッド
+ただし拡張部分については `MapsGPX` のクラスメ・ソッド
 `createOverlayAs...` メソッドによってインスタンスが作成された場合のみ有効です。
 
 ### インスタンス・メソッド
@@ -434,10 +429,10 @@ computeDistanceTrack( Integer:origin, Integer:destination )|Float|インデッ�
 
 ## プラグイン
 
-クラス `GPXCasualViewer` に機能を追加する機構です。
+クラス `MapsGPX` に機能を追加する機構です。
 通常は別の JavaScript ソース・ファイルにて提供されます。
 
-`GPXCasualViewer` のインスタンス・メソッド `use` によって、その利用を開始します。
+`MapsGPX` のインスタンス・メソッド `use` によって、その利用を開始します。
 
 ```
 app.use('PluginName');
@@ -450,34 +445,34 @@ app.use('PluginName');
 これらのプラグインはコア・ライブラリのソース内部に含まれており、 `script` タグで別途読み込む必要はありません。
 また、インスタンス・メソッド `use` で利用を明示するまでもなくデフォルトで利用されるプラグインです。
 
-#### GPXCasualViewer.plugin.SetTitleOnCreateMarker
+#### MapsGPX.plugin.SetTitleOnCreateMarker
 
 このプラグインにより、マーカーにマウス・ポインタが乗ると、
 その GPX 要素（通常はウェイポイント）の `name` の値をツール・チップスで表示します。
 
-#### GPXCasualViewer.plugin.SetStrokeOptionOnCreatePolyline
+#### MapsGPX.plugin.SetStrokeOptionOnCreatePolyline
 
 このプラグインにより、ルート、およびトラックのポリラインのオプションを定義しています。
 具体的には、ポリラインの色、幅、不透明度についてです。
 
 
-## オブジェクト仕様 GPXCasualViewer.plugin
+## オブジェクト仕様 MapsGPX.plugin
 
 プラグインを作成するは、この規約に則ってください。
-また各 `GPXCasualViewer.plugin.*PluginName*` も参照してください。
+また各 `MapsGPX.plugin.*PluginName*` も参照してください。
 
 すべてのプラグインは同じディレクトリに配置してください。
 
 また、プラグイン名は大文字で始まるキャメル・ケースの名前にし、
 そのサブディレクトリに `loader.js` というファイル名で作成します。
 
-`GPXCasualViewer` は、 `GPXCasualViewer.plugin` の名前空間に
+`MapsGPX` は、 `MapsGPX.plugin` の名前空間に
 プラグインの名前のプロパティを登録します。
 
 小文字のプロパティは予約されています。
 
 
-## オブジェクト仕様 GPXCasualViewer.plugin.*PluginName*
+## オブジェクト仕様 MapsGPX.plugin.*PluginName*
 
 *PluginName* として登録されたプラグインは、その名前空間のうちに、予約されるプロパティがあります。
 これらのプロパティになんらかの値をセットしたとき、そのプラグインの外部から影響を受ける場合があります。
@@ -486,11 +481,11 @@ app.use('PluginName');
 
 プロパティ   | タイプ  | 説明
 ------------|--------|------------------------------------------------------------
-path        | string | プラグインのベースパスを設定するためのプロパティとして使用します。 `GPXCasualViewer` のインスタンス・メソッド `require_plugin` により自動的にセットされます。
-callback | Function | `GPXCasualViewer` のインスタンスにこのプラグインを登録する際、プロパティ *hook* にセットされているフック・ポイントのタイミングで *callback* が実行されます。 *hook* が `false` となる値であれば、 `use` された時に実行されます。 *callback* は `GPXCasualViewer` のインスタンス・メソッドとして実行されます。また渡される引数はフック・ポイントによって異なります。
+path        | string | プラグインのベースパスを設定するためのプロパティとして使用します。 `MapsGPX` のインスタンス・メソッド `require_plugin` により自動的にセットされます。
+callback | Function | `MapsGPX` のインスタンスにこのプラグインを登録する際、プロパティ *hook* にセットされているフック・ポイントのタイミングで *callback* が実行されます。 *hook* が `false` となる値であれば、 `use` された時に実行されます。 *callback* は `MapsGPX` のインスタンス・メソッドとして実行されます。また渡される引数はフック・ポイントによって異なります。
 hook  | String | *callback* が実行されるフック・ポイントを指定します。指定がない時は `use` されたときになります。
 
-プラグインは基本的に `GPXCasualViewer` のインスタンスごとに使用を宣言します（全インスタンスで共有されるプラグインもあり得ます）。
+プラグインは基本的に `MapsGPX` のインスタンスごとに使用を宣言します（全インスタンスで共有されるプラグインもあり得ます）。
 各プラグインが、インスタンスにデータを保持したい場合は、インスタンスが持っている「コンテキスト」を利用することができます。
 コンテキストは `this.context` プロパティにハッシュとしてあります。そのキーにプラグイン名をもってアクセスしてください。
 
@@ -511,6 +506,6 @@ Google Maps JavaScript API v3
 
 # 著作権・ライセンス
 
-    GPX Casual Viewer v3
+    maps.gpx
       Copyright 2009-2015 WATANABE Hiroaki
       Released under the MIT license

@@ -1,4 +1,4 @@
-GPXCasualViewer.plugin.EXIF2GPX = {
+MapsGPX.plugin.EXIF2GPX = {
   callback: function() {
 
     this.context['EXIF2GPX'] = {
@@ -9,8 +9,8 @@ GPXCasualViewer.plugin.EXIF2GPX = {
 
       this.context['EXIF2GPX']['pts'].push({lat: values.latlng.lat(), lon: values.latlng.lng()});
       if ( 1 < this.context['EXIF2GPX']['pts'].length ) {
-        var bounds = GPXCasualViewer.boundsOf(this.context['EXIF2GPX']['pts']);
-        this.map.fitBounds(GPXCasualViewer.createLatlngbounds(bounds));
+        var bounds = MapsGPX.boundsOf(this.context['EXIF2GPX']['pts']);
+        this.map.fitBounds(MapsGPX.createLatlngbounds(bounds));
       } else {
         this.map.panTo(values.latlng);
       }
@@ -32,7 +32,7 @@ GPXCasualViewer.plugin.EXIF2GPX = {
         var name = values.exif['DateTimeOriginal'] || '(unknown)';
         var gpx_str = [
           '<?xml version="1.0"?>',
-          '<gpx version="1.1" creator="GPX Casual Viewer" ',
+          '<gpx version="1.1" creator="maps.gpx" ',
           'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" ',
           'xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">',
           '<metadata>',

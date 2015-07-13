@@ -1,12 +1,12 @@
-GPXCasualViewer.plugin.ElevationChart = {
+MapsGPX.plugin.ElevationChart = {
   bundles: [
     'DivDivider.js',
     'https://www.google.com/jsapi'
   ],
   chartCanvasId: 'chart_canvas',
   callback: function() {
-    var control = new GPXCasualViewer.MapControl({
-      initial: [GPXCasualViewer.plugin.ElevationChart.path, 'ic_trending_up_black_48dp.png'].join('/')
+    var control = new MapsGPX.MapControl({
+      initial: [MapsGPX.plugin.ElevationChart.path, 'ic_trending_up_black_48dp.png'].join('/')
     },{
       map: this.getMap()
     });
@@ -18,11 +18,11 @@ GPXCasualViewer.plugin.ElevationChart = {
           dd_options = {},
           dd = new DivDivider(
             app.getMapElement().getAttribute('id'),
-            GPXCasualViewer.plugin.ElevationChart.chartCanvasId,
+            MapsGPX.plugin.ElevationChart.chartCanvasId,
             dd_options);
       dd.chart  = new google.visualization.LineChart(dd.$chart);
       dd.marker = new google.maps.Marker({
-        icon: new google.maps.MarkerImage([GPXCasualViewer.plugin.ElevationChart.path, 'you-are-here-2.png'].join('/'), new google.maps.Size(32,37))
+        icon: new google.maps.MarkerImage([MapsGPX.plugin.ElevationChart.path, 'you-are-here-2.png'].join('/'), new google.maps.Size(32,37))
       });
       dd.current_polyline = null;
       google.maps.event.addDomListener(control.getElement(), 'click', (function(ev) {

@@ -1,6 +1,6 @@
-GPXCasualViewer.plugin.QueryURL = {
+MapsGPX.plugin.QueryURL = {
   callback: function() {
-    var query = GPXCasualViewer.parseQueryString(location.search);
+    var query = MapsGPX.parseQueryString(location.search);
     if ( query.url ) {
       this.input(query.url, query.url);
     }

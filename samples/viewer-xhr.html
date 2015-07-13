@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"/>
-<title>GPX Casual Viewer v3</title>
+<title>maps.gpx</title>
 <style>
 div.map { width:640px; height:320px; }
 img.info-window { max-width: 200px; max-height: 200px; }
 </style>
 <script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry"></script>
-<script src="../gpx-casual-viewer.js"></script>
+<script src="../maps-gpx.js"></script>
 <script>
-GPXCasualViewer.onReady(function (){
+MapsGPX.onReady(function (){
   var $maps = document.getElementsByClassName('map'),
       apps = [], i, l, url;
   for ( i = 0, l = $maps.length; i < l; ++i ) {
     url = $maps.item(i).getAttribute('data-url');
-    apps[i] = new GPXCasualViewer($maps.item(i).getAttribute('id'));
+    apps[i] = new MapsGPX($maps.item(i).getAttribute('id'));
     apps[i].use('EXIF');
     apps[i].use('EXIFMarker');
     apps[i].input(url, url).then((function(key) {

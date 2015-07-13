@@ -1,4 +1,4 @@
-GPXCasualViewer.plugin.SearchControl = {
+MapsGPX.plugin.SearchControl = {
   bundles: [
     'loader.css'
   ],
@@ -6,7 +6,7 @@ GPXCasualViewer.plugin.SearchControl = {
   callback: function() {
 
     var input = document.createElement('input');
-    input.setAttribute('class', GPXCasualViewer.plugin.SearchControl.className);
+    input.setAttribute('class', MapsGPX.plugin.SearchControl.className);
     input.setAttribute('type', 'text');
     input.setAttribute('placeholder', 'Enter a URL');
 

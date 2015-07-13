@@ -1,4 +1,4 @@
-GPXCasualViewer.plugin.GeoLocation = {
+MapsGPX.plugin.GeoLocation = {
   watcher: null,
   options: {
     // Note that this can result in slower response times or 
@@ -23,16 +23,16 @@ GPXCasualViewer.plugin.GeoLocation = {
     console.log('Add hook points: "onEndWatchGeoLocation"');
     this.hook['onEndWatchGeoLocation'] = this.hook['onEndWatchGeoLocation'] || [];
 
-    GPXCasualViewer.prototype.isSupportedGeoLocation = function() {
+    MapsGPX.prototype.isSupportedGeoLocation = function() {
       return navigator.geolocation ? true : false;
     };
-    GPXCasualViewer.prototype.isWatchingGeoLocation = function() {
-      return GPXCasualViewer.plugin.GeoLocation.watcher ? true : false;
+    MapsGPX.prototype.isWatchingGeoLocation = function() {
+      return MapsGPX.plugin.GeoLocation.watcher ? true : false;
     };
-    GPXCasualViewer.prototype.beginWatchGeoLocation = function() {
+    MapsGPX.prototype.beginWatchGeoLocation = function() {
       var return_value = null;
-      if ( ! GPXCasualViewer.plugin.GeoLocation.watcher ) {
-        GPXCasualViewer.plugin.GeoLocation.watcher
+      if ( ! MapsGPX.plugin.GeoLocation.watcher ) {
+        MapsGPX.plugin.GeoLocation.watcher
         = navigator.geolocation.watchPosition(
             (function(position) {
               if ( this.hook['onGetGeoLocation'].length != 0 ) {
@@ -45,7 +45,7 @@ GPXCasualViewer.plugin.GeoLocation = {
                 this.applyHook('onGetGeoLocationError', error);
               }
             }).bind(this),
-            GPXCasualViewer.plugin.GeoLocation.options
+            MapsGPX.plugin.GeoLocation.options
             );
         return_value = true;
       } else {
@@ -56,11 +56,11 @@ GPXCasualViewer.plugin.GeoLocation = {
       }
       return return_value;
     };
-    GPXCasualViewer.prototype.endWatchGeoLocation = function() {
+    MapsGPX.prototype.endWatchGeoLocation = function() {
       var return_value = null;
-      if ( GPXCasualViewer.plugin.GeoLocation.watcher ) {
-        navigator.geolocation.clearWatch( GPXCasualViewer.plugin.GeoLocation.watcher );
-        GPXCasualViewer.plugin.GeoLocation.watcher = null;
+      if ( MapsGPX.plugin.GeoLocation.watcher ) {
+        navigator.geolocation.clearWatch( MapsGPX.plugin.GeoLocation.watcher );
+        MapsGPX.plugin.GeoLocation.watcher = null;
         return_value = true;
       }else{
         return_value = false;

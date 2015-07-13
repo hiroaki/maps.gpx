@@ -1,4 +1,4 @@
-GPXCasualViewer.plugin.DescImage = {
+MapsGPX.plugin.DescImage = {
   callback: function() {
 
     this.register('onCreateMarker', (function(marker) {
@@ -22,7 +22,7 @@ GPXCasualViewer.plugin.DescImage = {
         });
         marker.setIcon(
           new google.maps.MarkerImage(
-            [GPXCasualViewer.plugin.DescImage.path, 'photo.png'].join('/'),
+            [MapsGPX.plugin.DescImage.path, 'photo.png'].join('/'),
             new google.maps.Size(32,37)));
       }
     }).bind(this));

@@ -1,4 +1,4 @@
-GPXCasualViewer.plugin.Milestone = {
+MapsGPX.plugin.Milestone = {
   bundles: [
     'ExtDraggableObject.js',
     'NodeOverlay.js',
