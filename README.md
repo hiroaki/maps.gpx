@@ -123,7 +123,7 @@ It is possible to show/hide overlays anytime.
 <html lang="en"><head><meta charset="UTF-8"/>
 <title>maps.gpx</title>
 <style>
-html, body, #map_canvas { height: 100%; margin: 0px; padding: 0px; }
+html, body, #map_canvas { width: 100%; height: 100%; margin: 0px; padding: 0px; }
 </style>
 <script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry"></script>
 <script src="../maps-gpx.js"></script>

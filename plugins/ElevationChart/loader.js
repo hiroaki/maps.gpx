@@ -1,9 +1,12 @@
 MapsGPX.plugin.ElevationChart = {
   bundles: [
-    'DivDivider.js',
     'https://www.google.com/jsapi'
   ],
-  chartCanvasId: 'chart_canvas',
+  templateOfId: 'chart_canvas',
+  _sequence: 0,
+  generateId: function() {
+    return this.templateOfId +''+ ++this._sequence;
+  },
   callback: function() {
     var control = new MapsGPX.MapControl({
       initial: [MapsGPX.plugin.ElevationChart.path, 'ic_trending_up_black_48dp.png'].join('/')
@@ -15,18 +18,22 @@ MapsGPX.plugin.ElevationChart = {
       var click_handler,
           app = this.app,
           control = this.control,
-          dd_options = {},
-          dd = new DivDivider(
+          dd_options = {effect: 'compress', side: 'BOTTOM', span: '30%'},
+          dd = new DrawerCSS(
             app.getMapElement().getAttribute('id'),
-            MapsGPX.plugin.ElevationChart.chartCanvasId,
+            MapsGPX.plugin.ElevationChart.generateId(),
             dd_options);
-      dd.chart  = new google.visualization.LineChart(dd.$chart);
+      dd.chart  = new google.visualization.LineChart(dd.getElementDrawer());
       dd.marker = new google.maps.Marker({
         icon: new google.maps.MarkerImage([MapsGPX.plugin.ElevationChart.path, 'you-are-here-2.png'].join('/'), new google.maps.Size(32,37))
       });
       dd.current_polyline = null;
       google.maps.event.addDomListener(control.getElement(), 'click', (function(ev) {
         this.toggle();
+      }).bind(dd));
+
+      google.maps.event.addDomListener(window, 'resize', (function(ev) {
+        this.close();
       }).bind(dd));
 
       //
@@ -94,7 +101,7 @@ MapsGPX.plugin.ElevationChart = {
                 this.view.marker.setMap( this.polyline.getMap() );
               }
             }).bind(this);
-            this.view.addEvent('close', (function (){
+            this.view.addHandler('close', (function (){
               this.current_polyline = null;
               this.marker.setMap(null);
               this.chart.clearChart();

@@ -9,8 +9,9 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '3.0.0';
+MapsGPX.VERSION = '3.0.1';
 MapsGPX.EXTENSIONS = [
+  'DrawerCSS',
   'DescImage',
   'Droppable',
   'EXIF',
