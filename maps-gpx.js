@@ -9,7 +9,7 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '3.0.1';
+MapsGPX.VERSION = '4.0.0';
 MapsGPX.EXTENSIONS = [
   'DrawerCSS',
   'DescImage',
@@ -852,13 +852,11 @@ MapsGPX.prototype._build = function(gpx_text) {
 
   return gpx;
 };
-MapsGPX.prototype.use = function(plugin_name) {
-  var hook      = MapsGPX.plugin[plugin_name].hook,
-      callback  = MapsGPX.plugin[plugin_name].callback;
+MapsGPX.prototype.use = function(plugin_name, params) {
   try {
-    this._registerHook(hook, callback);
+    MapsGPX.plugin[plugin_name].callback.bind(this)(params);
   } catch(ex) {
-    console.log('Catch an exception on use('+ plugin_name + ') with hook "'+ hook +'"');
+    console.log('Catch an exception on use "'+ plugin_name + '"');
     throw(ex);
   }
   return this;
