@@ -25,7 +25,8 @@ MapsGPX.EXTENSIONS = [
   'QueryURL',
   'SearchControl',
   'VertexInfo',
-  'VertexInfoWindow'
+  'VertexInfoWindow',
+  'SidePanelControl'
 ];
 MapsGPX.ELEMENTS = {
   AGEOFDGPSDATA: 'ageofdgpsdata',
