@@ -9,7 +9,7 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '4.0.0';
+MapsGPX.VERSION = '4.0.0'; // NOT RELEASED YET
 MapsGPX.EXTENSIONS = [
   'DrawerCSS',
   'DescImage',
@@ -21,6 +21,7 @@ MapsGPX.EXTENSIONS = [
   'GeoLocation',
   'GeoLocationControl',
   'InputFileControl',
+  'FileClip',
   'Milestone',
   'QueryURL',
   'SearchControl',
