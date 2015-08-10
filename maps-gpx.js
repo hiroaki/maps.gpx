@@ -70,6 +70,7 @@ MapsGPX.ELEMENTS = {
 // global properties, you can change
 MapsGPX.strict        = true;
 MapsGPX.join_trkseg   = true;
+MapsGPX.cache_script  = true;
 
 // layout
 MapsGPX.basedir = (function (){
@@ -976,10 +977,15 @@ MapsGPX.load_css = function (src){
 }
 
 MapsGPX.require_plugin = function (plugin_name){
-  var t = new Date().getTime(),
+  var src,
+      t = new Date().getTime(),
       base = [MapsGPX.plugin_dir, plugin_name].join('/'),
-      src = [base, MapsGPX.scrip_loader +'?t='+ t].join('/'),
       stash = {plugin_name: plugin_name, base: base, t: t};
+  if ( MapsGPX.cache_script ) {
+    src = [base, MapsGPX.scrip_loader].join('/');
+  } else {
+    src = [base, MapsGPX.scrip_loader +'?t='+ t].join('/');
+  }
   return MapsGPX.load_script(src).then((function (){
     var load_scripts = [], bundles, bundle, i, l;
     MapsGPX.plugin[this.plugin_name].path = this.base;
@@ -988,7 +994,11 @@ MapsGPX.require_plugin = function (plugin_name){
       if ( bundles[i].match(/\//) ) {
         bundle = bundles[i];
       } else {
-        bundle = [this.base, bundles[i] +'?t='+ this.t].join('/');
+        if ( MapsGPX.cache_script ) {
+          bundle = [this.base, bundles[i]].join('/');
+        } else {
+          bundle = [this.base, bundles[i] +'?t='+ this.t].join('/');
+        }
       }
       if ( bundles[i].match(/\.css$/) ) {
         load_scripts.push(MapsGPX.load_css(bundle));
