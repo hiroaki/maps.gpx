@@ -751,6 +751,18 @@ MapsGPX.prototype.showOverlayTrks = function() {
 MapsGPX.prototype.hideOverlayTrks = function() {
   return this._appearOverlay(false, MapsGPX.ELEMENTS.TRK, Array.prototype.slice.call(arguments));
 };
+MapsGPX.prototype.showOverlayGpxs = function() {
+  var args = Array.prototype.slice.call(arguments);
+  this.showOverlayWpts(args);
+  this.showOverlayRtes(args);
+  this.showOverlayTrks(args);
+};
+MapsGPX.prototype.hideOverlayGpxs = function() {
+  var args = Array.prototype.slice.call(arguments);
+  this.hideOverlayWpts(args);
+  this.hideOverlayRtes(args);
+  this.hideOverlayTrks(args);
+};
 MapsGPX._guessType = function(src) {
   if ( typeof src == 'string' ) {
     // src may be URL string
