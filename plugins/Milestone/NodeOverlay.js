@@ -30,7 +30,7 @@ NodeOverlay.prototype = Object.create(google.maps.OverlayView.prototype, {
 });
 
 NodeOverlay.NAME = 'NodeOverlay';
-NodeOverlay.VERSION = '3.0.1';
+NodeOverlay.VERSION = '3.0.2';
 NodeOverlay.AnchorPosition = {
   TOP_LEFT: 'topLeft',
   TOP_RIGHT: 'topRight',
@@ -182,6 +182,8 @@ NodeOverlay.prototype.onAdd = function() {
     this.settings.marker.setPosition(this.getPosition());
     this.settings.marker.setMap(this.getMap());
   }
+
+  this.element.style.visibility = 'visible';
 };
 NodeOverlay.prototype.onRemove = function() {
   if ( this.settings.marker ) {
@@ -191,11 +193,8 @@ NodeOverlay.prototype.onRemove = function() {
     google.maps.event.clearInstanceListeners(this.draggable);
   }
   google.maps.event.clearInstanceListeners(this.element);
-  this.element.parentNode.removeChild(this.element);
-  this.element = null;
-  this.position = null;
-  this.draggable = null;
-  this.settings = null;
+
+  this.element.style.visibility = 'hidden';
 };
 NodeOverlay.prototype.draw = function() {
   this.setPointByLatLng(this.getPosition());
