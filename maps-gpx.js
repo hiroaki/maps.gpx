@@ -646,6 +646,10 @@ MapsGPX.prototype.initialize = function(map_id, map_options, options) {
 
   // stash for hooks
   this.hook = {
+    onShowMarker: [],
+    onShowPolyline: [],
+    onHideMarker: [],
+    onHidePolyline: [],
     onCreateLatlngbounds: [],
     onCreateMarker: [],
     onCreatePolyline: [],
@@ -695,8 +699,17 @@ MapsGPX.prototype.fitBounds = function() {
   }
   return this;
 };
+MapsGPX.prototype._applyAppearOverlay = function(overlay, to_show) {
+  var visible  = to_show ? 'Show'   : 'Hide';
+  overlay.setMap(to_show ? this.map : null );
+  if ( overlay.constructor === MapsGPX.Marker ) {
+    this.applyHook('on'+ visible +'Marker', overlay);
+  } else if ( overlay.constructor === MapsGPX.Polyline ) {
+    this.applyHook('on'+ visible +'Polyline', overlay);
+  }
+};
 MapsGPX.prototype._appearOverlay = function() {
-  var to_show = arguments[0] ? this.map : null,
+  var to_show = arguments[0],
       elem    = arguments[1],
       keys    = Array.prototype.slice.call(arguments, 2),
       i, il, j, jl, k, kl, m, ml, elements;
@@ -704,13 +717,13 @@ MapsGPX.prototype._appearOverlay = function() {
     elements = this.data[keys[i]][elem];
     for ( j = 0, jl = elements.length; j < jl; ++j ) {
       if ( elements[j].overlay ){
-        elements[j].overlay.setMap( to_show );
+        this._applyAppearOverlay(elements[j].overlay, to_show);
       }
       for ( k in elements[j] ) {
         if ( elements[j][k] instanceof Array ) {
           for ( m = 0, ml = elements[j][k].length; m < ml; ++m ) {
             if ( elements[j][k][m].overlay ) {
-              elements[j][k][m].overlay.setMap( to_show );
+              this._applyAppearOverlay(elements[j][k][m].overlay, to_show);
             }
           }
         }
@@ -885,7 +898,8 @@ MapsGPX.prototype.applyHook = function() {
     try {
       this.hook[name][i].apply(this, args);
     } catch(ex) {
-      console.log('Catch an exception on applyHook "'+ name +'" with args ['+ args +']');
+      console.log('Catch an exception on applyHook "'+ name +'" with args ['+ args +']: '+ ex);
+      console.trace();
       throw(ex);
     }
   }
