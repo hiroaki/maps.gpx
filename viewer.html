@@ -26,7 +26,7 @@ MapsGPX.onReady(function() {
   .use('DescImage')
   .use('VertexInfo')
   .use('VertexInfoWindow')
-  .use('SidePanelControl', {base_id: 'map_container', drawer_id: 'sidepanel', span: '75%'})
+  .use('SidePanelControl', {base_id:'map_container', drawer_id:'sidepanel', span:'280px', maxSpan:'80%'})
   .use('FileClip')
   .register('onAddGPX', function(key) {
     this.fitBounds(key);
