@@ -1,7 +1,7 @@
 function DrawerCSS(){
   this.initialize.apply(this, arguments);
 }
-DrawerCSS.VERSION = '0.1.3';
+DrawerCSS.VERSION = '0.4.0';
 DrawerCSS._vendorT = ['webkitT', 'mozT', 'oT', 'msT', 't'];
 DrawerCSS.getDimensions = function(element) {
   // getDimensions by prototype.js 1.6.0.3
@@ -28,7 +28,8 @@ DrawerCSS.defaults = {
   timingFunction: 'ease-in-out',
   effect: 'slide',
   side: 'LEFT',
-  span: '80%'
+  span: '80%',
+  maxSpan: null
 };
 DrawerCSS.prototype = {
   initialize: function (main_id, sub_id, options){
@@ -44,9 +45,18 @@ DrawerCSS.prototype = {
     this.effect = this.settings['effect'].toLowerCase();
     this.side = this.settings['side'].toUpperCase();
     this.span = this.settings['span'];
+    this.maxSpan = this.settings['maxSpan'];
+
+    if ( this.span.toString().match(/\d+$/) ) {
+      this.span = this.span +'px';
+    }
+    if ( this.maxSpan && this.maxSpan.toString().match(/\d+$/) ) {
+      this.maxSpan = this.maxSpan +'px';
+    }
 
     this._opened = false;
     this._events = {};
+    this._origin = {};
 
     this.$main = document.getElementById(main_id);
     this.$sub  = document.getElementById(sub_id );
@@ -57,11 +67,62 @@ DrawerCSS.prototype = {
 
     this.reset();
   },
+  active_span: function() {
+    var span = this.span;
+    if ( typeof this.span == 'function' ) {
+      span = this.span.call(this);
+    }
+    if ( this.maxSpan ) {
+      if ( span.toString().match(/%$/) ) {
+        span = this._span_limited_by_percent();
+      } else if ( span.toString().match(/\d+\s*px$/) ) {
+        span = this._span_limited_by_pixel();
+      }
+    }
+    return span;
+  },
+  _span_limited_by_percent: function() {
+    var attribute = {LEFT:'width',TOP:'height',RIGHT:'width',BOTTOM:'height'}[this.side],
+        base_width = DrawerCSS.getDimensions( this.getElementBase() )[attribute],
+        opening_span;
+    if ( ! this.maxSpan.toString().match(/px$/) ) {
+      console.error('the option "maxSpan" has to be specified as "px"');
+      return this.span;
+    }
+
+    opening_span = parseInt( base_width * parseInt(this.span) / 100 );
+    if ( parseInt(this.maxSpan) < opening_span ) {
+      opening_span = parseInt(this.maxSpan);
+    }
+    opening_span = opening_span +'px';
+
+    this.getElementDrawer().style[attribute] = opening_span;
+    return opening_span;
+  },
+  _span_limited_by_pixel: function() {
+    var attribute = {LEFT:'width',TOP:'height',RIGHT:'width',BOTTOM:'height'}[this.side],
+        base_width = DrawerCSS.getDimensions( this.getElementBase() )[attribute],
+        opening_span, limit_span;
+    if ( ! this.maxSpan.toString().match(/%$/) ) {
+      console.error('the option "maxSpan" has to be specified as "%"');
+      return this.span;
+    }
+    opening_span = parseInt( this.span );
+    limit_span   = parseInt( base_width * parseInt(this.maxSpan) / 100 );
+
+    if ( limit_span < opening_span ) {
+      opening_span = limit_span;
+    }
+    opening_span = opening_span +'px';
+
+    this.getElementDrawer().style[attribute] = opening_span;
+    return opening_span;
+  },
   reset: function() {
     this.destroy();
-    this.$main.parentNode.style.overflow = 'hidden';
     this.$main.parentNode.style.position = 'relative';
-    this.$main.style.overflow = 'hidden';
+    this.$main.style.width    = '100%';
+    this.$main.style.height   = '100%';
     this[{ slide: '_init_slide',
         compress: '_init_compress'
     }[this.effect]].call(this);
@@ -79,7 +140,6 @@ DrawerCSS.prototype = {
       this.$main.style[DrawerCSS._vendorT[p] +'ransitionDelay'] = '';
       this.$main.style[DrawerCSS._vendorT[p] +'ransitionTimingFunction'] = '';
     }
-    this.$main.parentNode.style.overflow = '';
     this.$main.parentNode.style.position = '';
 
     this.$main.style.position   = '';
@@ -89,7 +149,6 @@ DrawerCSS.prototype = {
     this.$main.style.right      = '';
     this.$main.style.bottom     = '';
     this.$main.style.left       = '';
-    this.$main.style.overflow   = '';
 
     this.$sub.style.position    = '';
     this.$sub.style.width       = '';
@@ -98,7 +157,6 @@ DrawerCSS.prototype = {
     this.$sub.style.right       = '';
     this.$sub.style.bottom      = '';
     this.$sub.style.left        = '';
-    this.$sub.style.overflow    = '';
   },
   _init_slide: function() {
     var p;
@@ -111,28 +169,44 @@ DrawerCSS.prototype = {
     if ( false ) {
       void(0);
     } else if ( this.side == 'TOP' ) {
+      if ( ! this.$main.style.bottom ) {
+        this.$main.style.bottom = 0;
+      }
+      this._origin = {attribute: 'bottom', value: this.$main.style.bottom};
       this.$sub.style.width   = '100%';
-      this.$sub.style.height  = this.span;
+      this.$sub.style.height  = this.active_span();
       this.$sub.style.top     = 0;
       this.$sub.style.right   = '';
       this.$sub.style.bottom  = '';
       this.$sub.style.left    = 0;
     } else if ( this.side == 'RIGHT' ) {
-      this.$sub.style.width   = this.span;
+      if ( ! this.$main.style.left ) {
+        this.$main.style.left = 0;
+      }
+      this._origin = {attribute: 'left', value: this.$main.style.left};
+      this.$sub.style.width   = this.active_span();
       this.$sub.style.height  = '100%';
       this.$sub.style.top     = 0;
       this.$sub.style.right   = 0;
       this.$sub.style.bottom  = '';
       this.$sub.style.left    = '';
     } else if ( this.side == 'BOTTOM' ) {
+      if ( ! this.$main.style.top ) {
+        this.$main.style.top = 0;
+      }
+      this._origin = {attribute: 'top', value: this.$main.style.top};
       this.$sub.style.width   = '100%';
-      this.$sub.style.height  = this.span;
+      this.$sub.style.height  = this.active_span();
       this.$sub.style.top     = '';
       this.$sub.style.right   = 0;
       this.$sub.style.bottom  = 0;
       this.$sub.style.left    = '';
     } else if ( this.side == 'LEFT' ) {
-      this.$sub.style.width   = this.span;
+      if ( ! this.$main.style.right ) {
+        this.$main.style.right = 0;
+      }
+      this._origin = {attribute: 'right', value: this.$main.style.right};
+      this.$sub.style.width   = this.active_span();
       this.$sub.style.height  = '100%';
       this.$sub.style.top     = 0;
       this.$sub.style.right   = '';
@@ -150,31 +224,29 @@ DrawerCSS.prototype = {
       this.$main.style[DrawerCSS._vendorT[p] +'ransitionDelay'] = this.delay +'s';
       this.$main.style[DrawerCSS._vendorT[p] +'ransitionTimingFunction'] = this.timingFunction;
     }
-    this.$main.style.width    = '100%';
-    this.$main.style.height   = '100%';
     if ( false ) {
       void(0);
     } else if ( this.side == 'TOP' ) {
       this.$main.style.bottom = 0;
       this.$sub.style.width   = '100%';
-      this.$sub.style.height  = this.span;
+      this.$sub.style.height  = this.active_span();
       this.$sub.style.top     = 0;
       this.$sub.style.left    = 0;
     } else if ( this.side == 'RIGHT' ) {
       this.$main.style.left   = 0;
-      this.$sub.style.width   = this.span;
+      this.$sub.style.width   = this.active_span();
       this.$sub.style.height  = '100%';
       this.$sub.style.bottom  = 0;
       this.$sub.style.right   = 0;
     } else if ( this.side == 'BOTTOM' ) {
       this.$main.style.top    = 0;
       this.$sub.style.width   = '100%';
-      this.$sub.style.height  = this.span;
+      this.$sub.style.height  = this.active_span();
       this.$sub.style.bottom  = 0;
       this.$sub.style.right   = 0;
     } else if ( this.side == 'LEFT' ) {
       this.$main.style.right  = 0;
-      this.$sub.style.width   = this.span;
+      this.$sub.style.width   = this.active_span();
       this.$sub.style.height  = '100%';
       this.$sub.style.top     = 0;
       this.$sub.style.left    = 0;
@@ -214,29 +286,31 @@ DrawerCSS.prototype = {
       TOP: 'bottom',
       RIGHT: 'left',
       BOTTOM: 'top'
-    }[this.side]] = '-' + this.span;
-    this.$sub.style.overflow = 'auto';
+    }[this.side]] = '-' + this.active_span();
   },
   _open_compress: function (){
-    this.$sub.style.overflow = 'auto';
     if ( false ) {
       void(0);
     } else if ( this.side == 'LEFT' ) {
+      this.$sub.style.width = this.active_span();
       this.$main.style.width
         = DrawerCSS.getDimensions(this.$main).width
         - DrawerCSS.getDimensions(this.$sub ).width
         + 'px';
     } else if ( this.side == 'BOTTOM' ) {
+      this.$sub.style.height = this.active_span();
       this.$main.style.height
         = DrawerCSS.getDimensions(this.$main).height
         - DrawerCSS.getDimensions(this.$sub ).height
         + 'px';
     } else if ( this.side == 'TOP' ) {
+      this.$sub.style.height = this.active_span();
       this.$main.style.height
         = DrawerCSS.getDimensions(this.$main).height
         - DrawerCSS.getDimensions(this.$sub ).height
         + 'px';
     } else if ( this.side == 'RIGHT' ) {
+      this.$sub.style.width = this.active_span();
       this.$main.style.width
         = DrawerCSS.getDimensions(this.$main).width
         - DrawerCSS.getDimensions(this.$sub ).width
@@ -248,7 +322,6 @@ DrawerCSS.prototype = {
     this[{ slide: '_close_slide',
         compress: '_close_compress'
     }[this.effect]].call(this);
-    this.$sub.style.overflow = 'hidden';
 
     if ( this._events['close'] ) {
       try {
@@ -263,9 +336,7 @@ DrawerCSS.prototype = {
     return this;
   },
   _close_slide: function() {
-    this.$main.style[{
-      TOP: 'bottom', RIGHT: 'left', BOTTOM: 'top', LEFT: 'right'
-    }[this.side]] = '';
+    this.$main.style[this._origin['attribute']] = this._origin['value'];
   },
   _close_compress: function() {
     this.$main.style[{

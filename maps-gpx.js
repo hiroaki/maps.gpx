@@ -9,7 +9,7 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '4.0.0';
+MapsGPX.VERSION = '4.0.0'; // NOT RELEASED YET
 MapsGPX.EXTENSIONS = [
   'DrawerCSS',
   'DescImage',
@@ -21,11 +21,13 @@ MapsGPX.EXTENSIONS = [
   'GeoLocation',
   'GeoLocationControl',
   'InputFileControl',
+  'FileClip',
   'Milestone',
   'QueryURL',
   'SearchControl',
   'VertexInfo',
-  'VertexInfoWindow'
+  'VertexInfoWindow',
+  'SidePanelControl'
 ];
 MapsGPX.ELEMENTS = {
   AGEOFDGPSDATA: 'ageofdgpsdata',
@@ -69,6 +71,7 @@ MapsGPX.ELEMENTS = {
 // global properties, you can change
 MapsGPX.strict        = true;
 MapsGPX.join_trkseg   = true;
+MapsGPX.cache_script  = true;
 
 // layout
 MapsGPX.basedir = (function (){
@@ -750,6 +753,18 @@ MapsGPX.prototype.showOverlayTrks = function() {
 MapsGPX.prototype.hideOverlayTrks = function() {
   return this._appearOverlay(false, MapsGPX.ELEMENTS.TRK, Array.prototype.slice.call(arguments));
 };
+MapsGPX.prototype.showOverlayGpxs = function() {
+  var args = Array.prototype.slice.call(arguments);
+  this.showOverlayWpts(args);
+  this.showOverlayRtes(args);
+  this.showOverlayTrks(args);
+};
+MapsGPX.prototype.hideOverlayGpxs = function() {
+  var args = Array.prototype.slice.call(arguments);
+  this.hideOverlayWpts(args);
+  this.hideOverlayRtes(args);
+  this.hideOverlayTrks(args);
+};
 MapsGPX._guessType = function(src) {
   if ( typeof src == 'string' ) {
     // src may be URL string
@@ -963,10 +978,15 @@ MapsGPX.load_css = function (src){
 }
 
 MapsGPX.require_plugin = function (plugin_name){
-  var t = new Date().getTime(),
+  var src,
+      t = new Date().getTime(),
       base = [MapsGPX.plugin_dir, plugin_name].join('/'),
-      src = [base, MapsGPX.scrip_loader +'?t='+ t].join('/'),
       stash = {plugin_name: plugin_name, base: base, t: t};
+  if ( MapsGPX.cache_script ) {
+    src = [base, MapsGPX.scrip_loader].join('/');
+  } else {
+    src = [base, MapsGPX.scrip_loader +'?t='+ t].join('/');
+  }
   return MapsGPX.load_script(src).then((function (){
     var load_scripts = [], bundles, bundle, i, l;
     MapsGPX.plugin[this.plugin_name].path = this.base;
@@ -975,7 +995,11 @@ MapsGPX.require_plugin = function (plugin_name){
       if ( bundles[i].match(/\//) ) {
         bundle = bundles[i];
       } else {
-        bundle = [this.base, bundles[i] +'?t='+ this.t].join('/');
+        if ( MapsGPX.cache_script ) {
+          bundle = [this.base, bundles[i]].join('/');
+        } else {
+          bundle = [this.base, bundles[i] +'?t='+ this.t].join('/');
+        }
       }
       if ( bundles[i].match(/\.css$/) ) {
         load_scripts.push(MapsGPX.load_css(bundle));
