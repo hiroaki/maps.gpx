@@ -13,27 +13,28 @@ MapsGPX.strict = false;
 MapsGPX.cache_script = false;
 MapsGPX.onReady(function() {
   new MapsGPX('map_canvas')
-  .use('ElevationChart')
-  .use('EXIF')
-  .use('EXIF2GPX')
-  .use('Droppable')
-  .use('QueryURL')
-  .use('InputFileControl')
-  .use('SearchControl')
-  .use('GeoLocation')
-  .use('GeoLocationControl')
-  .use('Milestone')
-  .use('DescImage')
-  .use('VertexInfo')
-  .use('VertexInfoWindow')
-  .use('SidePanelControl', {base_id:'map_container', drawer_id:'sidepanel', span:'280px', maxSpan:'80%'})
-  .use('FileClip')
-  .register('onAddGPX', function(key) {
-    this.fitBounds(key);
-    this.showOverlayWpts(key);
-    this.showOverlayRtes(key);
-    this.showOverlayTrks(key);
-  });
+    .extend('DrawerCSS')
+    .extend('DescImage')
+    .extend('Droppable')
+    .extend('EXIF')
+    .extend('EXIF2GPX')
+    .extend('ElevationChart')
+    .extend('GeoLocation')
+    .extend('GeoLocationControl')
+    .extend('QueryURL')
+    .extend('InputFileControl')
+    .extend('SearchControl')
+    .extend('Milestone')
+    .extend('VertexInfo')
+    .extend('VertexInfoWindow')
+    .extend('SidePanelControl', {base_id:'map_container', drawer_id:'sidepanel', span:'280px', maxSpan:'80%'})
+    .extend('FileClip')
+    .extended(function() {
+      this.register('onAddGPX', function(key) {
+        this.fitBounds(key);
+        this.showOverlayGpxs(key);
+      });
+    });
 });
 </script>
 </head><body>

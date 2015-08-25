@@ -11,6 +11,7 @@ function MapsGPX() {
 // constants, do not change these value
 MapsGPX.VERSION = '4.0.0'; // NOT RELEASED YET
 MapsGPX.EXTENSIONS = [
+  'QueryURL',
   'DrawerCSS',
   'DescImage',
   'Droppable',
@@ -21,13 +22,12 @@ MapsGPX.EXTENSIONS = [
   'GeoLocation',
   'GeoLocationControl',
   'InputFileControl',
-  'FileClip',
-  'Milestone',
-  'QueryURL',
   'SearchControl',
+  'Milestone',
   'VertexInfo',
   'VertexInfoWindow',
-  'SidePanelControl'
+  'SidePanelControl',
+  'FileClip'
 ];
 MapsGPX.ELEMENTS = {
   AGEOFDGPSDATA: 'ageofdgpsdata',
@@ -662,6 +662,9 @@ MapsGPX.prototype.initialize = function(map_id, map_options, options) {
   // stash for input handlers by media types
   this.input_handler = {};
 
+  //
+  this.extentions = [];
+
   // reset all
   this._afterInitialize();
 };
@@ -889,6 +892,24 @@ MapsGPX.prototype.use = function(plugin_name, params) {
   }
   return this;
 };
+MapsGPX.prototype.extend = function(plugin_name, params) {
+  this.extentions.push({ plugin_name: plugin_name, params: params || {} });
+  return this;
+};
+MapsGPX.prototype.extended = function(callback) {
+  var plugin_names = [], i, l;
+  for ( i = 0, l = this.extentions.length; i < l; ++i ) {
+    plugin_names.push(this.extentions[i]['plugin_name']);
+  }
+  MapsGPX.require_plugins.apply(this, plugin_names).then((function() {
+    var i, l;
+    for ( i = 0, l = this.extentions.length; i < l; ++i ) {
+      this.use(this.extentions[i]['plugin_name'], this.extentions[i]['params']);
+    }
+    this.extentions = [];
+  }).bind(this)).then(callback.bind(this));
+  return this;
+};
 MapsGPX.prototype.register = function(hook, callback) {
   try {
     this._registerHook(hook, callback);
@@ -1046,32 +1067,39 @@ MapsGPX._emit = function (){
   return this;
 };
 
+// (function() {
+//   google.maps.event.addDomListener(window, 'load', function() {
+//     var scripts = document.getElementsByTagName('script'),
+//         re = new RegExp('maps-gpx\.js(.*)$'),
+//         i, l, src, match, params, extensions;
+//     for ( i = 0, l = scripts.length; i < l; ++i ){
+//       src = scripts.item(i).getAttribute('src');
+//       if ( re.test(src) ) {
+//         match = RegExp.$1;
+//         if ( match.indexOf('?') < 0 ) {
+//           extensions = [];
+//         } else {
+//           params = MapsGPX.parseQueryString(match);
+//           extensions = params['plugins'].split(',');
+//         }
+//         if ( extensions.length <= 0 ) {
+//           extensions = MapsGPX.EXTENSIONS;
+//         }
+//         MapsGPX.require_plugins
+//         .apply(MapsGPX, extensions)
+//         .then(function(values) {
+//           MapsGPX._ready = true;
+//           MapsGPX._emit();
+//         });
+//         break;
+//       }
+//     }
+//   });
+// })();
 (function() {
   google.maps.event.addDomListener(window, 'load', function() {
-    var scripts = document.getElementsByTagName('script'),
-        re = new RegExp('maps-gpx\.js(.*)$'),
-        i, l, src, match, params, extensions;
-    for ( i = 0, l = scripts.length; i < l; ++i ){
-      src = scripts.item(i).getAttribute('src');
-      if ( re.test(src) ) {
-        match = RegExp.$1;
-        if ( match.indexOf('?') < 0 ) {
-          extensions = [];
-        } else {
-          params = MapsGPX.parseQueryString(match);
-          extensions = params['plugins'].split(',');
-        }
-        if ( extensions.length <= 0 ) {
-          extensions = MapsGPX.EXTENSIONS;
-        }
-        MapsGPX.require_plugins
-        .apply(MapsGPX, extensions)
-        .then(function(values) {
-          MapsGPX._ready = true;
-          MapsGPX._emit();
-        });
-        break;
-      }
-    }
+    MapsGPX._ready = true;
+    MapsGPX._emit();
   });
 })();
+
