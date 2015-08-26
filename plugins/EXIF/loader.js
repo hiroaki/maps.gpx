@@ -22,7 +22,7 @@ MapsGPX.plugin.EXIF = {
       return null;
     }
   },
-  callback: function() {
+  callback: function(params) {
 
     // add hook points
     console.log('Add a hook point: "onReadEXIF"');

@@ -13,14 +13,14 @@ MapsGPX.strict = false;
 MapsGPX.cache_script = false;
 MapsGPX.onReady(function() {
   new MapsGPX('map_canvas')
+    .extend('GeoLocation')
+    .extend('GeoLocationControl')
     .extend('DrawerCSS')
     .extend('DescImage')
-    .extend('Droppable')
     .extend('EXIF')
     .extend('EXIF2GPX')
     .extend('ElevationChart')
-    .extend('GeoLocation')
-    .extend('GeoLocationControl')
+    .extend('Droppable')
     .extend('QueryURL')
     .extend('InputFileControl')
     .extend('SearchControl')

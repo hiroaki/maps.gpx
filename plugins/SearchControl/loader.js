@@ -3,12 +3,12 @@ MapsGPX.plugin.SearchControl = {
     'loader.css'
   ],
   className: 'map_control_input',
-  callback: function() {
+  callback: function(params) {
 
     var input = document.createElement('input');
     input.setAttribute('class', MapsGPX.plugin.SearchControl.className);
     input.setAttribute('type', 'text');
-    input.setAttribute('placeholder', 'Enter a URL');
+    input.setAttribute('placeholder', 'URL');
 
     this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 

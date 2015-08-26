@@ -89,7 +89,7 @@ MapsGPX.plugin.VertexInfo = {
     }
     return minindex;
   },
-  callback: function() {
+  callback: function(params) {
     // add hook points
     console.log('Add hook points: "onVertexInfo"');
     this.hook['onVertexInfo'] = this.hook['onVertexInfo'] || [];

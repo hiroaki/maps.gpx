@@ -1,5 +1,5 @@
 MapsGPX.plugin.DescImage = {
-  callback: function() {
+  callback: function(params) {
 
     this.register('onCreateMarker', (function(marker) {
       var desc = marker.getSource().desc;

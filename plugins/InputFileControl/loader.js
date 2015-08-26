@@ -1,5 +1,5 @@
 MapsGPX.plugin.InputFileControl = {
-  callback: function() {
+  callback: function(params) {
     var control, input;
 
     control = new MapsGPX.MapControl({

@@ -43,7 +43,7 @@ MapsGPX.plugin.VertexInfoWindow = {
       '  </div>',
       '</div></div>'].join('');
   },
-  callback: function() {
+  callback: function(params) {
 
     this.context['VertexInfoWindow'] = {
       _active: null,

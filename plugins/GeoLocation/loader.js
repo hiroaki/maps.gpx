@@ -8,7 +8,7 @@ MapsGPX.plugin.GeoLocation = {
     // to save resources by responding more quickly and/or using less power.
     enableHighAccuracy: false
   },
-  callback: function() {
+  callback: function(params) {
 
     // add hook points
     console.log('Add hook points: "onGetGeoLocation"');

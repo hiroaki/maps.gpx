@@ -1,5 +1,5 @@
 MapsGPX.plugin.Droppable = {
-  callback: function() {
+  callback: function(params) {
     var elem = document.getElementById(this.map_id);
 
     google.maps.event.addDomListener(elem, 'dragover', (function(ev) {

@@ -7,7 +7,7 @@ MapsGPX.plugin.ElevationChart = {
   generateId: function() {
     return this.templateOfId +''+ ++this._sequence;
   },
-  callback: function() {
+  callback: function(params) {
     var control = new MapsGPX.MapControl({
       initial: [MapsGPX.plugin.ElevationChart.path, 'ic_trending_up_black_48dp.png'].join('/')
     },{

@@ -1,5 +1,5 @@
 MapsGPX.plugin.GeoLocationControl = {
-  callback: function() {
+  callback: function(params) {
 
     function CurrentPositionOverlay(){
       this.initialize.apply(this, arguments);

@@ -1,5 +1,5 @@
 MapsGPX.plugin.EXIF2GPX = {
-  callback: function() {
+  callback: function(params) {
 
     this.context['EXIF2GPX'] = {
       pts: []

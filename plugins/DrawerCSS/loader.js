@@ -2,7 +2,7 @@ MapsGPX.plugin.DrawerCSS = {
   bundles: [
     'drawer-css.js'
   ],
-  callback: function() {
+  callback: function(params) {
     void(0);
   }
 };

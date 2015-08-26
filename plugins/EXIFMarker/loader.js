@@ -1,5 +1,5 @@
 MapsGPX.plugin.EXIFMarker = {
-  callback: function() {
+  callback: function(params) {
 
     this.context['EXIFMarker'] = {
       pts: []
