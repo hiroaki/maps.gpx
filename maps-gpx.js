@@ -68,6 +68,10 @@ MapsGPX.ELEMENTS = {
   WPT: 'wpt',
   YEAR: 'year'
 };
+MapsGPX._sequence = 0;
+MapsGPX.nextval = function() {
+  return ++MapsGPX._sequence;
+};
 
 // global properties, you can change
 MapsGPX.strict        = true;
@@ -347,7 +351,12 @@ MapsGPX.boundsOf = function(pts, bounds) {
 //
 MapsGPX.LatLngBounds = function(sw, ne) {
   this.super      = google.maps.LatLngBounds.prototype;
+  this.object_id  = 'MapsGPX.LatLngBounds#'+ MapsGPX.LatLngBounds.nextval();
   google.maps.LatLngBounds.apply(this, arguments);
+};
+MapsGPX.LatLngBounds._sequence = 0;
+MapsGPX.LatLngBounds.nextval = function() {
+  return ++MapsGPX.LatLngBounds._sequence;
 };
   MapsGPX.LatLngBounds.prototype = Object.create(google.maps.LatLngBounds.prototype, {
     constructor: { value: MapsGPX.LatLngBounds }
@@ -367,10 +376,15 @@ MapsGPX.Marker = function(element_name, src, opts) {
   this._element   = element_name;
   this._source    = src;
   this._overlayed = null;
+  this.object_id  = 'MapsGPX.Marker#'+ MapsGPX.Marker.nextval();
 
   options.position = new google.maps.LatLng(wpt_type.lat, wpt_type.lon);
 
   google.maps.Marker.apply(this, [options]);
+};
+MapsGPX.Marker._sequence = 0;
+MapsGPX.Marker.nextval = function() {
+  return ++MapsGPX.Marker._sequence;
 };
   MapsGPX.Marker.prototype = Object.create(google.maps.Marker.prototype, {
     constructor: { value: MapsGPX.Marker }
@@ -407,6 +421,7 @@ MapsGPX.Polyline = function(element_name, src, opts) {
   this._element   = element_name;
   this._source    = src;
   this._overlayed = null;
+  this.object_id  = 'MapsGPX.Polyline#'+ MapsGPX.Polyline.nextval();
 
   options.path = new google.maps.MVCArray();
   i = 0;
@@ -415,6 +430,10 @@ MapsGPX.Polyline = function(element_name, src, opts) {
   }
 
   google.maps.Polyline.apply(this, [options]);
+};
+MapsGPX.Polyline._sequence = 0;
+MapsGPX.Polyline.nextval = function() {
+  return ++MapsGPX.Polyline._sequence;
 };
   MapsGPX.Polyline.prototype = Object.create(google.maps.Polyline.prototype, {
     constructor: { value: MapsGPX.Polyline }
@@ -643,6 +662,7 @@ MapsGPX.prototype.initialize = function(map_id, map_options, options) {
   if ( ! this.map_element ) {
     throw( new Error('Could not get element by #'+ map_id) );
   }
+  this.object_id    = 'MapsGPX#'+ MapsGPX.nextval();
 
   this.map_settings = {};
   this.map_defaults = {
