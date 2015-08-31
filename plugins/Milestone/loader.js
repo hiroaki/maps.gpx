@@ -31,7 +31,7 @@ MapsGPX.plugin.Milestone = {
       map: this.getMap(),
       shelf: {},
       genKey: function(overlay, vertexidx) {
-        return [overlay, vertexidx].join('\t');
+        return [overlay.object_id, vertexidx].join('\t');
       },
       add: function(node_overlay, overlay, vertexidx) {
         this.shelf[this.genKey(overlay, vertexidx)] = node_overlay;
@@ -42,9 +42,7 @@ MapsGPX.plugin.Milestone = {
       },
       hideAll: function() {
         for ( var key in this.shelf ) {
-          //this.shelf[key].element.style.visibility = 'hidden';
           this.shelf[key].setMap(null);
-
         }
         return this;
       }
@@ -77,12 +75,10 @@ MapsGPX.plugin.Milestone = {
             min = parseInt(full_length) / this.max_number_of_signs,
             z;
         if ( interval <= min ) {
-          // console.log('Adjusting, because the interval is too short');
           for ( z = zoom - 1; this.min_zoom <= z && interval <= min; --z ) {
             interval = z < this.max_zoom ? this.mapping[z] : this.min_interval_meters;
           }
         }
-        // console.log('It should create signs every '+ parseInt(interval / 1000) + ' km');
         return interval;
       }
     };
@@ -90,7 +86,7 @@ MapsGPX.plugin.Milestone = {
     trkLengthCache = {};
 
     google.maps.event.addListener(this.getMap(), 'zoom_changed', (function() {
-      var zoom  = this.getMap().getZoom();
+      var zoom = this.getMap().getZoom();
 
       signCache.hideAll();
 
@@ -111,36 +107,33 @@ MapsGPX.plugin.Milestone = {
           if ( trkLengthCache[trk.overlay][trk_idx] == null || trkLengthCache[trk.overlay][trk_idx] == 'undefined' ) {
             trkLengthCache[trk.overlay][trk_idx] = trk.overlay.computeDistanceTrack(0, trk_path.getLength() -1 );
           }
-          ms = makeMilestones(trk.overlay, intervalDefinition.getInterval(trkLengthCache[trk.overlay][trk_idx], zoom));
-
+          ms = makeMilestones(trk.overlay, intervalDefinition.getInterval(trkLengthCache[trk.overlay][trk_idx], this.zoom));
           for ( stone in ms ) {
             no = signCache.get(trk.overlay, ms[stone].index);
             if ( no ) {
-              no.setMap(this.getMap());
+              no.setMap(this.app.getMap());
             } else {
               kilo = parseInt(ms[stone].distance / 1000);
               no = new NodeOverlay(
                 DivSign.create( kilo +' km', { contentStyle: {fontSize:'x-small', whiteSpace:'nowrap'} }),
                 { position: trk_path.getAt(ms[stone].index)
                 });
-              no.setMap(this.getMap());
+              no.setMap(this.app.getMap());
               signCache.add(no, trk.overlay, ms[stone].index);
 
-              this.register('onShowPolyline', (function(overlay){
-                if ( overlay === this.overlay ) {
-                  this.nodeoverlay.setMap(this.app.getMap());
-                }
-              }).bind({nodeoverlay: no, overlay: trk.overlay, app: this}));
+              this.app.register('onShowPolyline', (function(overlay){
+                google.maps.event.trigger(this.app.getMap(), 'zoom_changed');
+              }).bind({nodeoverlay: no, overlay: trk.overlay, app: this.app}));
 
-              this.register('onHidePolyline', (function(overlay){
-                if ( overlay === this.overlay ) {
+              this.app.register('onHidePolyline', (function(overlay){
+                if ( overlay.object_id == this.overlay.object_id ) {
                   this.nodeoverlay.setMap(null);
                 }
-              }).bind({nodeoverlay: no, overlay: trk.overlay, app: this}));
+              }).bind({nodeoverlay: no, overlay: trk.overlay, app: this.app}));
             }
           }
         }
-      }).bind(this));
+      }).bind({app: this, zoom: zoom}));
     }).bind(this));
 
     this.register('onCreatePolyline', (function(overlay){
