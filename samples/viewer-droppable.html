@@ -3,18 +3,23 @@
 <title>maps.gpx</title>
 <style>
 html, body, #map_canvas { width: 100%; height: 100%; margin: 0px; padding: 0px; }
+img.info-window { max-width: 200px; max-height: 200px; }
 </style>
 <script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry"></script>
 <script src="../maps-gpx.js"></script>
 <script>
 MapsGPX.onReady(function (){
   new MapsGPX('map_canvas')
-  .use('Droppable')
-  .register('onAddGPX', function(key) {
-    this.fitBounds(key);
-    this.showOverlayWpts(key);
-    this.showOverlayTrks(key);
-  });
+    .extend('Droppable')
+    .extend('EXIF')
+    .extend('EXIF2GPX')
+    .extend('DescImage')
+    .extended(function(){
+      this.register('onAddGPX', function(key) {
+        this.fitBounds(key);
+        this.showOverlayGpxs(key);
+      });
+    });
 });
 </script>
 </head><body>
