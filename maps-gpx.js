@@ -748,8 +748,12 @@ MapsGPX.prototype._applyAppearOverlay = function(overlay, to_show) {
   }
 };
 MapsGPX.prototype._appearOverlay = function(to_show, elem, keys) {
-  var i, il, j, jl, k, kl, m, ml, elements;
-  for ( i = 0, il = keys.length; i < il; ++i ) {
+  var i, il = keys.length, j, jl, k, kl, m, ml, elements;
+  if ( il < 1 ) {
+    keys = this.getKeysOfGPX();
+    il = keys.length;
+  }
+  for ( i = 0; i < il; ++i ) {
     elements = this.data[keys[i]][elem];
     for ( j = 0, jl = elements.length; j < jl; ++j ) {
       if ( elements[j].overlay ){
