@@ -10,7 +10,7 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '4.0.0';
+MapsGPX.VERSION = '4.0.1'; // NOT RELEASED
 MapsGPX.EXTENSIONS = [
   'GeoLocation',
   'GeoLocationControl',
@@ -747,12 +747,13 @@ MapsGPX.prototype._applyAppearOverlay = function(overlay, to_show) {
     this.applyHook('on'+ visible +'Polyline', overlay);
   }
 };
-MapsGPX.prototype._appearOverlay = function() {
-  var to_show = arguments[0],
-      elem    = arguments[1],
-      keys    = Array.prototype.slice.call(arguments, 2),
-      i, il, j, jl, k, kl, m, ml, elements;
-  for ( i = 0, il = keys.length; i < il; ++i ) {
+MapsGPX.prototype._appearOverlay = function(to_show, elem, keys) {
+  var i, il = keys.length, j, jl, k, kl, m, ml, elements;
+  if ( il < 1 ) {
+    keys = this.getKeysOfGPX();
+    il = keys.length;
+  }
+  for ( i = 0; i < il; ++i ) {
     elements = this.data[keys[i]][elem];
     for ( j = 0, jl = elements.length; j < jl; ++j ) {
       if ( elements[j].overlay ){
@@ -772,34 +773,32 @@ MapsGPX.prototype._appearOverlay = function() {
   return this;
 };
 MapsGPX.prototype.showOverlayWpts = function() {
-  return this._appearOverlay( true, MapsGPX.ELEMENTS.WPT, Array.prototype.slice.call(arguments));
+  return this._appearOverlay.call(this,  true, MapsGPX.ELEMENTS.WPT, arguments);
 };
 MapsGPX.prototype.hideOverlayWpts = function() {
-  return this._appearOverlay(false, MapsGPX.ELEMENTS.WPT, Array.prototype.slice.call(arguments));
+  return this._appearOverlay.call(this, false, MapsGPX.ELEMENTS.WPT, arguments);
 };
 MapsGPX.prototype.showOverlayRtes = function() {
-  return this._appearOverlay( true, MapsGPX.ELEMENTS.RTE, Array.prototype.slice.call(arguments));
+  return this._appearOverlay.call(this,  true, MapsGPX.ELEMENTS.RTE, arguments);
 };
 MapsGPX.prototype.hideOverlayRtes = function() {
-  return this._appearOverlay(false, MapsGPX.ELEMENTS.RTE, Array.prototype.slice.call(arguments));
+  return this._appearOverlay.call(this, false, MapsGPX.ELEMENTS.RTE, arguments);
 };
 MapsGPX.prototype.showOverlayTrks = function() {
-  return this._appearOverlay( true, MapsGPX.ELEMENTS.TRK, Array.prototype.slice.call(arguments));
+  return this._appearOverlay.call(this,  true, MapsGPX.ELEMENTS.TRK, arguments);
 };
 MapsGPX.prototype.hideOverlayTrks = function() {
-  return this._appearOverlay(false, MapsGPX.ELEMENTS.TRK, Array.prototype.slice.call(arguments));
+  return this._appearOverlay.call(this, false, MapsGPX.ELEMENTS.TRK, arguments);
 };
 MapsGPX.prototype.showOverlayGpxs = function() {
-  var args = Array.prototype.slice.call(arguments);
-  this.showOverlayWpts(args);
-  this.showOverlayRtes(args);
-  this.showOverlayTrks(args);
+  this.showOverlayWpts.apply(this, arguments);
+  this.showOverlayRtes.apply(this, arguments);
+  this.showOverlayTrks.apply(this, arguments);
 };
 MapsGPX.prototype.hideOverlayGpxs = function() {
-  var args = Array.prototype.slice.call(arguments);
-  this.hideOverlayWpts(args);
-  this.hideOverlayRtes(args);
-  this.hideOverlayTrks(args);
+  this.hideOverlayWpts.apply(this, arguments);
+  this.hideOverlayRtes.apply(this, arguments);
+  this.hideOverlayTrks.apply(this, arguments);
 };
 MapsGPX._guessType = function(src) {
   if ( typeof src == 'string' ) {
