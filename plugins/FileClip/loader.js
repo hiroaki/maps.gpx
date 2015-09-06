@@ -6,13 +6,6 @@ MapsGPX.plugin.FileClip = {
     }
 
     this.register('onAddGPX', function(key) {
-      var drawer = this.context['SidePanelControl'];
-
-      var $pane = drawer.getElementDrawer();
-      // remove all children
-      while ($pane.firstChild) {
-        $pane.removeChild($pane.firstChild);
-      }
 
       var $ul = document.createElement('ul');
       var regexp = new RegExp('([^/]+)$');
@@ -24,12 +17,12 @@ MapsGPX.plugin.FileClip = {
         $cb.setAttribute('value', keys[i]);
         $cb.setAttribute('checked', 'checked');
         google.maps.event.addDomListener($cb, 'change', (function(ev) {
-          if ( this.element.checked ) {
-            this.app.showOverlayGpxs(this.element.value);
+          if ( ev.target.checked ) {
+            this.showOverlayGpxs(ev.target.value);
           } else {
-            this.app.hideOverlayGpxs(this.element.value);
+            this.hideOverlayGpxs(ev.target.value);
           }
-        }).bind({app:this,element:$cb}));
+        }).bind(this));
 
         var text = keys[i];
         if ( regexp.test(text) ) {
@@ -47,9 +40,17 @@ MapsGPX.plugin.FileClip = {
         $ul.appendChild($li);
       }
 
-      var $container = document.createElement('div');
-      $container.appendChild($ul);
-      $pane.appendChild($container);
+      var $fileclip = this.context['FileClip'];
+      if ( ! $fileclip ) {
+        $fileclip = document.createElement('div');
+        this.context['FileClip'] = $fileclip;
+        this.context['SidePanelControl'].getElementDrawer().appendChild($fileclip);
+      }
+      // remove all children
+      while ($fileclip.firstChild) {
+        $fileclip.removeChild($fileclip.firstChild);
+      }
+      $fileclip.appendChild($ul);
     });
 
   }
