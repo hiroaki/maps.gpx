@@ -5,6 +5,19 @@ MapsGPX.plugin.FileClip = {
       return;
     }
 
+    if ( ! this.context['FileClip'] ) {
+      this.context['FileClip'] = document.createElement('div');
+      this.context['SidePanelControl'].getElementDrawer().appendChild(this.context['FileClip']);
+    }
+
+    this.register('onChangeFilterStatus', (function() {
+      var $inputs = this.context['FileClip'].getElementsByTagName('input'),
+          i, l = $inputs.length;
+      for ( i = 0; i < l; ++i ) {
+        google.maps.event.trigger($inputs[i], 'change', {target: $inputs[i]});
+      }
+    }).bind(this));
+
     this.register('onAddGPX', function(key) {
 
       var $ul = document.createElement('ul');
@@ -40,17 +53,11 @@ MapsGPX.plugin.FileClip = {
         $ul.appendChild($li);
       }
 
-      var $fileclip = this.context['FileClip'];
-      if ( ! $fileclip ) {
-        $fileclip = document.createElement('div');
-        this.context['FileClip'] = $fileclip;
-        this.context['SidePanelControl'].getElementDrawer().appendChild($fileclip);
-      }
       // remove all children
-      while ($fileclip.firstChild) {
-        $fileclip.removeChild($fileclip.firstChild);
+      while (this.context['FileClip'].firstChild) {
+        this.context['FileClip'].removeChild(this.context['FileClip'].firstChild);
       }
-      $fileclip.appendChild($ul);
+      this.context['FileClip'].appendChild($ul);
     });
 
   }

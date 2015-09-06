@@ -10,6 +10,7 @@ img.info-window { max-width: 200px; max-height: 200px; }
 <script src="maps-gpx.js"></script>
 <script>
 MapsGPX.strict = false;
+MapsGPX.cache_script = false;
 MapsGPX.onReady(function() {
   new MapsGPX('map_canvas')
     .extend('GeoLocation')
@@ -27,6 +28,7 @@ MapsGPX.onReady(function() {
     .extend('VertexInfo')
     .extend('VertexInfoWindow')
     .extend('SidePanelControl', {base_id:'map_container', drawer_id:'sidepanel', span:'280px', maxSpan:'80%'})
+    .extend('ToggleOverlay')
     .extend('FileClip')
     .extended(function() {
       this.register('onAddGPX', function(key) {
