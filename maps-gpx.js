@@ -393,13 +393,13 @@ MapsGPX.Marker.nextval = function() {
     return this._overlayed;
   };
   MapsGPX.Marker.prototype.isWpt = function() {
-    return this._element == MapsGPX.WPT ? true : false
+    return this._element == MapsGPX.ELEMENTS.WPT ? true : false
   };
   MapsGPX.Marker.prototype.isRte = function() {
-    return this._element == MapsGPX.RTE ? true : false
+    return this._element == MapsGPX.ELEMENTS.RTE ? true : false
   };
   MapsGPX.Marker.prototype.isTrk = function() {
-    return this._element == MapsGPX.TRK ? true : false
+    return this._element == MapsGPX.ELEMENTS.TRK ? true : false
   };
   MapsGPX.Marker.prototype.getSource = function() {
     return this._source;
