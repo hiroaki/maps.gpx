@@ -722,7 +722,7 @@ MapsGPX.prototype.getMapElement = function() {
 MapsGPX.prototype.getMapSettings = function() {
   return this.map_settings;
 };
-MapsGPX.prototype.fitBounds = function() {
+MapsGPX.prototype._bounds_of = function() {
   var keys = [], bnd, i, l;
   if ( 0 < arguments.length ) {
     keys = Array.prototype.slice.call(arguments);
@@ -734,7 +734,21 @@ MapsGPX.prototype.fitBounds = function() {
     for ( i = 1, l = keys.length; i < l; ++i ) {
       bnd.union( this.getGPX(keys[i]).metadata.latlngbounds );
     }
+    return bnd;
+  }
+  return null;
+}
+MapsGPX.prototype.fitBounds = function() {
+  var bnd = this._bounds_of.apply(this, arguments);
+  if( bnd ){
     this.getMap().fitBounds(bnd);
+  }
+  return this;
+};
+MapsGPX.prototype.panToBounds = function() {
+  var bnd = this._bounds_of.apply(this, arguments);
+  if( bnd ){
+    this.getMap().panToBounds(bnd);
   }
   return this;
 };
