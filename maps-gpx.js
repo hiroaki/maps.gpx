@@ -10,7 +10,7 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '4.0.1'; // NOT RELEASED
+MapsGPX.VERSION = '4.1.0'; // NOT RELEASED
 MapsGPX.EXTENSIONS = [
   'GeoLocation',
   'GeoLocationControl',
@@ -28,7 +28,8 @@ MapsGPX.EXTENSIONS = [
   'VertexInfo',
   'VertexInfoWindow',
   'SidePanelControl',
-  'FileClip'
+  'FileClip',
+  'ToggleOverlay'
 ];
 MapsGPX.ELEMENTS = {
   AGEOFDGPSDATA: 'ageofdgpsdata',
@@ -689,7 +690,14 @@ MapsGPX.prototype.initialize = function(map_id, map_options, options) {
     onCreateLatlngbounds: [],
     onCreateMarker: [],
     onCreatePolyline: [],
-    onAddGPX: []
+    onAddGPX: [],
+    onChangeFilterStatus: []
+  };
+
+  // stash for filters
+  this.filters = {
+    onAppearOverlayShow: [],
+    onAppearOverlayHide: []
   };
 
   // stash for input handlers by media types
@@ -753,12 +761,29 @@ MapsGPX.prototype.panToBounds = function() {
   return this;
 };
 MapsGPX.prototype._applyAppearOverlay = function(overlay, to_show) {
-  var visible  = to_show ? 'Show'   : 'Hide';
-  overlay.setMap(to_show ? this.map : null );
-  if ( overlay.constructor === MapsGPX.Marker ) {
-    this.applyHook('on'+ visible +'Marker', overlay);
-  } else if ( overlay.constructor === MapsGPX.Polyline ) {
-    this.applyHook('on'+ visible +'Polyline', overlay);
+  var visible  = to_show ? 'Show' : 'Hide';
+  var filtered = null;
+  if ( to_show ) {
+    filtered = this.isFilterEffective('onAppearOverlayShow', overlay);
+    if ( ! filtered ) {
+      overlay.setMap(this.map);
+    } else {
+      overlay.setMap(null);
+    }
+  } else {
+    filtered = this.isFilterEffective('onAppearOverlayHide', overlay);
+    if ( ! filtered ) {
+      overlay.setMap(null);
+    } else {
+      overlay.setMap(this.map);
+    }
+  }
+  if ( ! filtered ) {
+    if ( overlay.constructor === MapsGPX.Marker ) {
+      this.applyHook('on'+ visible +'Marker', overlay);
+    } else if ( overlay.constructor === MapsGPX.Polyline ) {
+      this.applyHook('on'+ visible +'Polyline', overlay);
+    }
   }
 };
 MapsGPX.prototype._appearOverlay = function(to_show, elem, keys) {
@@ -988,6 +1013,37 @@ MapsGPX.prototype.applyHook = function() {
     }
   }
   return this;
+};
+
+MapsGPX.prototype.addFilter = function(from, where, callback) {
+  this.filters[where][from] = callback;
+  return this;
+};
+MapsGPX.prototype.removeFilter = function(from, where) {
+  delete this.filters[where][from];
+  return this;
+};
+MapsGPX.prototype.isFilterEffective = function() {
+  var from, effective, any = null,
+      args = Array.prototype.slice.call(arguments),
+      where = args.shift();
+  for ( from in this.filters[where] ) {
+    effective = false;
+    try {
+      if ( typeof this.filters[where][from] == 'function' ) {
+        effective = this.filters[where][from].apply(this, args);
+      } else {
+        effective = this.filters[where][from] ? true : false;
+      }
+    } catch(ex) {
+      console.log('Catch an exception on isFilterEffective("'+ where +'") on "'+ from +'": '+ ex );
+    }
+    if ( effective ) {
+      any = true;
+      break;
+    }
+  }
+  return any;
 };
 
 //
