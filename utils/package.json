@@ -1,0 +1,21 @@
+{
+  "name": "maps.gpx",
+  "version": "4.1.0",
+  "description": "A small framework of JavaScript to overlay GPX on Google Maps embedded HTML page",
+  "main": "maps-gpx.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiroaki/maps.gpx.git"
+  },
+  "author": "WATANABE Hiroaki",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hiroaki/maps.gpx/issues"
+  },
+  "homepage": "https://github.com/hiroaki/maps.gpx#readme",
+  "devDependencies": {
+    "uglify-js": "^2.5.0",
+    "uglifycss": "0.0.18",
+    "yargs": "^3.29.0"
+  }
+}
