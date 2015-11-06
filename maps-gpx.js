@@ -10,7 +10,7 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '4.1.0';
+MapsGPX.VERSION = '4.1.1';
 MapsGPX.EXTENSIONS = [
   'GeoLocation',
   'GeoLocationControl',
