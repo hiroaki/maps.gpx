@@ -955,6 +955,11 @@ MapsGPX.prototype._build = function(gpx_text) {
   return gpx;
 };
 MapsGPX.prototype.use = function(plugin_name, params) {
+  // When the path was already set, it does not overwrite one
+  // bacause the setting at here is less reliable.
+  if ( ! MapsGPX.plugin[plugin_name].path ) {
+    MapsGPX.plugin[plugin_name].path = [MapsGPX.plugin_dir, plugin_name].join('/');
+  }
   try {
     MapsGPX.plugin[plugin_name].callback.bind(this)(params);
   } catch(ex) {
