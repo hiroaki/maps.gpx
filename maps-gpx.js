@@ -690,8 +690,7 @@ MapsGPX.prototype.initialize = function(map_id, map_options, options) {
     onCreateLatlngbounds: [],
     onCreateMarker: [],
     onCreatePolyline: [],
-    onAddGPX: [],
-    onChangeFilterStatus: []
+    onAddGPX: []
   };
 
   // stash for filters
@@ -760,18 +759,18 @@ MapsGPX.prototype.panToBounds = function() {
   }
   return this;
 };
-MapsGPX.prototype._applyAppearOverlay = function(overlay, to_show) {
+MapsGPX.prototype._applyAppearOverlay = function(overlay, to_show, key) {
   var visible  = to_show ? 'Show' : 'Hide';
   var filtered = null;
   if ( to_show ) {
-    filtered = this.isFilterEffective('onAppearOverlayShow', overlay);
+    filtered = this.isFilterEffective('onAppearOverlayShow', overlay, key);
     if ( ! filtered ) {
       overlay.setMap(this.map);
     } else {
       overlay.setMap(null);
     }
   } else {
-    filtered = this.isFilterEffective('onAppearOverlayHide', overlay);
+    filtered = this.isFilterEffective('onAppearOverlayHide', overlay, key);
     if ( ! filtered ) {
       overlay.setMap(null);
     } else {
@@ -796,13 +795,13 @@ MapsGPX.prototype._appearOverlay = function(to_show, elem, keys) {
     elements = this.data[keys[i]][elem];
     for ( j = 0, jl = elements.length; j < jl; ++j ) {
       if ( elements[j].overlay ){
-        this._applyAppearOverlay(elements[j].overlay, to_show);
+        this._applyAppearOverlay(elements[j].overlay, to_show, keys[i]);
       }
       for ( k in elements[j] ) {
         if ( elements[j][k] instanceof Array ) {
           for ( m = 0, ml = elements[j][k].length; m < ml; ++m ) {
             if ( elements[j][k][m].overlay ) {
-              this._applyAppearOverlay(elements[j][k][m].overlay, to_show);
+              this._applyAppearOverlay(elements[j][k][m].overlay, to_show, keys[i]);
             }
           }
         }

@@ -10,21 +10,21 @@ MapsGPX.plugin.ToggleOverlay = {
       return;
     }
 
-    createButton = (function (type, checked){
+    createButton = (function(type, checked) {
       var $cb;
       $cb = document.createElement('input');
       $cb.setAttribute('type', 'checkbox');
       $cb.setAttribute('value', type);
       if ( checked ) {
-        $cb.setAttribute('checked', 'checked');
+        $cb.checked = true;
       }
       google.maps.event.addDomListener($cb, 'change', (function(ev) {
-        this.applyHook('onChangeFilterStatus');
+        this.showOverlayGpxs();
       }).bind(this));
       return $cb;
     }).bind(this);
 
-    wrapWithLabel = (function ($cb){
+    wrapWithLabel = (function($cb) {
       var $label, type = $cb.getAttribute('value');
       $label = document.createElement('label');
       $label.setAttribute('class', MapsGPX.plugin.ToggleOverlay.class_prefix + type);
@@ -44,7 +44,7 @@ MapsGPX.plugin.ToggleOverlay = {
 
     this.context['SidePanelControl'].getElementDrawer().appendChild($container);
 
-    this.addFilter('ToggleOverlay', 'onAppearOverlayShow', (function (overlay){
+    this.addFilter('ToggleOverlay', 'onAppearOverlayShow', (function(overlay, key) {
       if ( overlay.isWpt() ) {
         return this.cb.wpt.checked ? false : true;
       } else if ( overlay.isRte() ) {

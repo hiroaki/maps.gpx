@@ -10,22 +10,27 @@ MapsGPX.plugin.FileClip = {
       this.context['SidePanelControl'].getElementDrawer().appendChild(this.context['FileClip']);
     }
 
-    this.register('onChangeFilterStatus', (function() {
-      var $inputs = this.context['FileClip'].getElementsByTagName('input'),
-          i, l = $inputs.length;
-      for ( i = 0; i < l; ++i ) {
-        google.maps.event.trigger($inputs[i], 'change', {target: $inputs[i]});
+    this.addFilter('FileClip', 'onAppearOverlayShow', (function(overlay, key) {
+      var i, l, $cb_list = this.context['FileClip'].getElementsByTagName('input');
+      for ( i = 0, l = $cb_list.length; i < l; ++i ) {
+        if ( $cb_list.item(i).value == key ) {
+          if ( $cb_list.item(i).checked ) {
+            return false;
+          } else {
+            return true;
+          }
+        }
       }
+      return false;
     }).bind(this));
 
     this.register('onAddGPX', function(key) {
-
-      var $ul = document.createElement('ul');
-      var regexp = new RegExp('([^/]+)$');
-      var keys = this.getKeysOfGPX();
-      for ( var i = 0, l = keys.length; i < l; ++i ) {
-
-        var $cb = document.createElement('input');
+      var i, l, $cb, text, contents, $label, $li,
+        $ul = document.createElement('ul'),
+        regexp = new RegExp('([^/]+)$'),
+        keys = this.getKeysOfGPX();
+      for ( i = 0, l = keys.length; i < l; ++i ) {
+        $cb = document.createElement('input');
         $cb.setAttribute('type', 'checkbox');
         $cb.setAttribute('value', keys[i]);
         $cb.setAttribute('checked', 'checked');
@@ -37,17 +42,17 @@ MapsGPX.plugin.FileClip = {
           }
         }).bind(this));
 
-        var text = keys[i];
+        text = keys[i];
         if ( regexp.test(text) ) {
           text = RegExp.$1;
         }
-        var contents = document.createTextNode(text);
+        contents = document.createTextNode(text);
 
-        var $label = document.createElement('label');
+        $label = document.createElement('label');
         $label.appendChild($cb);
         $label.appendChild(contents);
 
-        var $li = document.createElement('li');
+        $li = document.createElement('li');
         $li.appendChild($label);
 
         $ul.appendChild($li);
@@ -59,6 +64,5 @@ MapsGPX.plugin.FileClip = {
       }
       this.context['FileClip'].appendChild($ul);
     });
-
   }
 };
