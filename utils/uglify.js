@@ -3,19 +3,9 @@
 /*
   uglify.js - concatenate and uglify source files
 
-    For usage:
+  To see the usage:
 
-      $ node uglify.js --help
-
-    Example:
-
-      ### cat all scripts include the core (maps-gpx.js)
-      $ node uglify.js --all \
-        --script=packed.js --style=packed.css
-
-      ### cat specifying plugins only
-      $ node uglify.js --no-core \
-        --script=packed.js Droppable QueryURL
+    $ node uglify.js --help
 
   Note:
     If you will see a message like "extra bundle"
@@ -24,51 +14,44 @@
 
 **/
 
-var fs    = require('fs');
-var path  = require('path');
+var fs        = require('fs');
+var path      = require('path');
+var uglifyjs  = require('uglify-js');
+var uglifycss = require('uglifycss');
+var topdir    = path.join(__dirname, '..');
 
 //
 // parse command line
 //
 var argv = require('yargs')
     .usage('Usage: $0 [--options] [plugin names]')
-    .help('h')
-    .alias('h', 'help')
-    .boolean('core')
-    .default('core', true)
-    .alias('c', 'core')
-    .describe('core', 'contains core script')
-    .default('plugins-dir', '../plugins')
-    .alias('d', 'plugins-dir')
-    .describe('plugins-dir', 'plugins dir')
-    .nargs('script', 1)
-    .describe('script', 'output file of uglify script')
-    .nargs('style', 1)
-    .describe('style', 'output file of uglify style')
-    .boolean('verbose')
-    .default('verbose', false)
-    .alias('v', 'verbose')
-    .describe('verbose', 'with debug print')
-    .boolean('force')
-    .default('force', false)
-    .alias('f', 'force')
-    .describe('force', 'overwrite output file(s)')
-    .boolean('extra')
-    .default('extra', true)
-    .alias('e', 'extra')
-    .describe('extra', 'show extra bundles')
-    .boolean('all')
-    .default('all', false)
-    .alias('a', 'all')
-    .describe('all', 'contains all plugins')
+    .example( '$0 -a -o packed.js -o packed.css',
+              'All scripts (which includes the core) and styles')
+    .example('')
+    .example( '$0 --no-core -o packed.js Droppable QueryURL',
+              'Specifying plugins only')
+    .example('')
+    .example( '$0 -o packed.js -u ext1.js -u ext2.js',
+              'Append ext1.js and ext2.js to the head of list')
+    .example('')
+    .example( '$0 -o packed.css -p ext1.css -u ext2.js',
+              'Append ext1.css to the tail of list (not include ext2 because it is "js")')
+    .example('')
+    .help('h').alias('h', 'help')
+    .describe('all', 'All plugins').alias('a', 'all').boolean('all').default('all', false)
+    .describe('core', 'With the core script (is maps-gpx.js)').alias('c', 'core').boolean('core').default('core', true)
+    .describe('extra', 'Show extra bundles').alias('e', 'extra').boolean('extra').default('extra', true)
+    .describe('force', 'Overwrite output file(s)').alias('f', 'force').boolean('force').default('force', false)   
+    .describe('output', 'Output file of uglify ".js" or ".css"').alias('o', 'output').default('output', [])
+    .describe('plugins-dir', 'Directory of the "plugins"').alias('d', 'plugins-dir').default('plugins-dir', path.join(topdir, 'plugins'))
+    .describe('push', 'Append specifying script.js or style.css to tail of list').alias('p', 'push').default('push', [])
+    .describe('unshift', 'Append specifying script.js or style.css to head of list').alias('u', 'unshift').default('unshift', [])
+    .describe('verbose', 'Debug print').alias('v', 'verbose').boolean('verbose').default('verbose', false)
     .argv;
 
-var debug_print = function(message){
-  if ( argv.verbose ) {
-    console.log(message)
-  }
-};
-
+var debug_print = function(message) { if ( argv.verbose ) console.log(message) };
+var filter_js   = function(name) { return name.match(/\.js$/) };
+var filter_css  = function(name) { return name.match(/\.css$/) };
 
 //
 // target plugins
@@ -79,41 +62,40 @@ if ( ! argv['all'] ) {
 } else {
   expected_dirs = fs.readdirSync(argv['plugins-dir']);
 }
-var dirs = expected_dirs.filter(function (file){
+var dirs = expected_dirs.filter(function (file) {
     return file.substr(0,1).match(/^[A-Z]/);
   })
-  .map(function (subdir){
+  .map(function(subdir) {
     return path.join(argv['plugins-dir'], subdir)
   })
-  .filter(function (plugindir){
+  .filter(function(plugindir) {
     return fs.statSync(plugindir).isDirectory();
   });
 
 //
-// parse
+// parse each plugins
 //
-var UglifyJS  = require('uglify-js');
 var scripts   = [];
 var styles    = [];
 var extras    = [];
-dirs.forEach(function (pluginpath){
+dirs.forEach(function(pluginpath) {
   var body,
       loaderjs = path.join(pluginpath, 'loader.js'),
-      toplevel = UglifyJS.parse(fs.readFileSync(loaderjs).toString());
+      toplevel = uglifyjs.parse(fs.readFileSync(loaderjs).toString());
   toplevel.figure_out_scope();
   body = toplevel.globals.toObject().$MapsGPX.scope.body[0].body;
-  debug_print("- "+ pluginpath);
+  debug_print("[plugin:path] "+ pluginpath);
 
   scripts.push(loaderjs);
   body.right.properties.forEach(function(element) {
     if ( element.key == 'bundles' ) {
       element.value.elements.forEach(function(bundle) {
         var target = bundle.value;
-        debug_print('  + '+ target);
+        debug_print('    [bundle] '+ target);
         if ( ! target.match(/\//) ) {
-          if ( target.match(/\.css$/) ) {
+          if ( filter_css.call(null, target) ) {
             styles.push(path.join(pluginpath, target));
-          } else if ( target.match(/\.js$/) ) {
+          } else if ( filter_js.call(null, target) ) {
             scripts.push(path.join(pluginpath, target));
           } else {
             extras.push(target);
@@ -129,53 +111,57 @@ dirs.forEach(function (pluginpath){
 //
 // results
 //
-
-if ( argv.script ) {
-  debug_print('bundle these scripts:');
-  scripts.forEach(function (target){
-    debug_print('- '+ target);
-  });
-  if ( argv.core ) {
-    // check core
-    var core_script = path.join(argv['plugins-dir'], '..', 'maps-gpx.js');
-    fs.access(core_script, fs.R_OK, function (err){
-      if ( err ) {
-        throw new Error('the core script cannot be opened: '+ core_script);
-      }
-    });
-    scripts.unshift(core_script);
+var generator = function(list, filter, uglify) {
+  var output = [].concat(this.output).filter(filter).shift();
+  if ( ! output ) {
+    return;
   }
-  fs.access(argv.script, fs.R_OK, function (err){
-    if ( ! err && ! argv.force ) {
-      throw new Error('file for writing exists: '+ argv.script);
+  // appendixes
+  if ( this['unshift'] ) {
+    list = [].concat(this['unshift']).filter(filter).concat(list);
+  }
+  if ( this['push'] ) {
+    list = list.concat(this['push'].filter(filter));
+  }
+  // output
+  fs.access(output, fs.R_OK, function(err) {
+    if ( ! err && ! this.force ) {
+      throw new Error('file for writing already exists: '+ output);
     }
-    fs.writeFileSync(argv.script, UglifyJS.minify(scripts).code);
-  });
-}
+    debug_print('[list:output] '+ output);
+    debug_print(list);
+    fs.writeFileSync(output, uglify.call(null, list));
+  }.bind(this));
+};
 
-if ( argv.style ) {
-  debug_print('bundle these styles:');
-  styles.forEach(function (target){
-    debug_print('- '+ target);
-  });
-  fs.access(argv.style, fs.R_OK, function (err){
-    if ( ! err && ! argv.force ) {
-      throw new Error('file for writing exists: '+ argv.style);
+// (A) generate an uglify js
+if ( argv.core ) {
+  var core_script = path.join(argv['plugins-dir'], '..', 'maps-gpx.js');
+  fs.accessSync(core_script, fs.R_OK, function(err) {
+    if ( err ) {
+      throw new Error('the core script cannot be opened: '+ core_script);
     }
-    fs.writeFileSync(argv.style, require('uglifycss').processFiles(styles));
   });
+  scripts.unshift(core_script);
 }
+generator.call(argv, scripts, filter_js, function(files) {
+  return uglifyjs.minify(files).code;
+});
 
+// (B) generate an uglify css
+generator.call(argv, styles, filter_css, function(files) {
+  return uglifycss.processFiles(files);
+});
+
+// (C) extra information
 if ( argv.extra ) {
-  if ( extras.length < 1 ) {
-    console.info('no extra bundle is found');
-  } else {
+  if ( 1 <= extras.length ) {
     if ( extras.length == 1 ) {
       console.info('an extra bundle is found: ');
     } else {
       console.info('extra bundles are found: ');
     }
-    extras.forEach(function (target){
+    extras.forEach(function(target) {
       console.info(target);
     });
   }
