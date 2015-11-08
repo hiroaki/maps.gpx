@@ -25,7 +25,6 @@ MapsGPX.plugin.EXIF = {
   callback: function(params) {
 
     // add hook points
-    console.log('Add a hook point: "onReadEXIF"');
     this.hook['onReadEXIF'] = this.hook['onReadEXIF'] || [];
 
     // add an instance method to MapsGPX.Polyline

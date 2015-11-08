@@ -11,17 +11,10 @@ MapsGPX.plugin.GeoLocation = {
   callback: function(params) {
 
     // add hook points
-    console.log('Add hook points: "onGetGeoLocation"');
-    this.hook['onGetGeoLocation'] = this.hook['onGetGeoLocation'] || [];
-
-    console.log('Add hook points: "onGetGeoLocationError"');
-    this.hook['onGetGeoLocationError'] = this.hook['onGetGeoLocationError'] || [];
-
-    console.log('Add hook points: "onBeginWatchGeoLocation"');
-    this.hook['onBeginWatchGeoLocation'] = this.hook['onBeginWatchGeoLocation'] || [];
-
-    console.log('Add hook points: "onEndWatchGeoLocation"');
-    this.hook['onEndWatchGeoLocation'] = this.hook['onEndWatchGeoLocation'] || [];
+    this.hook['onGetGeoLocation']         = this.hook['onGetGeoLocation']         || [];
+    this.hook['onGetGeoLocationError']    = this.hook['onGetGeoLocationError']    || [];
+    this.hook['onBeginWatchGeoLocation']  = this.hook['onBeginWatchGeoLocation']  || [];
+    this.hook['onEndWatchGeoLocation']    = this.hook['onEndWatchGeoLocation']    || [];
 
     MapsGPX.prototype.isSupportedGeoLocation = function() {
       return navigator.geolocation ? true : false;
