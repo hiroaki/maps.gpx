@@ -32,7 +32,7 @@ MapsGPX.onReady(function() {
     .use('ToggleOverlay')
     .use('FileClip')
     .register('onAddGPX', function(key) {
-      this.fitBounds(key);
+      this.fitBounds();
       this.showOverlayGpxs(key);
     });
 });

@@ -31,7 +31,7 @@ MapsGPX.onReady(function() {
     .extend('FileClip')
     .extended(function() {
       this.register('onAddGPX', function(key) {
-        this.fitBounds(key);
+        this.fitBounds();
         this.showOverlayGpxs(key);
       });
     });
