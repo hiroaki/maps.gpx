@@ -690,8 +690,7 @@ MapsGPX.prototype.initialize = function(map_id, map_options, options) {
     onCreateLatlngbounds: [],
     onCreateMarker: [],
     onCreatePolyline: [],
-    onAddGPX: [],
-    onChangeFilterStatus: []
+    onAddGPX: []
   };
 
   // stash for filters
@@ -760,29 +759,35 @@ MapsGPX.prototype.panToBounds = function() {
   }
   return this;
 };
-MapsGPX.prototype._applyAppearOverlay = function(overlay, to_show) {
-  var visible  = to_show ? 'Show' : 'Hide';
-  var filtered = null;
+MapsGPX.prototype._applyAppearOverlay = function(overlay, to_show, key) {
+  var show_and_apply_hook, hide_and_apply_hook;
+  show_and_apply_hook = function(overlay) {
+    overlay.setMap(this.getMap());
+    if ( overlay.constructor === MapsGPX.Marker ) {
+      this.applyHook('onShowMarker', overlay);
+    } else if ( overlay.constructor === MapsGPX.Polyline ) {
+      this.applyHook('onShowPolyline', overlay);
+    }
+  };
+  hide_and_apply_hook = function(overlay) {
+    overlay.setMap(null);
+    if ( overlay.constructor === MapsGPX.Marker ) {
+      this.applyHook('onShowMarker', overlay);
+    } else if ( overlay.constructor === MapsGPX.Polyline ) {
+      this.applyHook('onShowPolyline', overlay);
+    }
+  };
   if ( to_show ) {
-    filtered = this.isFilterEffective('onAppearOverlayShow', overlay);
-    if ( ! filtered ) {
-      overlay.setMap(this.map);
+    if ( this.isFilterEffective('onAppearOverlayShow', overlay, key) ) {
+      hide_and_apply_hook.call(this, overlay);
     } else {
-      overlay.setMap(null);
+      show_and_apply_hook.call(this, overlay);
     }
   } else {
-    filtered = this.isFilterEffective('onAppearOverlayHide', overlay);
-    if ( ! filtered ) {
-      overlay.setMap(null);
+    if ( this.isFilterEffective('onAppearOverlayHide', overlay, key) ) {
+      show_and_apply_hook.call(this, overlay);
     } else {
-      overlay.setMap(this.map);
-    }
-  }
-  if ( ! filtered ) {
-    if ( overlay.constructor === MapsGPX.Marker ) {
-      this.applyHook('on'+ visible +'Marker', overlay);
-    } else if ( overlay.constructor === MapsGPX.Polyline ) {
-      this.applyHook('on'+ visible +'Polyline', overlay);
+      hide_and_apply_hook.call(this, overlay);
     }
   }
 };
@@ -796,13 +801,13 @@ MapsGPX.prototype._appearOverlay = function(to_show, elem, keys) {
     elements = this.data[keys[i]][elem];
     for ( j = 0, jl = elements.length; j < jl; ++j ) {
       if ( elements[j].overlay ){
-        this._applyAppearOverlay(elements[j].overlay, to_show);
+        this._applyAppearOverlay(elements[j].overlay, to_show, keys[i]);
       }
       for ( k in elements[j] ) {
         if ( elements[j][k] instanceof Array ) {
           for ( m = 0, ml = elements[j][k].length; m < ml; ++m ) {
             if ( elements[j][k][m].overlay ) {
-              this._applyAppearOverlay(elements[j][k][m].overlay, to_show);
+              this._applyAppearOverlay(elements[j][k][m].overlay, to_show, keys[i]);
             }
           }
         }
