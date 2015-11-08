@@ -23,6 +23,7 @@ MapsGPX.plugin.EXIF = {
     }
   },
   callback: function(params) {
+    var input_handler;
 
     // add hook points
     this.hook['onReadEXIF'] = this.hook['onReadEXIF'] || [];
@@ -52,24 +53,25 @@ MapsGPX.plugin.EXIF = {
       }
     };
 
-    var input_handler = function(key, src) {
-      var p1 = MapsGPX.resolveAsArrayBuffer(src);
-      var p2 = MapsGPX.resolveAsObjectURL(src);
+    input_handler = function(key, src) {
+      var p1 = MapsGPX.resolveAsArrayBuffer(src),
+          p2 = MapsGPX.resolveAsObjectURL(src);
       return Promise.all([p1,p2,src]).then((function(values) {
         var exif   = MapsGPX.plugin.EXIF.readFromArrayBuffer(values[0]),
             latlng = MapsGPX.plugin.EXIF.createLatlngFromExif(exif),
             founds = [],
-            alternatives = [];
+            alternatives = [],
+            dt, origin, i, j, nearestVertex, sorted, min_time, stash;
         if ( latlng == null && exif['DateTimeOriginal'] ) {
           // search coordinate of the image by matching date with all polylines
-          var dt = exif['DateTimeOriginal'].split(/\s+/),
-              origin = new Date( dt[0].replace(/:/g, '/')+ ' ' + dt[1] ), // localtime
-              i, j;
-          var nearestVertex = function(overlay, key) {
+          dt = exif['DateTimeOriginal'].split(/\s+/);
+          origin = new Date( dt[0].replace(/:/g, '/')+ ' ' + dt[1] ); // localtime
+          nearestVertex = function(overlay, key) {
+            var rs;
             if( ! overlay ){
               return false;
             }else{
-              var rs = overlay.findNearestVertexByDate(origin);
+              rs = overlay.findNearestVertexByDate(origin);
               if ( rs ) {
                 rs['key'] = key;
                 this.push(rs);
@@ -77,7 +79,7 @@ MapsGPX.plugin.EXIF = {
               return true;
             }
           };
-          this.eachGPX((function (gpx, key){
+          this.eachGPX((function(gpx, key) {
             var k, l, m, n;
             for ( k = 0, l = gpx.trk.length; k < l; ++k ) {
               if ( ! nearestVertex.call(this, gpx.trk[k].overlay, key) ) {
@@ -90,12 +92,12 @@ MapsGPX.plugin.EXIF = {
 
           if ( 0 < founds.length ) {
             // pickup the best points which has minimum diff
-            var sorted = founds.sort(function(a, b) {
+            sorted = founds.sort(function(a, b) {
               return a['time'] - b['time'];
             });
             founds = [];
             founds.push(sorted[0]);
-            var min_time = sorted[0]['time'];
+            min_time = sorted[0]['time'];
             for ( i = 1, j = sorted.length; i < j; ++i ) {
               if ( min_time.toJSON() != sorted[i]['time'].toJSON() ) {
                 break;
@@ -106,7 +108,7 @@ MapsGPX.plugin.EXIF = {
             alternatives  = founds;
           }
         }
-        var stash = {
+        stash = {
                   exif: exif,
                    url: values[1],
                    src: values[2],
@@ -131,11 +133,11 @@ MapsGPX.plugin.EXIF = {
     this.registerInputHandler(new MapsGPX.InputHandler('image/jpeg', input_handler));
   },
   _handlerHookOnReadExifDefault: function(key, values) {
-    var pinpoint = null;
+    var pinpoint = null, i, l, contents;
     if ( values.alternatives.length <= 1) {
       pinpoint = values.latlng;
     } else {
-      for ( var i = 0, l = values.alternatives.length; i < l; ++i ) {
+      for ( i = 0, l = values.alternatives.length; i < l; ++i ) {
         if ( window.confirm('Are you sure the image is on "'+ values.alternatives[i]['key'] +'" ?') ) {
           pinpoint = values.alternatives[i].latlng;
           break;
@@ -145,8 +147,7 @@ MapsGPX.plugin.EXIF = {
     if ( ! pinpoint ) {
       window.alert('Could not detect coordinate of the image "'+ key +'"')
     } else {
-      var contents = values.exif['DateTimeOriginal'] +' - '+ key +
-                    '<br/><img class="info-window" src="'+ values.url +'"/>';
+      contents = [values.exif['DateTimeOriginal'], ' - ', key, '<br/><img class="info-window" src="', values.url, '"/>'].join('');
       this.map.panTo(values.latlng);
       new google.maps.InfoWindow({
         content: contents,

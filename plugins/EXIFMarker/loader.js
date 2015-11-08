@@ -5,21 +5,21 @@ MapsGPX.plugin.EXIFMarker = {
       pts: []
     };
 
-    this.register('onReadEXIF', (function (key, values){
-
+    this.register('onReadEXIF', (function(key, values) {
+      var bounds, pinpoint, i, l, contents, marker;
       this.context['EXIFMarker']['pts'].push({lat: values.latlng.lat(), lon: values.latlng.lng()});
       if ( 1 < this.context['EXIFMarker']['pts'].length ) {
-        var bounds = MapsGPX.boundsOf(this.context['EXIFMarker']['pts']);
+        bounds = MapsGPX.boundsOf(this.context['EXIFMarker']['pts']);
         this.map.fitBounds(MapsGPX.createLatlngbounds(bounds));
       } else {
         this.map.panTo(values.latlng);
       }
 
-      var pinpoint = null;
+      pinpoint = null;
       if ( values.alternatives.length <= 1 ) {
         pinpoint = values.latlng;
       } else {
-        for ( var i = 0, l = values.alternatives.length; i < l; ++i ) {
+        for ( i = 0, l = values.alternatives.length; i < l; ++i ) {
           if ( window.confirm('Are you sure the image is on "'+ values.alternatives[i]['key'] +'" ?') ) {
             pinpoint = values.alternatives[i].latlng;
             break;
@@ -29,9 +29,9 @@ MapsGPX.plugin.EXIFMarker = {
       if ( ! pinpoint ) {
         window.alert('Could not detect coordinate of the image "'+ key +'"')
       } else {
-        var contents = '<div><strong>'+ values.exif['DateTimeOriginal'] +' - '+ key + '</strong></div><hr/>'+
-                       '<div><img class="info-window" src="'+ values.url +'"/></div>';
-        var marker = new google.maps.Marker({
+        contents = ['<div><strong>', values.exif['DateTimeOriginal'], ' - ', key, '</strong></div><hr/>', 
+                    '<div><img class="info-window" src="', values.url, '"/></div>'].join('');
+        marker = new google.maps.Marker({
           position: values.latlng,
           draggable: true,
           icon: new google.maps.MarkerImage([MapsGPX.plugin.EXIFMarker.path, 'photo.png'].join('/'), new google.maps.Size(32,37))

@@ -8,12 +8,13 @@ MapsGPX.plugin.Droppable = {
     }).bind(this));
 
     google.maps.event.addDomListener(elem, 'drop', (function(ev) {
+      var files, file, i, l;
       ev.stopPropagation();
       ev.preventDefault();
-      var files = ev.dataTransfer.files;
-      for (var i = 0, l = files.length; i < l; ++i) {
-        var file = files[i];
-        console.log('name=['+ file.name +'] type=['+ file.type +'] size=['+ file.size +']');
+      files = ev.dataTransfer.files;
+      for ( i = 0, l = files.length; i < l; ++i ) {
+        file = files[i];
+        console.log('Dropped: name=['+ file.name +'] type=['+ file.type +'] size=['+ file.size +']');
         this.input(file.name, file);
       }
     }).bind(this));

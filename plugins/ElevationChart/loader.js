@@ -14,7 +14,7 @@ MapsGPX.plugin.ElevationChart = {
       map: this.getMap()
     });
 
-    google.load('visualization', '1', {'packages': ['corechart'], 'callback': (function (){
+    google.load('visualization', '1', {'packages': ['corechart'], 'callback': (function() {
       var click_handler,
           app = this.app,
           control = this.control,
@@ -37,7 +37,7 @@ MapsGPX.plugin.ElevationChart = {
       }).bind(dd));
 
       //
-      google.visualization.events.addListener(dd.chart, 'select', (function (){
+      google.visualization.events.addListener(dd.chart, 'select', (function() {
         var selection, item;
         if ( ! this.on_select_chart ) {
           return;
@@ -54,7 +54,7 @@ MapsGPX.plugin.ElevationChart = {
       }).bind(dd));
 
       //
-      app.register('onVertexInfo', (function (polyline, idx, mouseevent){
+      app.register('onVertexInfo', (function(polyline, idx, mouseevent) {
         if ( this.isOpened() && this.current_polyline === polyline ) {
           this.chart.setSelection([{row: idx, column: 1}]);
         }
@@ -93,7 +93,7 @@ MapsGPX.plugin.ElevationChart = {
             this.view.marker.setMap(null);
             this.view.chart.draw(data, options);
             this.view.current_polyline = this.polyline;
-            this.view.on_select_chart = (function (row, col){
+            this.view.on_select_chart = (function(row, col) {
               var val = data.getValue(row, col);
               this.view.marker.setPosition( this.polyline.getPath().getAt(row) );
               this.view.marker.setTitle('#'+ row +' - ele = '+ val +'m');
@@ -101,7 +101,7 @@ MapsGPX.plugin.ElevationChart = {
                 this.view.marker.setMap( this.polyline.getMap() );
               }
             }).bind(this);
-            this.view.addHandler('close', (function (){
+            this.view.addHandler('close', (function() {
               this.current_polyline = null;
               this.marker.setMap(null);
               this.chart.clearChart();

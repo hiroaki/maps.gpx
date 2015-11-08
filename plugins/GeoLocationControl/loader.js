@@ -1,11 +1,12 @@
 MapsGPX.plugin.GeoLocationControl = {
   callback: function(params) {
+    var overlay, mc, CurrentPositionOverlay;
 
-    function CurrentPositionOverlay(){
+    CurrentPositionOverlay = function() {
       this.initialize.apply(this, arguments);
     }
     CurrentPositionOverlay.prototype = {
-      initialize: function (options){
+      initialize: function(options) {
         options     = options || {};
         this.marker = null;
         this.circle = null;
@@ -60,9 +61,9 @@ MapsGPX.plugin.GeoLocationControl = {
       }
     };
 
-    var overlay = new CurrentPositionOverlay();
+    overlay = new CurrentPositionOverlay();
 
-    var mc = new MapsGPX.MapControl({
+    mc = new MapsGPX.MapControl({
        enabled: [MapsGPX.plugin.GeoLocationControl.path, 'ic_location_searching_black_24dp.png'].join('/'),
          fixed: [MapsGPX.plugin.GeoLocationControl.path, 'ic_gps_fixed_red_24dp.png'].join('/'),
        located: [MapsGPX.plugin.GeoLocationControl.path, 'ic_gps_fixed_blue_24dp.png'].join('/'),
