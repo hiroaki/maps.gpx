@@ -15,7 +15,7 @@ MapsGPX.plugin.DescImage = {
         google.maps.event.addListener(marker, 'click', function(mouseevent) {
           if ( ! this._infowindow ) {
             this._infowindow = new google.maps.InfoWindow({
-              content: ['<div><img class="info-window" src="',desc,'"/></div>'].join('')
+              content: ['<div><a href="',desc,'" target="preview"><img class="info-window" src="',desc,'"/></div>'].join('')
               });
           }
           this._infowindow.open(this.getMap(), this);
