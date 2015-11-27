@@ -10,7 +10,7 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '4.1.2';
+MapsGPX.VERSION = '4.2.0'; // NOT RELEASED YET
 MapsGPX.EXTENSIONS = [
   'GeoLocation',
   'GeoLocationControl',
@@ -900,7 +900,7 @@ MapsGPX.prototype.addGPX = function(key, gpx_text) {
   this.removeGPX(key);
   try {
     this.data[key] = this._build(gpx_text);
-    this.applyHook('onAddGPX', key);
+    this.applyHook('onAddGPX', key, gpx_text);
   } catch(e) {
     throw( new Error('Catch an exception at addGPX with '+ key +', reason: '+ e) );
   }
