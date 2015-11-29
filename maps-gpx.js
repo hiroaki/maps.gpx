@@ -761,33 +761,33 @@ MapsGPX.prototype.panToBounds = function() {
 };
 MapsGPX.prototype._applyAppearOverlay = function(overlay, to_show, key) {
   var show_and_apply_hook, hide_and_apply_hook;
-  show_and_apply_hook = function(overlay) {
+  show_and_apply_hook = function(overlay, key) {
     overlay.setMap(this.getMap());
     if ( overlay.constructor === MapsGPX.Marker ) {
-      this.applyHook('onShowMarker', overlay);
+      this.applyHook('onShowMarker', overlay, key);
     } else if ( overlay.constructor === MapsGPX.Polyline ) {
-      this.applyHook('onShowPolyline', overlay);
+      this.applyHook('onShowPolyline', overlay, key);
     }
   };
-  hide_and_apply_hook = function(overlay) {
+  hide_and_apply_hook = function(overlay, key) {
     overlay.setMap(null);
     if ( overlay.constructor === MapsGPX.Marker ) {
-      this.applyHook('onShowMarker', overlay);
+      this.applyHook('onShowMarker', overlay, key);
     } else if ( overlay.constructor === MapsGPX.Polyline ) {
-      this.applyHook('onShowPolyline', overlay);
+      this.applyHook('onShowPolyline', overlay, key);
     }
   };
   if ( to_show ) {
     if ( this.isFilterEffective('onAppearOverlayShow', overlay, key) ) {
-      hide_and_apply_hook.call(this, overlay);
+      hide_and_apply_hook.call(this, overlay, key);
     } else {
-      show_and_apply_hook.call(this, overlay);
+      show_and_apply_hook.call(this, overlay, key);
     }
   } else {
     if ( this.isFilterEffective('onAppearOverlayHide', overlay, key) ) {
-      show_and_apply_hook.call(this, overlay);
+      show_and_apply_hook.call(this, overlay, key);
     } else {
-      hide_and_apply_hook.call(this, overlay);
+      hide_and_apply_hook.call(this, overlay, key);
     }
   }
 };
