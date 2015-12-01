@@ -12,24 +12,25 @@ function MapsGPX() {
 // constants, do not change these value
 MapsGPX.VERSION = '4.2.0'; // NOT RELEASED YET
 MapsGPX.EXTENSIONS = [
-  'GeoLocation',
-  'GeoLocationControl',
-  'DrawerCSS',
   'DescImage',
+  'DrawerCSS',
+  'Droppable',
   'EXIF',
   'EXIF2GPX',
   'EXIFMarker',
   'ElevationChart',
-  'Droppable',
-  'QueryURL',
-  'InputFileControl',
-  'SearchControl',
-  'Milestone',
-  'VertexInfo',
-  'VertexInfoWindow',
-  'SidePanelControl',
+  'Exporter',
   'FileClip',
-  'ToggleOverlay'
+  'GeoLocation',
+  'GeoLocationControl',
+  'InputFileControl',
+  'Milestone',
+  'QueryURL',
+  'SearchControl',
+  'SidePanelControl',
+  'ToggleOverlay',
+  'VertexInfo',
+  'VertexInfoWindow'
 ];
 MapsGPX.ELEMENTS = {
   AGEOFDGPSDATA: 'ageofdgpsdata',
