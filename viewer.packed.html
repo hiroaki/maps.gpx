@@ -31,6 +31,7 @@ MapsGPX.onReady(function() {
     .use('SidePanelControl', {base_id:'map_container', drawer_id:'sidepanel', span:'280px', maxSpan:'80%'})
     .use('ToggleOverlay')
     .use('FileClip')
+    .use('Exporter')
     .register('onAddGPX', function(key) {
       this.fitBounds();
       this.showOverlayGpxs(key);

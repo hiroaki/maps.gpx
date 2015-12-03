@@ -29,6 +29,7 @@ MapsGPX.onReady(function() {
     .extend('SidePanelControl', {base_id:'map_container', drawer_id:'sidepanel', span:'280px', maxSpan:'80%'})
     .extend('ToggleOverlay')
     .extend('FileClip')
+    .extend('Exporter')
     .extended(function() {
       this.register('onAddGPX', function(key) {
         this.fitBounds();

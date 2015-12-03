@@ -10,26 +10,27 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '4.1.2';
+MapsGPX.VERSION = '4.2.0'; // NOT RELEASED YET
 MapsGPX.EXTENSIONS = [
-  'GeoLocation',
-  'GeoLocationControl',
-  'DrawerCSS',
   'DescImage',
+  'DrawerCSS',
+  'Droppable',
   'EXIF',
   'EXIF2GPX',
   'EXIFMarker',
   'ElevationChart',
-  'Droppable',
-  'QueryURL',
-  'InputFileControl',
-  'SearchControl',
-  'Milestone',
-  'VertexInfo',
-  'VertexInfoWindow',
-  'SidePanelControl',
+  'Exporter',
   'FileClip',
-  'ToggleOverlay'
+  'GeoLocation',
+  'GeoLocationControl',
+  'InputFileControl',
+  'Milestone',
+  'QueryURL',
+  'SearchControl',
+  'SidePanelControl',
+  'ToggleOverlay',
+  'VertexInfo',
+  'VertexInfoWindow'
 ];
 MapsGPX.ELEMENTS = {
   AGEOFDGPSDATA: 'ageofdgpsdata',
@@ -900,7 +901,7 @@ MapsGPX.prototype.addGPX = function(key, gpx_text) {
   this.removeGPX(key);
   try {
     this.data[key] = this._build(gpx_text);
-    this.applyHook('onAddGPX', key);
+    this.applyHook('onAddGPX', key, gpx_text);
   } catch(e) {
     throw( new Error('Catch an exception at addGPX with '+ key +', reason: '+ e) );
   }
