@@ -22,7 +22,7 @@ There is a demo page you can use:
 
 ### Features
 
-* All works on the client side
+* All works on the client side (on the modern browsers)
 * To use, `viewer.html` is opened in a browser only
 * Drag & drop to input, more than one file at the same time
 * Show and hide the GPX on demand
@@ -66,12 +66,13 @@ Also there is available API document in `docs` sub directory.
 ### Usage
 
 At first, it must be loaded the Google Maps API with an addition of the geometory library.
-Also "sensor" have to be set `true` if it is going to use function which requires the GPS sensor.
+
+Note that the "sensor" parameter has been required previously, but it is no longer used.
 
 Next `maps-gpx.js`. The class `MapsGPX` will be defined.
 
 ```
-<script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry">
+<script src="http://maps.google.com/maps/api/js?libraries=geometry">
 </script>
 <script src="maps-gpx.js">
 </script>
@@ -203,7 +204,7 @@ html, body, #map_canvas {
 }
 img.info-window { max-width: 200px; max-height: 200px; }
 </style>
-<script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry">
+<script src="http://maps.google.com/maps/api/js?libraries=geometry">
 </script>
 <script src="../maps-gpx.js">
 </script>
@@ -251,7 +252,7 @@ that are generated from a template in the CMS or weblog.
 div.map { width:640px; height:320px; }
 img.info-window { max-width: 200px; max-height: 200px; }
 </style>
-<script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry">
+<script src="http://maps.google.com/maps/api/js?libraries=geometry">
 </script>
 <script src="../maps-gpx.js">
 </script>

@@ -19,7 +19,7 @@ HTML5 をサポートするモダンなブラウザで `viewer.html` を開き�
 
 ### 主な特徴
 
-* クライアント・サイドでも動作します。
+* すべてクライアント・サイドだけで動作します。（モダンなブラウザ上で）
 * `viewer.html` をブラウザで開くだけで準備完了。
 * データファイルをドラッグ＆ドロップで入力。その際、複数のファイルを、同時に。
 * GPX データの表示のオフ・オン。
@@ -46,7 +46,7 @@ JPEG は位置情報を持っていなくとも撮影日時の情報を持って
 
 ## 作る
 
-このプロジェクト maps.gpx の要は Google Maps API を用いた JavaScript ライブラリ `maps-gpx.js` です。
+このプロジェクト maps.gpx の要は Google Maps JavaScript API v3 を用いた JavaScript ライブラリ `maps-gpx.js` です。
 
 地図上に位置情報データを操作するための様々な機能を提供するもので、プログラミングをなるべくしなくても済むように、プラグインの形で機能を拡張していくスタイルで、注意深く設計されています。
 
@@ -59,12 +59,14 @@ JPEG は位置情報を持っていなくとも撮影日時の情報を持って
 
 ### 使い方
 
-まず最初に Google Maps API をロードします。その際、 `geometry` ライブラリを使うように指定します。また GPS センサーが必要な機能を用いる場合は `sensor` に `true` を指定します。
+まず最初に Google Maps API をロードします。その際、 `geometry` ライブラリを使うように指定します。
+
+メモ：以前は "sensor" パラメータが必須とされていましたが、いまはもう不要です。
 
 それから `maps-gpx.js` をロードします。これにより、クラス `MapsGPX` が定義されます。
 
 ```
-<script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry">
+<script src="http://maps.google.com/maps/api/js?libraries=geometry">
 </script>
 <script src="maps-gpx.js">
 </script>
@@ -189,7 +191,7 @@ API ドキュメントは `docs` ディレクトリにあります。
 html, body, #map_canvas { width: 100%; height: 100%; margin: 0px; padding: 0px; }
 img.info-window { max-width: 200px; max-height: 200px; }
 </style>
-<script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry"></script>
+<script src="http://maps.google.com/maps/api/js?libraries=geometry"></script>
 <script src="../maps-gpx.js"></script>
 <script>
 MapsGPX.onReady(function (){
@@ -240,7 +242,7 @@ GPX をパラメータとして与えたい場合に有用です。
 div.map { width:640px; height:320px; }
 img.info-window { max-width: 200px; max-height: 200px; }
 </style>
-<script src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry"></script>
+<script src="http://maps.google.com/maps/api/js?libraries=geometry"></script>
 <script src="../maps-gpx.js"></script>
 <script>
 MapsGPX.onReady(function() {
