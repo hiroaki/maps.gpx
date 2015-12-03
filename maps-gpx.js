@@ -10,7 +10,7 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '4.2.0'; // NOT RELEASED YET
+MapsGPX.VERSION = '4.2.0';
 MapsGPX.EXTENSIONS = [
   'DescImage',
   'DrawerCSS',
