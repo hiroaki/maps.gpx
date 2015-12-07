@@ -1,6 +1,7 @@
 MapsGPX.plugin.Exporter = {
   bundles: [
-    'jszip.js'
+    'jszip.js',
+    'progressbar.js'
   ],
   FolderDefault: 'msps-gpx',
   trimDoc: function(doc, gpx) {
@@ -166,10 +167,52 @@ MapsGPX.plugin.Exporter = {
         position: 'TOP_RIGHT'
       });
   },
+  extendControl: function(ctrl) {
+    ctrl.$icon = ctrl.getElement().getElementsByTagName('img').item(0);
+
+    ctrl.$container_progress = (function(w, h) {
+      var $div = document.createElement('div');
+      $div.style.width = w + 'px';
+      $div.style.height = h + 'px';
+      $div.style.margin = 0;
+      $div.style.padding = 0;
+      return $div;
+    })(ctrl.settings.iconWidth, ctrl.settings.iconHeight);
+
+    ctrl.$progress  = new ProgressBar.Circle(ctrl.$container_progress, {
+                        color: '#333333',
+                        strokeWidth: 5
+                        });
+
+    ctrl.showProgress = function() {
+      this.$icon.style.display = 'none';
+      this.$icon.parentNode.appendChild(this.$container_progress);
+    };
+    ctrl.hideProgress = function() {
+      this.$icon.style.display = '';
+      this.$icon.parentNode.removeChild(this.$container_progress);
+    };
+    ctrl.inProgress = function() {
+      return this.$icon.style.display == '' ? false : true;
+    };
+    ctrl.animate = function(value) { // 0..1
+      this.$progress.animate(value, {
+        duration: 800
+      });
+      this.$progress.setText(parseInt(value * 100));
+    };
+    ctrl.setValue = function(value) { // 0..1
+      this.$progress.set(value);
+    };
+    ctrl.setText = function(short_message) {
+      this.$progress.setText(short_message);
+    };
+    return ctrl;
+  },
   exportToDesktop: function(params) {
     var ctrl, zip_hander;
-
-    ctrl = MapsGPX.plugin.Exporter.createControl('ic_file_download_black_48dp.png');
+    params.icon   = params.icon   || 'ic_file_download_black_48dp.png';
+    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.icon));
     ctrl.setMap(this.getMap());
 
     zip_hander = function(zip) {
@@ -178,9 +221,18 @@ MapsGPX.plugin.Exporter = {
       anchor.setAttribute('download', zip.name +'.zip');
       anchor.click();
       anchor = null;
-    };
+      setTimeout(function() {
+        this.hideProgress();
+      }.bind(this), 2000);
+    }.bind(ctrl);
 
     google.maps.event.addDomListener(ctrl.getElement(), 'click', (function(ev) {
+      if ( this.control.inProgress() ) {
+        return false;
+      }
+      this.control.showProgress();
+      this.control.setValue(1);
+      this.control.setText('zip');
       MapsGPX.plugin.Exporter.handler_zip_gpx.call(
         this.app, this.app.getKeysOfGPX(), 'base64'
       ).then(this.zip_hander);
@@ -195,20 +247,48 @@ MapsGPX.plugin.Exporter = {
     params.onload = params.onload || function(evt) {
       console.log(this);
     };
-
-    ctrl = MapsGPX.plugin.Exporter.createControl(params.icon);
+    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.icon));
     ctrl.setMap(this.getMap());
 
     zip_hander = function(zip) {
       var formdata = new FormData(),
           xhr = new XMLHttpRequest();
-      formdata.append(this.name, zip.data);
-      xhr.onload = this.onload.bind(xhr);
-      xhr.open(this.method, this.url);
+      formdata.append(this.params.name, zip.data);
+      xhr.onload = function(evt){
+        this.params.onload.call(this, evt);
+      }.bind(this);
+      xhr.upload.onprogress = function(evt) {
+        var percentComplete;
+        if ( evt.lengthComputable ) {
+          percentComplete = evt.loaded / evt.total;
+          this.control.animate(percentComplete);
+        }
+      }.bind(this);
+      xhr.upload.onload = function(evt) {
+        this.control.animate(1);
+        setTimeout(function() {
+          this.control.hideProgress();
+        }.bind(this), 2000);
+      }.bind(this);
+      xhr.upload.onerror = function(evt) {
+        console.error(evt);
+        this.control.setText('!');
+        setTimeout(function() {
+          this.control.hideProgress();
+        }.bind(this), 2000);
+      }.bind(this);
+      xhr.upload.onabort = function(evt) {
+        this.control.hideProgress();
+      }.bind(this);
+      xhr.open(this.params.method, this.params.url);
       xhr.send(formdata);
-    }.bind(params);
+    }.bind({control: ctrl, params: params});
 
     google.maps.event.addDomListener(ctrl.getElement(), 'click', (function(ev) {
+      if ( this.control.inProgress() ) {
+        return false;
+      }
+      this.control.showProgress();
       MapsGPX.plugin.Exporter.handler_zip_gpx.call(
         this.app, this.app.getKeysOfGPX(), 'blob'
       ).then(this.zip_hander);
