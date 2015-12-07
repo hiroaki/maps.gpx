@@ -166,19 +166,28 @@ MapsGPX.plugin.Exporter = {
         position: 'TOP_RIGHT'
       });
   },
-  createDestination: function(encode, icon, handler) {
-    return new MapsGPX.plugin.Exporter.Destination(encode, icon, handler);
-  },
-  createDestinationToDesktop: function(params) {
-    return new MapsGPX.plugin.Exporter.Destination('base64', 'ic_file_download_black_48dp.png', function(zip) {
+  exportToDesktop: function(params) {
+    var ctrl, zip_hander;
+
+    ctrl = MapsGPX.plugin.Exporter.createControl('ic_file_download_black_48dp.png');
+    ctrl.setMap(this.getMap());
+
+    zip_hander = function(zip) {
       var anchor = document.createElement('a');
       anchor.setAttribute('href', 'data:application/zip;base64,'+ zip.data);
       anchor.setAttribute('download', zip.name +'.zip');
       anchor.click();
       anchor = null;
-    });
+    };
+
+    google.maps.event.addDomListener(ctrl.getElement(), 'click', (function(ev) {
+      MapsGPX.plugin.Exporter.handler_zip_gpx.call(
+        this.app, this.app.getKeysOfGPX(), 'base64'
+      ).then(this.zip_hander);
+    }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
   },
-  createDestinationToURL: function(params) {
+  exportToURL: function(params) {
+    var ctrl, zip_hander;
     params        = params        || {url: null};
     params.name   = params.name   || 'files[]';
     params.method = params.method || 'POST';
@@ -186,14 +195,24 @@ MapsGPX.plugin.Exporter = {
     params.onload = params.onload || function(evt) {
       console.log(this);
     };
-    return new MapsGPX.plugin.Exporter.Destination('blob', params.icon, function(zip){
+
+    ctrl = MapsGPX.plugin.Exporter.createControl(params.icon);
+    ctrl.setMap(this.getMap());
+
+    zip_hander = function(zip) {
       var formdata = new FormData(),
           xhr = new XMLHttpRequest();
       formdata.append(this.name, zip.data);
       xhr.onload = this.onload.bind(xhr);
       xhr.open(this.method, this.url);
       xhr.send(formdata);
-    }.bind(params));
+    }.bind(params);
+
+    google.maps.event.addDomListener(ctrl.getElement(), 'click', (function(ev) {
+      MapsGPX.plugin.Exporter.handler_zip_gpx.call(
+        this.app, this.app.getKeysOfGPX(), 'blob'
+      ).then(this.zip_hander);
+    }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
   },
   callback: function(params) {
     var ctx, i, l, keyword, implement_destination;
@@ -209,23 +228,14 @@ MapsGPX.plugin.Exporter = {
     });
 
     implement_destination = function(keyword, params) {
-      var ctrl, dest = null;
       if ( keyword.toUpperCase() == 'DESKTOP' ) {
-        dest = MapsGPX.plugin.Exporter.createDestinationToDesktop(params);
+        MapsGPX.plugin.Exporter.exportToDesktop.call(this, params);
       } else if ( keyword.toUpperCase() == 'URL' ) {
-        dest = MapsGPX.plugin.Exporter.createDestinationToURL(params);
+        MapsGPX.plugin.Exporter.exportToURL.call(this, params);
       } else {
         console.warn('The destination '+ keyword +' is not supported.');
         return;
       }
-      ctrl = MapsGPX.plugin.Exporter.createControl(dest.icon);
-      ctrl.setMap(this.map);
-
-      google.maps.event.addDomListener(ctrl.getElement(), 'click', (function(ev) {
-        MapsGPX.plugin.Exporter.handler_zip_gpx.call(
-          this.app, this.app.getKeysOfGPX(), this.destination.encode
-        ).then(this.destination.handler);
-      }).bind({app: this, destination: dest}));
     }.bind(this);
 
     if ( ctx.destinations instanceof Array ) {
@@ -240,13 +250,4 @@ MapsGPX.plugin.Exporter = {
       }
     }
   }
-};
-
-MapsGPX.plugin.Exporter.Destination = function() {
-  this.initialize.apply(this, arguments);
-};
-MapsGPX.plugin.Exporter.Destination.prototype.initialize = function(encode, icon, handler) {
-  this.encode = encode;
-  this.icon = icon;
-  this.handler = handler;
 };
