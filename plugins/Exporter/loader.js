@@ -167,9 +167,9 @@ MapsGPX.plugin.Exporter = {
         position: 'TOP_RIGHT'
       });
   },
-  extendControl: function(ctrl) {
+  extendControl: function(ctrl, options) {
+    options = options || {};
     ctrl.$icon = ctrl.getElement().getElementsByTagName('img').item(0);
-
     ctrl.$container_progress = (function(w, h) {
       var $div = document.createElement('div');
       $div.style.width = w + 'px';
@@ -178,12 +178,11 @@ MapsGPX.plugin.Exporter = {
       $div.style.padding = 0;
       return $div;
     })(ctrl.settings.iconWidth, ctrl.settings.iconHeight);
-
     ctrl.$progress  = new ProgressBar.Circle(ctrl.$container_progress, {
-                        color: '#333333',
-                        strokeWidth: 5
+                        color: options.color || '#333',
+                        trailColor: options.trailColor || '#ccc',
+                        strokeWidth: options.strokeWidth || 5
                         });
-
     ctrl.showProgress = function() {
       this.$icon.style.display = 'none';
       this.$icon.parentNode.appendChild(this.$container_progress);
@@ -195,13 +194,15 @@ MapsGPX.plugin.Exporter = {
     ctrl.inProgress = function() {
       return this.$icon.style.display == '' ? false : true;
     };
-    ctrl.animate = function(value) { // 0..1
-      this.$progress.animate(value, {
-        duration: 800
-      });
+    ctrl.animate = function(value, settings) {
+      settings = settings || {};
+      this.$progress.animate(value, settings);
+    };
+    ctrl.animateWithText = function(value, settings) {
+      this.animate(value, settings);
       this.$progress.setText(parseInt(value * 100));
     };
-    ctrl.setValue = function(value) { // 0..1
+    ctrl.setValue = function(value) {
       this.$progress.set(value);
     };
     ctrl.setText = function(short_message) {
@@ -210,12 +211,48 @@ MapsGPX.plugin.Exporter = {
     return ctrl;
   },
   exportToDesktop: function(params) {
-    var ctrl, zip_hander;
-    params.icon   = params.icon   || 'ic_file_download_black_48dp.png';
-    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.icon));
+    var ctrl, is_safari = /Version\/[\d\.]+.*Safari/.test(navigator.userAgent);
+    params.icon = params.icon || 'ic_file_download_black_48dp.png';
+    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.icon),{strokeWidth: 20});
     ctrl.setMap(this.getMap());
-
-    zip_hander = function(zip) {
+    if ( is_safari ) {
+      MapsGPX.plugin.Exporter._exportToDesktopSafari.call(this, ctrl, params);
+    } else {
+      MapsGPX.plugin.Exporter._exportToDesktopNotSafari.call(this, ctrl, params);
+    }
+  },
+  _exportToDesktopNotSafari: function(ctrl, params) {
+    var zip_hander = function(zip) {
+      var obj = MapsGPX.resolveAsObjectURL(zip.data);
+      Promise.all([this, zip.name, obj]).then(function(values) {
+        var ctrl = values[0],
+            name = values[1],
+            url = values[2], 
+            anchor = document.createElement('a');
+        anchor.setAttribute('href', url);
+        anchor.setAttribute('download', name +'.zip');
+        anchor.click();
+        anchor = null;
+        URL.revokeObjectURL(url);
+        setTimeout(function() {
+          ctrl.hideProgress();
+        }.bind(ctrl), 2000);
+      })
+    }.bind(ctrl);
+    google.maps.event.addDomListener(ctrl.getElement(), 'click', (function(ev) {
+      if ( this.control.inProgress() ) {
+        return false;
+      }
+      this.control.showProgress();
+      this.control.animate(1000, {duration: 600000, easing:'linear'});
+      this.control.setText('zip');
+      MapsGPX.plugin.Exporter.handler_zip_gpx.call(
+        this.app, this.app.getKeysOfGPX(), 'blob'
+      ).then(this.zip_hander);
+    }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
+  },
+  _exportToDesktopSafari: function(ctrl, params) {
+    var zip_hander = function(zip) {
       var anchor = document.createElement('a');
       anchor.setAttribute('href', 'data:application/zip;base64,'+ zip.data);
       anchor.setAttribute('download', zip.name +'.zip');
@@ -225,13 +262,12 @@ MapsGPX.plugin.Exporter = {
         this.hideProgress();
       }.bind(this), 2000);
     }.bind(ctrl);
-
     google.maps.event.addDomListener(ctrl.getElement(), 'click', (function(ev) {
       if ( this.control.inProgress() ) {
         return false;
       }
       this.control.showProgress();
-      this.control.setValue(1);
+      this.control.animate(1000, {duration: 600000, easing:'linear'});
       this.control.setText('zip');
       MapsGPX.plugin.Exporter.handler_zip_gpx.call(
         this.app, this.app.getKeysOfGPX(), 'base64'
@@ -247,7 +283,7 @@ MapsGPX.plugin.Exporter = {
     params.onload = params.onload || function(evt) {
       console.log(this);
     };
-    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.icon));
+    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.icon), {strokeWidth: 5});
     ctrl.setMap(this.getMap());
 
     zip_hander = function(zip) {
@@ -261,11 +297,11 @@ MapsGPX.plugin.Exporter = {
         var percentComplete;
         if ( evt.lengthComputable ) {
           percentComplete = evt.loaded / evt.total;
-          this.control.animate(percentComplete);
+          this.control.animateWithText(percentComplete, {duration: 800});
         }
       }.bind(this);
       xhr.upload.onload = function(evt) {
-        this.control.animate(1);
+        this.control.animateWithText(1,{duration: 800});
         setTimeout(function() {
           this.control.hideProgress();
         }.bind(this), 2000);
