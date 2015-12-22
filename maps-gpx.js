@@ -10,7 +10,7 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '4.2.0';
+MapsGPX.VERSION = '4.3.0'; // NOT RELEASED YET
 MapsGPX.EXTENSIONS = [
   'DescImage',
   'DrawerCSS',
@@ -100,6 +100,14 @@ MapsGPX.style_loader  = 'loader.css';
 //--------------------------------------
 // static methods - common util
 //
+MapsGPX.merge = function() {
+  var items = Array.prototype.slice.call(arguments), i, l, attr, merged = items[0] || {};
+  for( i = 1, l = items.length; i < l ; ++i )
+    for ( attr in items[i] )
+      if (items[i].hasOwnProperty(attr))
+        merged[attr] = items[i][attr];
+  return merged;
+};
 MapsGPX.parseQueryString = function(/* usually 'location.search' */qstring) {
   var params = {}, str, pairs, i, l, pair;
   if ( qstring ) {
