@@ -3,7 +3,6 @@ MapsGPX.plugin.Exporter = {
     'jszip.js',
     'progressbar.js'
   ],
-  FolderDefault: 'msps-gpx',
   trimDoc: function(doc, gpx) {
     var i, j, tmp, remained, bounds, metadata;
     for ( i = gpx.wpt.length - 1; 0 <= i; --i ) {
@@ -104,11 +103,8 @@ MapsGPX.plugin.Exporter = {
   handler_zip_gpx: function(keys, binaryType) {
     var ctx = this.context['Exporter'],
         zip = new JSZip(),
-        gpx_is_a_jpeg, doc, desc, name, i, l, folder, prms, promises = [],
-        validator;
-    console.log("params:");
-    console.log(ctx.params);
-    folder = zip.folder(ctx.folder);
+        gpx_is_a_jpeg, doc, desc, name, i, l, folder, prms, promises = [];
+    folder = zip.folder(ctx.settings.folder);
     for ( i = 0, l = keys.length; i < l; ++i ) {
       gpx_is_a_jpeg = false;
       prms = []
@@ -160,15 +156,14 @@ MapsGPX.plugin.Exporter = {
     }
 
     return Promise.all(promises).then(function(values){
-      if ( this.validator ) {
-        this.validator.call(this, this.name, this.folder);
-      }
-      return {name: this.name, data: this.folder.generate({type: binaryType, compressionOptions: {level: 9}})};
-    }.bind({name: ctx.folder, folder: folder, validator: ctx.params.validator}));
+      var ctx = this.app.context['Exporter'];
+      ctx.settings.validator.call(this.app, this.zip); // throw if invalid
+      return {name: ctx.settings.folder, data: this.zip.generate({type: binaryType, compressionOptions: {level: 9}})};
+    }.bind({app: this, zip: folder}));
   },
   createControl: function(icon) {
     return new MapsGPX.MapControl({
-        initial: new RegExp(icon).test("/") ? icon : [MapsGPX.plugin.Exporter.path, icon].join('/')
+        initial: new RegExp(icon).test('/') ? icon : [MapsGPX.plugin.Exporter.path, icon].join('/')
       },{
         position: 'TOP_RIGHT'
       });
@@ -216,18 +211,17 @@ MapsGPX.plugin.Exporter = {
     };
     return ctrl;
   },
-  exportToDesktop: function(params) {
-    var ctrl, is_safari = /Version\/[\d\.]+.*Safari/.test(navigator.userAgent);
-    params.icon = params.icon || 'ic_file_download_black_48dp.png';
-    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.icon),{strokeWidth: 20});
+  exportToDesktop: function() {
+    var ctx = this.context['Exporter'], ctrl, is_safari = /Version\/[\d\.]+.*Safari/.test(navigator.userAgent);
+    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(ctx.settings.downloadIcon),{strokeWidth: 20});
     ctrl.setMap(this.getMap());
     if ( is_safari ) {
-      MapsGPX.plugin.Exporter._exportToDesktopSafari.call(this, ctrl, params);
+      MapsGPX.plugin.Exporter._exportToDesktopSafari.call(this, ctrl);
     } else {
-      MapsGPX.plugin.Exporter._exportToDesktopNotSafari.call(this, ctrl, params);
+      MapsGPX.plugin.Exporter._exportToDesktopNotSafari.call(this, ctrl);
     }
   },
-  _exportToDesktopNotSafari: function(ctrl, params) {
+  _exportToDesktopNotSafari: function(ctrl) {
     var zip_hander = function(zip) {
       var obj = MapsGPX.resolveAsObjectURL(zip.data);
       Promise.all([this, zip.name, obj]).then(function(values) {
@@ -257,15 +251,12 @@ MapsGPX.plugin.Exporter = {
       )
       .then(this.zip_hander)
       .catch(function(err) {
-        var ctx = this.app.context['Exporter'];
-        if ( ctx.params.handler_invalid ) {
-          ctx.params.handler_invalid.call(this, err);
-        }
         this.control.hideProgress();
+        this.app.context['Exporter'].settings.onInvalid.call(this, err);
       }.bind(this));
     }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
   },
-  _exportToDesktopSafari: function(ctrl, params) {
+  _exportToDesktopSafari: function(ctrl) {
     var zip_hander = function(zip) {
       var anchor = document.createElement('a');
       anchor.setAttribute('href', 'data:application/zip;base64,'+ zip.data);
@@ -288,24 +279,18 @@ MapsGPX.plugin.Exporter = {
       )
       .then(this.zip_hander)
       .catch(function(err) {
-        var ctx = this.app.context['Exporter'];
-        if ( ctx.params.handler_invalid ) {
-          ctx.params.handler_invalid.call(this, err);
-        }
         this.control.hideProgress();
+        this.app.context['Exporter'].settings.onInvalid.call(this, err);
       }.bind(this));
-    }).bind({app: this, control: ctrl, zip_hander: zip_hander, params: params}));
+    }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
   },
-  exportToURL: function(params) {
-    var ctrl, zip_hander;
-    params        = params        || {url: null};
-    params.name   = params.name   || 'files[]';
-    params.method = params.method || 'POST';
-    params.icon   = params.icon   || 'ic_file_upload_black_48dp.png';
-    params.onload = params.onload || function(evt) {
-      console.log(this);
-    };
-    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.icon), {strokeWidth: 5});
+  exportToURL: function() {
+    var ctx = this.context['Exporter'], ctrl, zip_hander, params = {};
+    params.url    = ctx.settings.uploadURL;
+    params.name   = ctx.settings.uploadName;
+    params.method = ctx.settings.uploadMethod;
+    params.onload = ctx.settings.uploadOnLoad;
+    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.uploadIcon), {strokeWidth: 5});
     ctrl.setMap(this.getMap());
 
     zip_hander = function(zip) {
@@ -352,49 +337,56 @@ MapsGPX.plugin.Exporter = {
       )
       .then(this.zip_hander)
       .catch(function(err) {
-        var ctx = this.app.context['Exporter'];
-        if ( ctx.params.handler_invalid ) {
-          ctx.params.handler_invalid.call(this, err);
-        }
         this.control.hideProgress();
+        this.app.context['Exporter'].settings.onInvalid.call(this, err);
       }.bind(this));
 
-    }).bind({app: this, control: ctrl, zip_hander: zip_hander, params: params}));
+    }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
+  },
+  defaults: {
+    folder: 'maps-gpx',
+    destinations: [ {'DESKTOP':{}} ],
+    downloadIcon: 'ic_file_download_black_48dp.png',
+    uploadIcon: 'ic_file_upload_black_48dp.png',
+    uploadMethod: 'POST',
+    uploadName: 'files[]',
+    uploadURL: null,
+    uploadOnLoad: function(evt) { console.info(this); },
+    validator: function(zip) { return true; },
+    onInvalid: function(err) { console.error(err); }
   },
   callback: function(params) {
-    var ctx, i, l, keyword, implement_destination;
+    var i, l, keyword, implement_destination, attr, settings = MapsGPX.merge({}, MapsGPX.plugin.Exporter.defaults, params);
+
     this.context['Exporter'] = {
-      params: params,
       docs: {},
-      folder: (params || {}).folder || MapsGPX.plugin.Exporter.FolderDefault,
-      destinations: (params || {}).destinations || [ {'DESKTOP':{}} ]
+      settings: settings
     };
-    ctx = this.context['Exporter'];
 
     this.register('onAddGPX', function(key, gpx_text) {
       this.context['Exporter']['docs'][key] = gpx_text;
     });
 
-    implement_destination = function(keyword, params) {
+    implement_destination = function(keyword) {
       if ( keyword.toUpperCase() == 'DESKTOP' ) {
-        MapsGPX.plugin.Exporter.exportToDesktop.call(this, params);
+        MapsGPX.plugin.Exporter.exportToDesktop.call(this);
       } else if ( keyword.toUpperCase() == 'URL' ) {
-        MapsGPX.plugin.Exporter.exportToURL.call(this, params);
+        MapsGPX.plugin.Exporter.exportToURL.call(this);
       } else {
         console.warn('The destination '+ keyword +' is not supported.');
         return;
       }
     }.bind(this);
 
-    if ( ctx.destinations instanceof Array ) {
-      for( i = 0, l = ctx.destinations.length; i < l; ++i ) {
-        for ( keyword in ctx.destinations[i] ) {
-          implement_destination(keyword, ctx.destinations[i][keyword]);
+    if ( settings.destinations instanceof Array ) {
+      for( i = 0, l = settings.destinations.length; i < l; ++i ) {
+        for ( keyword in settings.destinations[i] ) {
+          implement_destination(keyword);
         }
       }
     } else {
-      for ( keyword in ctx.destinations[i] ) {
-        implement_destination(keyword, ctx.destinations[i][keyword]);
+      for ( keyword in settings.destinations[i] ) {
+        implement_destination(keyword);
       }
     }
   }
