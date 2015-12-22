@@ -100,6 +100,9 @@ MapsGPX.style_loader  = 'loader.css';
 //--------------------------------------
 // static methods - common util
 //
+MapsGPX.isSafari = function() {
+  return /Version\/[\d\.]+.*Safari/.test(navigator.userAgent) ? true : false;
+};
 MapsGPX.merge = function() {
   var items = Array.prototype.slice.call(arguments), i, l, attr, merged = items[0] || {};
   for( i = 1, l = items.length; i < l ; ++i )

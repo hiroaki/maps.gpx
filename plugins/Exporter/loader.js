@@ -212,10 +212,10 @@ MapsGPX.plugin.Exporter = {
     return ctrl;
   },
   exportToDesktop: function() {
-    var ctx = this.context['Exporter'], ctrl, is_safari = /Version\/[\d\.]+.*Safari/.test(navigator.userAgent);
+    var ctx = this.context['Exporter'], ctrl;
     ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(ctx.settings.downloadIcon),{strokeWidth: 20});
     ctrl.setMap(this.getMap());
-    if ( is_safari ) {
+    if ( MapsGPX.isSafari() ) {
       MapsGPX.plugin.Exporter._exportToDesktopSafari.call(this, ctrl);
     } else {
       MapsGPX.plugin.Exporter._exportToDesktopNotSafari.call(this, ctrl);
