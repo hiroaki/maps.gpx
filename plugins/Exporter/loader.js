@@ -104,7 +104,10 @@ MapsGPX.plugin.Exporter = {
   handler_zip_gpx: function(keys, binaryType) {
     var ctx = this.context['Exporter'],
         zip = new JSZip(),
-        gpx_is_a_jpeg, doc, desc, name, i, l, folder, prms, promises = [];
+        gpx_is_a_jpeg, doc, desc, name, i, l, folder, prms, promises = [],
+        validator;
+    console.log("params:");
+    console.log(ctx.params);
     folder = zip.folder(ctx.folder);
     for ( i = 0, l = keys.length; i < l; ++i ) {
       gpx_is_a_jpeg = false;
@@ -157,8 +160,11 @@ MapsGPX.plugin.Exporter = {
     }
 
     return Promise.all(promises).then(function(values){
+      if ( this.validator ) {
+        this.validator.call(this, this.name, this.folder);
+      }
       return {name: this.name, data: this.folder.generate({type: binaryType, compressionOptions: {level: 9}})};
-    }.bind({name: ctx.folder, folder: folder}));
+    }.bind({name: ctx.folder, folder: folder, validator: ctx.params.validator}));
   },
   createControl: function(icon) {
     return new MapsGPX.MapControl({
@@ -248,7 +254,15 @@ MapsGPX.plugin.Exporter = {
       this.control.setText('zip');
       MapsGPX.plugin.Exporter.handler_zip_gpx.call(
         this.app, this.app.getKeysOfGPX(), 'blob'
-      ).then(this.zip_hander);
+      )
+      .then(this.zip_hander)
+      .catch(function(err) {
+        var ctx = this.app.context['Exporter'];
+        if ( ctx.params.handler_invalid ) {
+          ctx.params.handler_invalid.call(this, err);
+        }
+        this.control.hideProgress();
+      }.bind(this));
     }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
   },
   _exportToDesktopSafari: function(ctrl, params) {
@@ -271,8 +285,16 @@ MapsGPX.plugin.Exporter = {
       this.control.setText('zip');
       MapsGPX.plugin.Exporter.handler_zip_gpx.call(
         this.app, this.app.getKeysOfGPX(), 'base64'
-      ).then(this.zip_hander);
-    }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
+      )
+      .then(this.zip_hander)
+      .catch(function(err) {
+        var ctx = this.app.context['Exporter'];
+        if ( ctx.params.handler_invalid ) {
+          ctx.params.handler_invalid.call(this, err);
+        }
+        this.control.hideProgress();
+      }.bind(this));
+    }).bind({app: this, control: ctrl, zip_hander: zip_hander, params: params}));
   },
   exportToURL: function(params) {
     var ctrl, zip_hander;
@@ -327,12 +349,22 @@ MapsGPX.plugin.Exporter = {
       this.control.showProgress();
       MapsGPX.plugin.Exporter.handler_zip_gpx.call(
         this.app, this.app.getKeysOfGPX(), 'blob'
-      ).then(this.zip_hander);
-    }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
+      )
+      .then(this.zip_hander)
+      .catch(function(err) {
+        var ctx = this.app.context['Exporter'];
+        if ( ctx.params.handler_invalid ) {
+          ctx.params.handler_invalid.call(this, err);
+        }
+        this.control.hideProgress();
+      }.bind(this));
+
+    }).bind({app: this, control: ctrl, zip_hander: zip_hander, params: params}));
   },
   callback: function(params) {
     var ctx, i, l, keyword, implement_destination;
     this.context['Exporter'] = {
+      params: params,
       docs: {},
       folder: (params || {}).folder || MapsGPX.plugin.Exporter.FolderDefault,
       destinations: (params || {}).destinations || [ {'DESKTOP':{}} ]
