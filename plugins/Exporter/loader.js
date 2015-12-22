@@ -138,7 +138,9 @@ MapsGPX.plugin.Exporter = {
           Promise.all(prms).then(function(values) {
             return [values[0], values[1]]; // name, arraybuffer
           }).then(function(v) {
-            this.file(v[0], v[1], {binary: true, compressionOptions: {level: 9}});
+            this.file(v[0], v[1],
+              {compressionOptions: {level: 9}, binary: true}
+            );
           }.bind(folder))
         );
       } else {
@@ -149,7 +151,9 @@ MapsGPX.plugin.Exporter = {
           Promise.all(prms).then(function(values) {
             return [values[0], values[1], values[2]]; // name, gpx[key], doc
           }).then(function(v) {
-            this.file(v[0], new XMLSerializer().serializeToString(MapsGPX.plugin.Exporter.trimDoc(v[2], v[1])));
+            this.file(v[0], new XMLSerializer().serializeToString(MapsGPX.plugin.Exporter.trimDoc(v[2], v[1])),
+              {compressionOptions: {level: 9}}
+            );
           }.bind(folder))
         );
       }
@@ -223,11 +227,10 @@ MapsGPX.plugin.Exporter = {
   },
   _exportToDesktopNotSafari: function(ctrl) {
     var zip_hander = function(zip) {
-      var obj = MapsGPX.resolveAsObjectURL(zip.data);
-      Promise.all([this, zip.name, obj]).then(function(values) {
+      Promise.all([this, zip.name, MapsGPX.resolveAsObjectURL(zip.data)]).then(function(values) {
         var ctrl = values[0],
             name = values[1],
-            url = values[2], 
+            url  = values[2],
             anchor = document.createElement('a');
         anchor.setAttribute('href', url);
         anchor.setAttribute('download', name +'.zip');
@@ -237,7 +240,7 @@ MapsGPX.plugin.Exporter = {
         setTimeout(function() {
           ctrl.hideProgress();
         }.bind(ctrl), 2000);
-      })
+      });
     }.bind(ctrl);
     google.maps.event.addDomListener(ctrl.getElement(), 'click', (function(ev) {
       if ( this.control.inProgress() ) {
@@ -356,7 +359,7 @@ MapsGPX.plugin.Exporter = {
     onInvalid: function(err) { console.error(err); }
   },
   callback: function(params) {
-    var i, l, keyword, implement_destination, attr, settings = MapsGPX.merge({}, MapsGPX.plugin.Exporter.defaults, params);
+    var i, l, keyword, implement_destination, settings = MapsGPX.merge({}, MapsGPX.plugin.Exporter.defaults, params);
 
     this.context['Exporter'] = {
       docs: {},
