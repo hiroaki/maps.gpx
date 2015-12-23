@@ -4,17 +4,21 @@ MapsGPX.plugin.Exporter = {
     'progressbar.js'
   ],
   trimDoc: function(doc, gpx) {
-    var i, j, tmp, remained, bounds, metadata;
+    var i, j, tmp, remaind = false, remained_trk, bounds, metadata;
     for ( i = gpx.wpt.length - 1; 0 <= i; --i ) {
       if ( ! gpx.wpt[i].overlay.overlayed() ) {
         tmp = doc.getElementsByTagName(MapsGPX.ELEMENTS.WPT)[i];
         tmp.parentNode.removeChild(tmp);
+      } else {
+        remaind = true;
       }
     }
     for ( i = gpx.rte.length - 1; 0 <= i; --i ) {
       if ( ! gpx.rte[i].overlay.overlayed() ) {
         tmp = doc.getElementsByTagName(MapsGPX.ELEMENTS.RTE)[i];
         tmp.parentNode.removeChild(tmp);
+      } else {
+        remaind = true;
       }
     }
     for ( i = gpx.trk.length - 1; 0 <= i; --i ) {
@@ -23,23 +27,32 @@ MapsGPX.plugin.Exporter = {
         if ( ! gpx.trk[i].overlay.overlayed() ) {
           tmp = doc.getElementsByTagName(MapsGPX.ELEMENTS.TRK)[i];
           tmp.parentNode.removeChild(tmp);
+        } else {
+          remaind = true;
         }
       } else {
         // each trkseg of trk[i]
-        remained = false;
+        remained_trk = false;
         for ( j = gpx.trk[i].trkseg.length - 1; 0 <= j; --j ) {
           if ( ! gpx.trk[i].trkseg[j].overlay.overlayed() ) {
             tmp = (doc.getElementsByTagName(MapsGPX.ELEMENTS.TRK)[i]).getElementsByTagName(MapsGPX.ELEMENTS.TRKSEG);
             tmp.parentNode.removeChild(tmp);
           } else {
-            remained = true;
+            remained_trk = true;
           }
         }
-        if ( ! remained ) {
+        if ( ! remained_trk ) {
           tmp = doc.getElementsByTagName(MapsGPX.ELEMENTS.TRK)[i];
           tmp.parentNode.removeChild(tmp);
+        } else {
+          remaind = true;
         }
       }
+    }
+
+    // return null if all elements are trimmed
+    if ( ! remaind ) {
+      return null;
     }
 
     // compute and update gpx.metadata.bounds
@@ -106,6 +119,10 @@ MapsGPX.plugin.Exporter = {
         gpx_is_a_jpeg, doc, desc, name, i, l, folder, prms, promises = [];
     folder = zip.folder(ctx.settings.folder);
     for ( i = 0, l = keys.length; i < l; ++i ) {
+      doc = MapsGPX.plugin.Exporter.trimDoc(MapsGPX.parseXML(ctx.docs[keys[i]]), this.getGPX(keys[i]));
+      if ( ! doc ) {
+        continue;
+      }
       gpx_is_a_jpeg = false;
       prms = []
       name = keys[i];
@@ -114,7 +131,6 @@ MapsGPX.plugin.Exporter = {
       } else {
         name = 'untitled.gpx';
       }
-      doc = MapsGPX.parseXML(ctx.docs[keys[i]]);
       if ( new RegExp('\.jpe?g$', 'i').test(name) ) {
         try {
           desc = doc.getElementsByTagName(MapsGPX.ELEMENTS.WPT).item(0).getElementsByTagName(MapsGPX.ELEMENTS.DESC).item(0).textContent;
@@ -145,13 +161,12 @@ MapsGPX.plugin.Exporter = {
         );
       } else {
         prms.unshift(doc);
-        prms.unshift(this.getGPX(keys[i]));
         prms.unshift(name);
         promises.push(
           Promise.all(prms).then(function(values) {
-            return [values[0], values[1], values[2]]; // name, gpx[key], doc
+            return [values[0], values[1]]; // name, doc
           }).then(function(v) {
-            this.file(v[0], new XMLSerializer().serializeToString(MapsGPX.plugin.Exporter.trimDoc(v[2], v[1])),
+            this.file(v[0], new XMLSerializer().serializeToString(v[1]),
               {compressionOptions: {level: 9}}
             );
           }.bind(folder))
