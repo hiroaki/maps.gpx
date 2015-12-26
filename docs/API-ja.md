@@ -33,6 +33,8 @@ style_loader    | String  | プラグインが自動でロードする CSS フ�
 
 クラス・メソッド   | 戻り値   | 説明
 -----------------|--------|------------------------------------------------------------
+isSafari( ) | boolean | 実行している環境の navigator.userAgent から、それが Safari のものであれば `true` を返します。
+merge( obj?:Hash ) | Hash | 第一引数に、以降すべての引数（それらは Hash ）をマージした Hash を返します。このマージは "浅い" です。
 parseQueryString( str:String )| Hash | *str* をクエリ・ストリングとして解釈し、キー・値のペアをハッシュとして返します。
 parseXML( str:String )       | document | *str* を XML としてパースし、 XML ドキュメント (DOM) として返します。
 createXMLHttpRequest( ) | XMLHttpRequest | `XMLHttpRequest` のインスタンスを生成して返します。

@@ -34,6 +34,8 @@ The argument `src:Object` is a URL string or an instance of Blob for GPX.
 
 class method                    | return value   | description
 --------------------------------|----------------|------------
+isSafari( ) | boolean | `true` if it detects Safari in `navigator.userAgent`
+merge( obj?:Hash ) | Hash | Returns the first argument which has merged following arguments. This merge is "shallow"
 parseQueryString( str:String )  | Hash           | Parse *str* as the query string, and generate pairs of key and value of Hash
 parseXML( str:String )          | document       | Parse *str* as XML, and return document DOM
 createXMLHttpRequest( )         | XMLHttpRequest | Create instance of `XMLHttpRequest`
