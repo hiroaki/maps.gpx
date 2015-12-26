@@ -3,19 +3,22 @@ MapsGPX.plugin.Exporter = {
     'jszip.js',
     'progressbar.js'
   ],
-  FolderDefault: 'msps-gpx',
   trimDoc: function(doc, gpx) {
-    var i, j, tmp, remained, bounds, metadata;
+    var i, j, tmp, remaind = false, remained_trk, bounds, metadata;
     for ( i = gpx.wpt.length - 1; 0 <= i; --i ) {
       if ( ! gpx.wpt[i].overlay.overlayed() ) {
         tmp = doc.getElementsByTagName(MapsGPX.ELEMENTS.WPT)[i];
         tmp.parentNode.removeChild(tmp);
+      } else {
+        remaind = true;
       }
     }
     for ( i = gpx.rte.length - 1; 0 <= i; --i ) {
       if ( ! gpx.rte[i].overlay.overlayed() ) {
         tmp = doc.getElementsByTagName(MapsGPX.ELEMENTS.RTE)[i];
         tmp.parentNode.removeChild(tmp);
+      } else {
+        remaind = true;
       }
     }
     for ( i = gpx.trk.length - 1; 0 <= i; --i ) {
@@ -24,23 +27,32 @@ MapsGPX.plugin.Exporter = {
         if ( ! gpx.trk[i].overlay.overlayed() ) {
           tmp = doc.getElementsByTagName(MapsGPX.ELEMENTS.TRK)[i];
           tmp.parentNode.removeChild(tmp);
+        } else {
+          remaind = true;
         }
       } else {
         // each trkseg of trk[i]
-        remained = false;
+        remained_trk = false;
         for ( j = gpx.trk[i].trkseg.length - 1; 0 <= j; --j ) {
           if ( ! gpx.trk[i].trkseg[j].overlay.overlayed() ) {
             tmp = (doc.getElementsByTagName(MapsGPX.ELEMENTS.TRK)[i]).getElementsByTagName(MapsGPX.ELEMENTS.TRKSEG);
             tmp.parentNode.removeChild(tmp);
           } else {
-            remained = true;
+            remained_trk = true;
           }
         }
-        if ( ! remained ) {
+        if ( ! remained_trk ) {
           tmp = doc.getElementsByTagName(MapsGPX.ELEMENTS.TRK)[i];
           tmp.parentNode.removeChild(tmp);
+        } else {
+          remaind = true;
         }
       }
+    }
+
+    // return null if all elements are trimmed
+    if ( ! remaind ) {
+      return null;
     }
 
     // compute and update gpx.metadata.bounds
@@ -101,12 +113,14 @@ MapsGPX.plugin.Exporter = {
       return false;
     }
   },
-  handler_zip_gpx: function(keys, binaryType) {
-    var ctx = this.context['Exporter'],
-        zip = new JSZip(),
-        gpx_is_a_jpeg, doc, desc, name, i, l, folder, prms, promises = [];
-    folder = zip.folder(ctx.folder);
+  handler_zip_gpx: function(keys, binaryType, params) {
+    var zip = new JSZip(), gpx_is_a_jpeg, doc, desc, name, i, l, folder, prms, promises = [];
+    folder = zip.folder(params.folder);
     for ( i = 0, l = keys.length; i < l; ++i ) {
+      doc = MapsGPX.plugin.Exporter.trimDoc(MapsGPX.parseXML(this.context['Exporter'].docs[keys[i]]), this.getGPX(keys[i]));
+      if ( ! doc ) {
+        continue;
+      }
       gpx_is_a_jpeg = false;
       prms = []
       name = keys[i];
@@ -115,7 +129,6 @@ MapsGPX.plugin.Exporter = {
       } else {
         name = 'untitled.gpx';
       }
-      doc = MapsGPX.parseXML(ctx.docs[keys[i]]);
       if ( new RegExp('\.jpe?g$', 'i').test(name) ) {
         try {
           desc = doc.getElementsByTagName(MapsGPX.ELEMENTS.WPT).item(0).getElementsByTagName(MapsGPX.ELEMENTS.DESC).item(0).textContent;
@@ -139,30 +152,37 @@ MapsGPX.plugin.Exporter = {
           Promise.all(prms).then(function(values) {
             return [values[0], values[1]]; // name, arraybuffer
           }).then(function(v) {
-            this.file(v[0], v[1], {binary: true, compressionOptions: {level: 9}});
+            this.file(v[0], v[1],
+              {compressionOptions: {level: 9}, binary: true}
+            );
           }.bind(folder))
         );
       } else {
         prms.unshift(doc);
-        prms.unshift(this.getGPX(keys[i]));
         prms.unshift(name);
         promises.push(
           Promise.all(prms).then(function(values) {
-            return [values[0], values[1], values[2]]; // name, gpx[key], doc
+            return [values[0], values[1]]; // name, doc
           }).then(function(v) {
-            this.file(v[0], new XMLSerializer().serializeToString(MapsGPX.plugin.Exporter.trimDoc(v[2], v[1])));
+            this.file(v[0], new XMLSerializer().serializeToString(v[1]),
+              {compressionOptions: {level: 9}}
+            );
           }.bind(folder))
         );
       }
     }
 
     return Promise.all(promises).then(function(values){
-      return {name: this.name, data: this.folder.generate({type: binaryType, compressionOptions: {level: 9}})};
-    }.bind({name: ctx.folder, folder: folder}));
+      this.params.validator.call(this.app, this.zip); // throw if invalid
+      return {
+        name: this.params.folder,
+        data: this.zip.generate({type: binaryType, compressionOptions: {level: 9}})
+      };
+    }.bind({app: this, zip: folder, params: params}));
   },
   createControl: function(icon) {
     return new MapsGPX.MapControl({
-        initial: new RegExp(icon).test("/") ? icon : [MapsGPX.plugin.Exporter.path, icon].join('/')
+        initial: new RegExp(icon).test('/') ? icon : [MapsGPX.plugin.Exporter.path, icon].join('/')
       },{
         position: 'TOP_RIGHT'
       });
@@ -211,11 +231,10 @@ MapsGPX.plugin.Exporter = {
     return ctrl;
   },
   exportToDesktop: function(params) {
-    var ctrl, is_safari = /Version\/[\d\.]+.*Safari/.test(navigator.userAgent);
-    params.icon = params.icon || 'ic_file_download_black_48dp.png';
-    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.icon),{strokeWidth: 20});
+    var ctrl, icon = params.icon || params.iconDownload;
+    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(icon),{strokeWidth: 20});
     ctrl.setMap(this.getMap());
-    if ( is_safari ) {
+    if ( MapsGPX.isSafari() ) {
       MapsGPX.plugin.Exporter._exportToDesktopSafari.call(this, ctrl, params);
     } else {
       MapsGPX.plugin.Exporter._exportToDesktopNotSafari.call(this, ctrl, params);
@@ -223,11 +242,10 @@ MapsGPX.plugin.Exporter = {
   },
   _exportToDesktopNotSafari: function(ctrl, params) {
     var zip_hander = function(zip) {
-      var obj = MapsGPX.resolveAsObjectURL(zip.data);
-      Promise.all([this, zip.name, obj]).then(function(values) {
-        var ctrl = values[0],
-            name = values[1],
-            url = values[2], 
+      Promise.all([this, zip.name, MapsGPX.resolveAsObjectURL(zip.data)]).then(function(values) {
+        var target  = values[0],
+            name    = values[1],
+            url     = values[2],
             anchor = document.createElement('a');
         anchor.setAttribute('href', url);
         anchor.setAttribute('download', name +'.zip');
@@ -235,21 +253,29 @@ MapsGPX.plugin.Exporter = {
         anchor = null;
         URL.revokeObjectURL(url);
         setTimeout(function() {
-          ctrl.hideProgress();
-        }.bind(ctrl), 2000);
-      })
-    }.bind(ctrl);
+          this.control.hideProgress();
+          this.params.onLoad.call(this, null, this.control);
+        }.bind(target), 2000);
+      });
+    }.bind({control: ctrl, params: params});
     google.maps.event.addDomListener(ctrl.getElement(), 'click', (function(ev) {
       if ( this.control.inProgress() ) {
         return false;
       }
       this.control.showProgress();
-      this.control.animate(1000, {duration: 600000, easing:'linear'});
+      this.control.animate(1000, {duration: 600000, easing: 'linear'});
       this.control.setText('zip');
       MapsGPX.plugin.Exporter.handler_zip_gpx.call(
-        this.app, this.app.getKeysOfGPX(), 'blob'
-      ).then(this.zip_hander);
-    }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
+        this.app,
+        this.app.getKeysOfGPX(),
+        'blob',
+        this.params
+      )
+      .then(this.zip_hander)
+      .catch(function(err) {
+        this.params.onInvalid.call(this, err, this.control);
+      }.bind(this));
+    }).bind({app: this, control: ctrl, zip_hander: zip_hander, params: params}));
   },
   _exportToDesktopSafari: function(ctrl, params) {
     var zip_hander = function(zip) {
@@ -259,62 +285,60 @@ MapsGPX.plugin.Exporter = {
       anchor.click();
       anchor = null;
       setTimeout(function() {
-        this.hideProgress();
+        this.control.hideProgress();
+        this.params.onLoad.call(this, null, this.control);
       }.bind(this), 2000);
-    }.bind(ctrl);
+    }.bind({control: ctrl, params: params});
     google.maps.event.addDomListener(ctrl.getElement(), 'click', (function(ev) {
       if ( this.control.inProgress() ) {
         return false;
       }
       this.control.showProgress();
-      this.control.animate(1000, {duration: 600000, easing:'linear'});
+      this.control.animate(1000, {duration: 600000, easing: 'linear'});
       this.control.setText('zip');
       MapsGPX.plugin.Exporter.handler_zip_gpx.call(
-        this.app, this.app.getKeysOfGPX(), 'base64'
-      ).then(this.zip_hander);
-    }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
+        this.app,
+        this.app.getKeysOfGPX(),
+        'base64',
+        this.params
+      )
+      .then(this.zip_hander)
+      .catch(function(err) {
+        this.params.onInvalid.call(this, err, this.control);
+      }.bind(this));
+    }).bind({app: this, control: ctrl, zip_hander: zip_hander, params: params}));
   },
   exportToURL: function(params) {
-    var ctrl, zip_hander;
-    params        = params        || {url: null};
-    params.name   = params.name   || 'files[]';
-    params.method = params.method || 'POST';
-    params.icon   = params.icon   || 'ic_file_upload_black_48dp.png';
-    params.onload = params.onload || function(evt) {
-      console.log(this);
-    };
-    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(params.icon), {strokeWidth: 5});
+    var ctrl, zip_hander, icon = params.icon || params.iconUpload;
+    ctrl = MapsGPX.plugin.Exporter.extendControl(MapsGPX.plugin.Exporter.createControl(icon), {strokeWidth: 5});
     ctrl.setMap(this.getMap());
-
     zip_hander = function(zip) {
-      var formdata = new FormData(),
-          xhr = new XMLHttpRequest();
+      var xhr = new XMLHttpRequest(),
+          formdata = new FormData();
       formdata.append(this.params.name, zip.data);
+      xhr.onprogress = function(evt){
+        this.params.onProgress.call(this, evt, this.control);
+      }.bind(this);
       xhr.onload = function(evt){
-        this.params.onload.call(this, evt);
+        this.params.onLoad.call(this, evt, this.control);
+      }.bind(this);
+      xhr.onerror = function(evt){
+        this.params.onError.call(this, evt, this.control);
+      }.bind(this);
+      xhr.onabort = function(evt){
+        this.params.onAbort.call(this, evt, this.control);
       }.bind(this);
       xhr.upload.onprogress = function(evt) {
-        var percentComplete;
-        if ( evt.lengthComputable ) {
-          percentComplete = evt.loaded / evt.total;
-          this.control.animateWithText(percentComplete, {duration: 800});
-        }
+        this.params.uploadOnProgress.call(this, evt, this.control);
       }.bind(this);
       xhr.upload.onload = function(evt) {
-        this.control.animateWithText(1,{duration: 800});
-        setTimeout(function() {
-          this.control.hideProgress();
-        }.bind(this), 2000);
+        this.params.uploadOnLoad.call(this, evt, this.control);
       }.bind(this);
       xhr.upload.onerror = function(evt) {
-        console.error(evt);
-        this.control.setText('!');
-        setTimeout(function() {
-          this.control.hideProgress();
-        }.bind(this), 2000);
+        this.params.uploadOnError.call(this, evt, this.control);
       }.bind(this);
       xhr.upload.onabort = function(evt) {
-        this.control.hideProgress();
+        this.params.uploadOnAbort.call(this, evt, this.control);
       }.bind(this);
       xhr.open(this.params.method, this.params.url);
       xhr.send(formdata);
@@ -326,43 +350,100 @@ MapsGPX.plugin.Exporter = {
       }
       this.control.showProgress();
       MapsGPX.plugin.Exporter.handler_zip_gpx.call(
-        this.app, this.app.getKeysOfGPX(), 'blob'
-      ).then(this.zip_hander);
-    }).bind({app: this, control: ctrl, zip_hander: zip_hander}));
+        this.app,
+        this.app.getKeysOfGPX(),
+        'blob',
+        this.params
+      )
+      .then(this.zip_hander)
+      .catch(function(err) {
+        this.params.onInvalid.call(this, err, this.control);
+      }.bind(this));
+    }).bind({app: this, control: ctrl, zip_hander: zip_hander, params: params}));
+  },
+  defaults: {
+    folder: 'maps-gpx',
+    iconDownload: 'ic_file_download_black_48dp.png',
+    iconUpload: 'ic_file_upload_black_48dp.png',
+    method: 'POST',
+    paramName: 'files[]',
+    url: null,
+    onProgress: function(evt, control) {
+      return;
+    },
+    onLoad: function(evt, control) {
+      var xhr = evt ? evt.target : null;
+      console.info(evt);
+    },
+    onError: function(evt, control) {
+      return;
+    },
+    onAbort: function(evt, control) {
+      return;
+    },
+    uploadOnProgress: function(evt, control) {
+      var percentComplete;
+      if ( evt.lengthComputable ) {
+        percentComplete = evt.loaded / evt.total;
+        control.animateWithText(percentComplete, {duration: 800});
+      }
+    },
+    uploadOnLoad: function(evt, control) {
+      control.animateWithText(1,{duration: 800});
+      setTimeout(function() {
+        this.hideProgress();
+      }.bind(control), 2000);
+    },
+    uploadOnError: function(evt, control) {
+      console.error(evt);
+      control.setText('!');
+      setTimeout(function() {
+        this.hideProgress();
+      }.bind(control), 2000);
+    },
+    uploadOnAbort: function(evt, control) {
+      control.hideProgress();
+    },
+    validator: function(zip) {
+      return true;
+    },
+    onInvalid: function(err, control) {
+      control.hideProgress();
+      console.error(err);
+    }
   },
   callback: function(params) {
-    var ctx, i, l, keyword, implement_destination;
+    var i, l, keyword, implement_destination, defaults = {}, dir, destParams,
+        destinations = [], sources = (params || {}).destinations || [{direction: 'DOWNLOAD'}]
+
+    // detect GLOBAL params
+    for( i = 0, l = sources.length; i < l; ++i ) {
+      dir = (sources[i].direction || 'null').toUpperCase();
+      if ( dir == 'GLOBAL' || dir == 'DEFAULT' || dir == 'DEFAULTS' ) {
+        defaults = sources[i];
+      } else {
+        destinations.push(sources[i]);
+      }
+    }
+    defaults = MapsGPX.merge({}, MapsGPX.plugin.Exporter.defaults, defaults);
+
     this.context['Exporter'] = {
-      docs: {},
-      folder: (params || {}).folder || MapsGPX.plugin.Exporter.FolderDefault,
-      destinations: (params || {}).destinations || [ {'DESKTOP':{}} ]
+      docs: {}
     };
-    ctx = this.context['Exporter'];
 
     this.register('onAddGPX', function(key, gpx_text) {
       this.context['Exporter']['docs'][key] = gpx_text;
     });
 
-    implement_destination = function(keyword, params) {
-      if ( keyword.toUpperCase() == 'DESKTOP' ) {
-        MapsGPX.plugin.Exporter.exportToDesktop.call(this, params);
-      } else if ( keyword.toUpperCase() == 'URL' ) {
-        MapsGPX.plugin.Exporter.exportToURL.call(this, params);
+    for( i = 0, l = destinations.length; i < l; ++i ) {
+      dir = destinations[i].direction || 'null';
+      destParams = MapsGPX.merge({}, defaults, destinations[i]);
+      if ( dir.toUpperCase() == 'DOWNLOAD' ) {
+        MapsGPX.plugin.Exporter.exportToDesktop.call(this, destParams);
+      } else if ( dir.toUpperCase() == 'UPLOAD' ) {
+        MapsGPX.plugin.Exporter.exportToURL.call(this, destParams);
       } else {
-        console.warn('The destination '+ keyword +' is not supported.');
-        return;
-      }
-    }.bind(this);
-
-    if ( ctx.destinations instanceof Array ) {
-      for( i = 0, l = ctx.destinations.length; i < l; ++i ) {
-        for ( keyword in ctx.destinations[i] ) {
-          implement_destination(keyword, ctx.destinations[i][keyword]);
-        }
-      }
-    } else {
-      for ( keyword in ctx.destinations[i] ) {
-        implement_destination(keyword, ctx.destinations[i][keyword]);
+        console.warn('The direction of destination '+ dir +' is not supported.');
       }
     }
   }
