@@ -1,6 +1,11 @@
 MapsGPX.plugin.FileClip = {
+  defaults: {
+    classUl: 'menu',
+    classLabel: 'menu-item',
+    classLi: null
+  },
   callback: function(params) {
-    var $ul;
+    var $ul, settings = MapsGPX.merge({}, MapsGPX.plugin.FileClip.defaults, params || {});
 
     if ( ! this.context['SidePanelControl'] ) {
       console.log('The plugin "FileClip" requires "SidePanelControl"');
@@ -14,6 +19,9 @@ MapsGPX.plugin.FileClip = {
       this.context['SidePanelControl'].getElementDrawer().appendChild(this.context['FileClip']);
       $ul = document.createElement('ul');
       this.context['FileClip'].appendChild($ul);
+      if ( settings.classUl ) {
+        $ul.className = settings.classUl;
+      }
     }
 
     this.addFilter('FileClip', 'onAppearOverlayShow', (function(overlay, key) {
@@ -52,9 +60,15 @@ MapsGPX.plugin.FileClip = {
       $label = document.createElement('label');
       $label.appendChild($cb);
       $label.appendChild(document.createTextNode(name));
+      if ( settings.classLabel ) {
+        $label.className = settings.classLabel;
+      }
 
       $li = document.createElement('li');
       $li.appendChild($label);
+      if ( settings.classLi ) {
+        $li.className = settings.classLi;
+      }
 
       this.context['FileClip'].getElementsByTagName('ul').item(0).appendChild($li);
     });
