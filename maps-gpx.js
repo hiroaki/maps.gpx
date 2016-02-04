@@ -1,6 +1,6 @@
 /*
  * maps.gpx
- *   Copyright 2009-2015 WATANABE Hiroaki
+ *   Copyright 2009-2016 WATANABE Hiroaki
  *   Released under the MIT license
  */
 
@@ -10,7 +10,7 @@ function MapsGPX() {
 }
 
 // constants, do not change these value
-MapsGPX.VERSION = '4.3.0';
+MapsGPX.VERSION = '4.3.1'; // NOT RELEASED YET
 MapsGPX.EXTENSIONS = [
   'DescImage',
   'DrawerCSS',
@@ -119,7 +119,11 @@ MapsGPX.parseQueryString = function(/* usually 'location.search' */qstring) {
     for ( i = 0, l = pairs.length; i < l; ++i) {
       pair = pairs[i].split('=');
       if ( pair[0] ) {
-        params[pair[0]] = decodeURIComponent(pair[1]);
+        if ( pair[1] ) {
+          params[pair[0].trim()] = decodeURIComponent(pair[1].trim());
+        } else {
+          params[pair[0].trim()] = '';
+        }
       }
     }
   }
